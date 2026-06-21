@@ -1,0 +1,150 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import { useUserStore } from '@/stores/user'
+
+const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录' }
+  },
+  {
+    path: '/',
+    component: AdminLayout,
+    redirect: '/dashboard',
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/Dashboard.vue'),
+        meta: { title: '仪表盘', icon: 'dashboard' }
+      },
+      {
+        path: 'admins',
+        name: 'AdminManage',
+        component: () => import('@/views/AdminUserManage.vue'),
+        meta: { title: '管理员管理', icon: 'shield' }
+      },
+      {
+        path: 'users',
+        name: 'UserManage',
+        component: () => import('@/views/UserManage.vue'),
+        meta: { title: '用户管理', icon: 'users' }
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('@/views/Settings.vue'),
+        meta: { title: '系统设置', icon: 'settings' }
+      },
+      {
+        path: 'points',
+        name: 'Points',
+        component: () => import('@/views/Points.vue'),
+        meta: { title: '用户积分' }
+      },
+      {
+        path: 'point-logs',
+        name: 'PointLogs',
+        component: () => import('@/views/PointLogs.vue'),
+        meta: { title: '积分流水' }
+      },
+      {
+        path: 'invites',
+        name: 'Invites',
+        component: () => import('@/views/Invite.vue'),
+        meta: { title: '邀请管理', icon: 'users' }
+      },
+      {
+        path: 'tasks',
+        name: 'TaskManage',
+        component: () => import('@/views/TaskManage.vue'),
+        meta: { title: '任务管理' }
+      },
+      {
+        path: 'task-orders',
+        name: 'TaskOrders',
+        component: () => import('@/views/TaskOrders.vue'),
+        meta: { title: '审核订单' }
+      },
+      {
+        path: 'task-pay-logs',
+        name: 'TaskPayLogs',
+        component: () => import('@/views/TaskPayLogs.vue'),
+        meta: { title: '打款日志' }
+      },
+      {
+        path: 'members',
+        name: 'MemberManage',
+        component: () => import('@/views/MemberManage.vue'),
+        meta: { title: '套餐管理' }
+      },
+      {
+        path: 'member-users',
+        name: 'MemberUsers',
+        component: () => import('@/views/MemberUsers.vue'),
+        meta: { title: '用户会员' }
+      },
+      {
+        path: 'loupans',
+        name: 'LoupanManage',
+        component: () => import('@/views/LoupanManage.vue'),
+        meta: { title: '楼盘管理' }
+      },
+      {
+        path: 'tupai-lands',
+        name: 'TupaiLandManage',
+        component: () => import('@/views/LoupanTupaiLandManage.vue'),
+        meta: { title: '土拍地块' }
+      },
+      {
+        path: 'huxings',
+        name: 'HuxingManage',
+        component: () => import('@/views/LoupanHuxingManage.vue'),
+        meta: { title: '楼盘户型' }
+      },
+      {
+        path: 'medias',
+        name: 'MediaManage',
+        component: () => import('@/views/LoupanMediaManage.vue'),
+        meta: { title: '媒体素材' }
+      },
+      {
+        path: 'yfyj',
+        name: 'YfyjManage',
+        component: () => import('@/views/LoupanYfyjManage.vue'),
+        meta: { title: '一房一价' }
+      }
+    ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: { title: '404' }
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory('/admin/'),
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
+})
+
+router.beforeEach((to, from, next) => {
+  document.title = to.meta.title ? `${to.meta.title} - fang123 Admin` : 'fang123 Admin'
+
+  // 鉴权：需要登录的页面检查 token
+  const userStore = useUserStore()
+  if (to.path !== '/login' && !userStore.isLoggedIn) {
+    next('/login')
+  } else {
+    next()
+  }
+})
+
+export default router
