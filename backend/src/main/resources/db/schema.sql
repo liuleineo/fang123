@@ -1,7 +1,7 @@
 -- =====================================================
 -- Fang123 初始建表语句
 -- =====================================================
-CREATE DATABASE IF NOT EXISTS fang123 DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- CREATE DATABASE IF NOT EXISTS fang123 DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- =====================================================
 -- 管理后台系统表 (admin 前缀，用于后台管理系统认证/授权)

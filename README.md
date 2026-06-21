@@ -10,7 +10,7 @@
 |------|------|
 | **后端** | Java 21, Spring Boot 3.4.1, MyBatis-Plus 3.5.7, Spring Security, JWT, MySQL 8.0 |
 | **管理端 (admin)** | Vue 3, Vite, TDesign Vue Next, Quill 富文本编辑器, Lucide Icons |
-| **Web 前端 (web)** | Vue 3, Vite, TDesign Vue Next, Lucide Icons |
+| **Web 前端 (web)** | Vue 3, Vite, TDesign Vue Next, Lucide Icons, 高德地图 JS API v2.0 |
 | **微信小程序** | 原生微信小程序（任务中心/会员/个人中心） |
 | **存储** | 腾讯云 COS 对象存储 |
 | **支付** | 微信支付 API v3（企业付款到零钱 + H5支付） |
@@ -94,18 +94,35 @@ cd web && npm install && npm run dev
 | 打款日志 | `/task-pay-logs` | 微信支付打款流水 |
 | 套餐管理 | `/members` | 会员套餐 CRUD |
 | 用户会员 | `/member-users` | 用户会员状态 + 到期时间 |
-| 楼盘管理 | `/loupans` | 楼盘主信息 CRUD（33字段，tabs分组） |
+| 楼盘管理 | `/loupans` | 楼盘主信息 CRUD（封面图+经纬度+36字段，tabs分组） |
 | 土拍地块 | `/tupai-lands` | 土拍地块信息管理 |
 | 楼盘户型 | `/huxings` | 户型信息管理 |
-| 媒体素材 | `/medias` | 图片/视频/VR素材管理 |
+| 媒体素材 | `/medias` | 图片/视频/VR素材管理（支持上传到COS） |
 | 一房一价 | `/yfyj` | 房源备案价/销售价管理 |
 | 系统设置 | `/settings` | sys_config 动态配置 |
 
 ### Web 前端
-- 首页任务展示 + 导航（任务中心/会员中心/个人中心/我的任务）
-- 任务中心（领取→查看详情→提交截图+订单号→审核状态→提现）
-- 会员中心（购买套餐 → 微信 H5 支付）
-- 个人中心（资料编辑、头像上传、地址管理、积分、邀请、绑定微信）
+- 楼盘搜索与筛选（行政区/板块/类型/装修）
+- 楼盘列表卡片展示（封面图+状态标签+面积/价格）
+- 楼盘详情页（tabs：基本信息/建筑指标/开发信息/车位/配套设施）
+- 户型展示（面积/居室/产品类型/单价/样板间标记）
+- 楼盘图库（实景图/样板间/户型图/航拍/VR分类展示）
+- **地图找房**：高德地图 JS API，标记有坐标的楼盘，支持筛选联动
+- **ID 混淆**：防遍历，URL 中 ID 自动编码为不可预测字符串
+
+| 路由 | 页面 | 说明 |
+|------|------|------|
+| `/` | 首页 | 楼盘搜索+筛选+列表 |
+| `/loupan/:encodedId` | 楼盘详情 | tabs 展示完整信息+户型+图库 |
+| `/map` | 地图找房 | 高德地图+左侧筛选面板 |
+| `/login` | 登录 | 手机号登录 |
+| `/register` | 注册 | 手机号注册 |
+| `/profile` | 个人中心 | 资料编辑、头像上传、地址管理（需登录） |
+| `/tasks` | 任务中心 | 任务列表 |
+| `/tasks/:id` | 任务详情 | 任务详情+领取（需登录） |
+| `/my-tasks` | 我的任务 | 已领任务订单（需登录） |
+| `/member` | 会员中心 | 套餐购买（需登录） |
+| `/*` | 404 | 未找到页面 |
 
 ### 微信小程序
 | 标签 | 功能 |
@@ -137,10 +154,13 @@ cd web && npm install && npm run dev
 
 ### 房产模块
 - 土拍地块管理（宗地编号/竞得方/成交价/楼面价/溢价率）
-- 楼盘主信息管理（33字段，含销售/建筑/开发/配套信息）
+- 楼盘主信息管理（封面图+经纬度+36字段，含销售/建筑/开发/配套信息）
 - 楼盘户型管理（面积/居室/产品类型/单价/样板间）
-- 媒体素材管理（实景图/样板间/户型图/航拍/短视频/VR）
+- 媒体素材管理（图片/视频/VR，支持上传到腾讯云 COS）
 - 一房一价管理（楼栋-楼层-房号/备案价/销售价/房源状态）
+- **公开 API**：`/api/public/loupans` 无需登录，支持搜索/筛选/详情/户型/媒体
+- **ID 混淆**：公开 URL 中楼盘 ID 自动编码（XOR + Base64），防止遍历
+- **地图找房**：高德地图展示楼盘位置标记，点击弹出信息窗
 
 ### 微信支付
 - 企业付款到零钱（任务提现）
@@ -254,8 +274,15 @@ cd web && npm install && npm run dev
 | 创建/更新/删除 | POST/PUT/DELETE | `/api/admin/huxings[/{id}]` | CRUD |
 | 媒体列表 | GET | `/api/admin/medias` | 分页+搜索+按楼盘过滤 |
 | 创建/更新/删除 | POST/PUT/DELETE | `/api/admin/medias[/{id}]` | CRUD |
+| 上传素材 | POST | `/api/admin/medias/upload` | 上传图片/视频到 COS |
 | 一房一价列表 | GET | `/api/admin/yfyj` | 分页+搜索+按楼盘过滤 |
 | 创建/更新/删除 | POST/PUT/DELETE | `/api/admin/yfyj[/{id}]` | CRUD |
+| **房产公开 API** | | | |
+| 楼盘列表 | GET | `/api/public/loupans` | 分页+搜索+筛选（无需登录，返回 encodedId） |
+| 楼盘详情 | GET | `/api/public/loupans/{encodedId}` | 单条 |
+| 楼盘户型 | GET | `/api/public/loupans/{encodedId}/huxings` | 户型列表 |
+| 楼盘素材 | GET | `/api/public/loupans/{encodedId}/medias` | 媒体列表 |
+| 筛选选项 | GET | `/api/public/loupan-filters` | 行政区/板块列表 |
 | **微信回调** | | | |
 | 支付回调 | POST | `/api/public/wechat-pay/callback` | 微信通知 |
 
@@ -384,7 +411,7 @@ cd weixin-mini
 | 表名 | 说明 |
 |------|------|
 | `sys_config` | 系统配置（key-value） |
-| `loupan` | 楼盘主信息表（名称/区/板块/户型面积/均价/销售状态/建筑指标/开发信息/配套设施等33个字段） |
+| `loupan` | 楼盘主信息表（封面图+经纬度+名称/区/板块/均价/销售状态/建筑指标/开发信息/配套设施等36个字段） |
 | `loupan_tupai_land` | 土拍地块表（宗地编号/竞得方/成交价/楼面价/溢价率/关联楼盘） |
 | `loupan_huxing` | 楼盘户型表（面积/居室/产品类型/单价/总价/样板间/关联楼盘） |
 | `loupan_media` | 媒体素材表（图片/视频/VR/关联楼盘和户型） |
