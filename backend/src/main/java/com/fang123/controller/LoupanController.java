@@ -3,17 +3,21 @@ package com.fang123.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fang123.common.Result;
+import com.fang123.dto.AiParseResult;
 import com.fang123.entity.Loupan;
+import com.fang123.service.AiParseService;
 import com.fang123.service.LoupanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
 public class LoupanController {
 
     private final LoupanService loupanService;
+    private final AiParseService aiParseService;
 
     @GetMapping("/api/admin/loupans")
     public Result<Page<Loupan>> list(
@@ -57,5 +61,18 @@ public class LoupanController {
     public Result<Void> delete(@PathVariable Long id) {
         loupanService.removeById(id);
         return Result.success();
+    }
+
+    /** AI 解析楼盘资料图片，返回结构化字段 */
+    @PostMapping("/api/admin/loupans/ai-parse")
+    public Result<AiParseResult> aiParse(@RequestParam("files") MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            return Result.badRequest("请至少上传一张图片");
+        }
+        try {
+            return Result.success("解析完成", aiParseService.parse(files));
+        } catch (Exception e) {
+            return Result.error(500, "AI解析失败：" + e.getMessage());
+        }
     }
 }

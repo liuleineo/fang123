@@ -6,10 +6,10 @@
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-2.5 no-underline">
           <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0052D9] to-[#618DFF] flex items-center justify-center text-white font-bold text-base">
-            N
+            杭
           </div>
           <span class="text-xl font-semibold text-[var(--color-text-primary)]">
-            fang123
+            杭房一二三 
           </span>
         </router-link>
 
@@ -160,7 +160,7 @@
         <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded bg-gradient-to-br from-[#0052D9] to-[#618DFF] flex items-center justify-center text-white text-xs font-bold">N</div>
-            <span class="text-xs text-white/40">fang123 - 找到你的理想家园</span>
+            <span class="text-xs text-white/40">hangfang123.com 杭房一二三 - 找到你的理想家园</span>
           </div>
           <span class="text-xs text-white/30">浙ICP备2021037366号-2</span>
         </div>
