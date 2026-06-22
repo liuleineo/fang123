@@ -162,7 +162,7 @@
             <div class="w-6 h-6 rounded bg-gradient-to-br from-[#0052D9] to-[#618DFF] flex items-center justify-center text-white text-xs font-bold">N</div>
             <span class="text-xs text-white/40">fang123 - 找到你的理想家园</span>
           </div>
-          <span class="text-xs text-white/30">浙ICP备2021037366号-1</span>
+          <span class="text-xs text-white/30">浙ICP备2021037366号-2</span>
         </div>
       </div>
     </footer>
