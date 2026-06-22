@@ -7,6 +7,7 @@ import com.fang123.dto.RegisterRequest;
 import com.fang123.dto.UserInfoVO;
 import com.fang123.entity.UserInfo;
 import com.fang123.entity.UserWechat;
+import com.fang123.config.AppProperties;
 import com.fang123.service.*;
 import com.fang123.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ public class WechatAuthController {
     private final UserInfoService userInfoService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final AppProperties appProperties;
 
     /** 获取微信授权URL */
     @GetMapping("/url")
@@ -185,7 +187,7 @@ public class WechatAuthController {
 
             // 移动端流程 → 直接把code给前端，由前端调用 /api/auth/wechat/login 换token
             String target = "login".equals(state) ? "/login" : "/profile";
-            response.sendRedirect("https://niurouzhou.com" + target
+            response.sendRedirect(appProperties.getDomain() + target
                 + "?code=" + code + "&state=" + state);
         } catch (Exception e) {
             log.error("微信回调处理失败", e);
