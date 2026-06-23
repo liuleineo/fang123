@@ -75,7 +75,7 @@ import { Search, Map, Building2, MapPin, AlertCircle } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 // ====== 高德地图 Key（在此处替换为你的 Key） ======
-const AMAP_KEY = ''
+const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
 const keyword = ref('')
 const filterDistrict = ref('')
