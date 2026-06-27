@@ -192,23 +192,28 @@
               <div v-if="huxingLoading" class="text-center py-10"><t-loading /></div>
               <div v-else-if="!huxings.length" class="text-center py-10 text-[var(--color-text-tertiary)]">暂无户型信息</div>
               <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div v-for="hx in huxings" :key="hx.id" class="border border-gray-100 rounded-xl p-5 hover:shadow-md transition-all">
-                  <div class="flex items-start justify-between mb-3">
-                    <h4 class="font-bold text-[var(--color-text-primary)]">{{ hx.huxingName }}</h4>
-                    <span v-if="hx.isShowHouse" class="px-2 py-0.5 text-xs rounded bg-green-50 text-green-600 border border-green-100">有样板间</span>
+                <div v-for="hx in huxings" :key="hx.id" class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-all">
+                  <div v-if="hx.huxingImage" class="aspect-[4/3] bg-gray-50">
+                    <t-image :src="hx.huxingImage" fit="cover" class="w-full h-full" />
                   </div>
-                  <p class="text-2xl font-bold text-[var(--color-primary)] mb-1">{{ hx.area }}<span class="text-sm font-normal text-[var(--color-text-tertiary)]">㎡</span></p>
-                  <p class="text-sm text-[var(--color-text-secondary)] mb-3">{{ hx.roomNum }}室{{ hx.hallNum }}厅{{ hx.toiletNum }}卫
-                    <span v-if="hx.balconyNum">· {{ hx.balconyNum }}阳台</span>
-                    <span v-if="hx.orientation">· {{ hx.orientation }}</span>
-                  </p>
-                  <div class="flex flex-wrap gap-1.5 text-xs">
-                    <span class="px-2 py-0.5 rounded bg-blue-50 text-[var(--color-primary)]">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
-                    <span v-if="hx.unitPrice" class="px-2 py-0.5 rounded bg-gray-50 text-[var(--color-text-secondary)]">{{ hx.unitPrice }}元/㎡</span>
-                    <span v-if="hx.totalPriceStart" class="px-2 py-0.5 rounded bg-orange-50 text-orange-600">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
-                  </div>
-                  <div v-if="hx.tag" class="mt-3 flex flex-wrap gap-1">
-                    <span v-for="t in hx.tag.split(',')" :key="t" class="px-2 py-0.5 text-xs rounded-full bg-gray-50 text-[var(--color-text-tertiary)]">{{ t }}</span>
+                  <div class="p-5">
+                    <div class="flex items-start justify-between mb-3">
+                      <h4 class="font-bold text-[var(--color-text-primary)]">{{ hx.huxingName }}</h4>
+                      <span v-if="hx.isShowHouse" class="px-2 py-0.5 text-xs rounded bg-green-50 text-green-600 border border-green-100">有样板间</span>
+                    </div>
+                    <p class="text-2xl font-bold text-[var(--color-primary)] mb-1">{{ hx.area }}<span class="text-sm font-normal text-[var(--color-text-tertiary)]">㎡</span></p>
+                    <p class="text-sm text-[var(--color-text-secondary)] mb-3">{{ hx.roomNum }}室{{ hx.hallNum }}厅{{ hx.toiletNum }}卫
+                      <span v-if="hx.balconyNum">· {{ hx.balconyNum }}阳台</span>
+                      <span v-if="hx.orientation">· {{ hx.orientation }}</span>
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 text-xs">
+                      <span class="px-2 py-0.5 rounded bg-blue-50 text-[var(--color-primary)]">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
+                      <span v-if="hx.unitPrice" class="px-2 py-0.5 rounded bg-gray-50 text-[var(--color-text-secondary)]">{{ hx.unitPrice }}元/㎡</span>
+                      <span v-if="hx.totalPriceStart" class="px-2 py-0.5 rounded bg-orange-50 text-orange-600">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
+                    </div>
+                    <div v-if="hx.tag" class="mt-3 flex flex-wrap gap-1">
+                      <span v-for="t in hx.tag.split(',')" :key="t" class="px-2 py-0.5 text-xs rounded-full bg-gray-50 text-[var(--color-text-tertiary)]">{{ t }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -225,14 +230,22 @@
                   <h4 class="text-base font-bold text-[var(--color-text-primary)] mb-3">{{ group.label }}（{{ group.items.length }}）</h4>
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     <div v-for="m in group.items" :key="m.id" class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
-                      <t-image v-if="m.mediaType!==6" :src="m.mediaUrl" fit="cover" class="w-full h-full" />
+                      <t-image v-if="m.mediaType!==5&&m.mediaType!==6" :src="m.mediaUrl" fit="cover" class="w-full h-full" />
                       <div v-else class="w-full h-full flex items-center justify-center bg-gray-200 text-sm text-[var(--color-text-tertiary)]">
-                        VR全景
+                        {{ m.mediaType===6?'VR全景':'短视频' }}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </t-tab-panel>
+
+          <!-- 楼盘位置 -->
+          <t-tab-panel value="map" label="楼盘位置">
+            <div class="p-6">
+              <div v-if="loupan.longitude && loupan.latitude" id="amap-container" class="w-full h-64 sm:h-80 lg:h-96 rounded-xl bg-gray-100"></div>
+              <div v-else class="text-center py-10 text-[var(--color-text-tertiary)]">暂无位置信息</div>
             </div>
           </t-tab-panel>
         </t-tabs>
@@ -247,7 +260,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Info, Building2, Shield, Car, Sparkles, MapPin, Phone, Heart } from 'lucide-vue-next'
 import { MessagePlugin } from 'tdesign-vue-next'
@@ -260,9 +273,10 @@ const medias = ref([])
 const huxingLoading = ref(false)
 const mediaLoading = ref(false)
 const activeTab = ref('info')
+let amapInstance = null
 
 const mediaGroups = computed(() => {
-  const types = { 1: '实景图', 2: '样板间', 3: '户型图', 4: '航拍', 5: '短视频', 6: 'VR全景' }
+  const types = { 1: '实景图', 2: '样板间', 3: '户型图', 4: '航拍', 5: '短视频', 6: 'VR全景', 7: '设计图', 8: '区位图', 9: '效果图', 10: '施工进度', 11: '周边配套' }
   const map = {}
   medias.value.forEach(m => {
     const key = types[m.mediaType] || '其他'
@@ -309,12 +323,35 @@ async function fetchMedias() {
   } catch {} finally { mediaLoading.value = false }
 }
 
-function onTabChange(tab) {
+watch(activeTab, (tab) => {
   if (tab === 'huxing') fetchHuxings()
   if (tab === 'media') fetchMedias()
+  if (tab === 'map') initMap()
+})
+
+// 高德地图初始化
+async function initMap() {
+  if (amapInstance || !loupan.value?.longitude || !loupan.value?.latitude) return
+  await nextTick()
+  const el = document.getElementById('amap-container')
+  if (!el || typeof AMap === 'undefined') {
+    // AMap 脚本未加载完成，延迟重试
+    setTimeout(initMap, 500)
+    return
+  }
+  amapInstance = new AMap.Map('amap-container', {
+    zoom: 15,
+    center: [loupan.value.longitude, loupan.value.latitude],
+    viewMode: '2D',
+    resizeEnable: true
+  })
+  const marker = new AMap.Marker({
+    position: [loupan.value.longitude, loupan.value.latitude],
+    title: loupan.value.projectName
+  })
+  amapInstance.add(marker)
 }
 
-watch(activeTab, onTabChange)
 onMounted(fetchDetail)
 </script>
 

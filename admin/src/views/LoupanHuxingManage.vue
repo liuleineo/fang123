@@ -15,6 +15,9 @@
         <t-button variant="outline" @click="keyword='';filterLoupanId=null;search()">重置</t-button>
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
+        <template #huxingImage="{ row }">
+          <img v-if="row.huxingImage" :src="row.huxingImage" class="w-12 h-12 object-cover rounded border" @error="e => e.target.style.display='none'" />
+        </template>
         <template #floorType="{ row }">
           <t-tag size="small">{{ ['','小高层','洋房','叠墅','排屋'][row.floorType]||'未知' }}</t-tag>
         </template>
@@ -33,6 +36,12 @@
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="户型名称"><t-input v-model="form.huxingName" /></t-form-item>
+        <t-form-item label="户型图">
+          <div class="flex flex-col gap-2 w-full">
+            <t-upload v-model="huxingFiles" :request-method="uploadHuxingImage" :max="1" accept="image/*" theme="image" @success="onHuxingSuccess" @fail="onHuxingFail" @remove="onHuxingRemove" />
+            <t-input v-model="form.huxingImage" placeholder="上传后自动填入，也可手动输入URL" />
+          </div>
+        </t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="建筑面积(㎡)"><t-input-number v-model="form.area" :min="0" /></t-form-item>
           <t-form-item label="套内面积(㎡)"><t-input-number v-model="form.insideArea" :min="0" /></t-form-item>
@@ -73,13 +82,15 @@ const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); 
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0 })
+const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0,huxingImage:'' })
 const form = reactive(initForm())
+const huxingFiles = ref([])
 
 const cols = [
   {colKey:'id',title:'ID',width:60},
   {colKey:'loupanId',title:'楼盘ID',width:70},
   {colKey:'huxingName',title:'户型名称',width:160},
+  {colKey:'huxingImage',title:'户型图',width:80},
   {colKey:'area',title:'面积(㎡)',width:80},
   {colKey:'roomNum',title:'居室',width:80},
   {colKey:'orientation',title:'朝向',width:70},
@@ -99,8 +110,18 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];Object.assign(form,initForm());drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];Object.assign(form,row);drawer.value=true}
+
+async function uploadHuxingImage(file) {
+  const fd = new FormData()
+  fd.append('file', file.raw)
+  const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return { status: 'success', response: { url: res.url } }
+}
+function onHuxingSuccess({ file }) { form.huxingImage = file.response?.url || ''; MessagePlugin.success('上传成功'); huxingFiles.value = [] }
+function onHuxingFail() { MessagePlugin.error('上传失败'); huxingFiles.value = [] }
+function onHuxingRemove() { huxingFiles.value = [] }
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/huxings/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/huxings',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}

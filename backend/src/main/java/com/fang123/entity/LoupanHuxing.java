@@ -27,6 +27,8 @@ public class LoupanHuxing implements Serializable {
     private Integer isShowHouse;
     private String tag;
     private Integer sort;
+    /** 户型图URL */
+    private String huxingImage;
     @TableLogic(value = "0", delval = "1")
     @TableField("deleted")
     private Integer deleted;

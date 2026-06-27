@@ -16,11 +16,11 @@
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
         <template #mediaUrl="{ row }">
-          <t-image v-if="row.mediaType<5" :src="row.mediaUrl" fit="cover" class="w-16 h-12 rounded border" />
+          <t-image v-if="row.mediaType!==5&&row.mediaType!==6" :src="row.mediaUrl" fit="cover" class="w-16 h-12 rounded border" />
           <a v-else :href="row.mediaUrl" target="_blank" class="text-[var(--color-primary)] text-sm">查看</a>
         </template>
         <template #mediaType="{ row }">
-          <t-tag size="small">{{ ['','实景图','样板间','户型图','航拍','短视频','VR'][row.mediaType]||'未知' }}</t-tag>
+          <t-tag size="small">{{ ['','实景图','样板间','户型图','航拍','短视频','VR','设计图','区位图','效果图','施工进度','周边配套'][row.mediaType]||'未知' }}</t-tag>
         </template>
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
         <template #operation="{ row }">
@@ -37,7 +37,7 @@
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="关联户型ID(可选)"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <t-form-item label="素材类型">
-          <t-select v-model="form.mediaType" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6}]" />
+          <t-select v-model="form.mediaType" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
         </t-form-item>
         <t-form-item label="素材URL">
           <div class="flex flex-col gap-2 w-full">

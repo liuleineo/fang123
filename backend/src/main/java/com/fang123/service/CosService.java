@@ -30,6 +30,9 @@ public class CosService {
 
     @PostConstruct
     public void init() {
+        log.info("COS 凭证检查: secretId 前缀={}, region={}", 
+            cosProperties.getSecretId() != null ? cosProperties.getSecretId().substring(0, Math.min(8, cosProperties.getSecretId().length())) + "..." : "NULL",
+            cosProperties.getRegion());
         COSCredentials cred = new BasicCOSCredentials(cosProperties.getSecretId(), cosProperties.getSecretKey());
         ClientConfig clientConfig = new ClientConfig(new Region(cosProperties.getRegion()));
         this.cosClient = new COSClient(cred, clientConfig);
