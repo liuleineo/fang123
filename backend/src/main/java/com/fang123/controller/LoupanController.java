@@ -29,7 +29,8 @@ public class LoupanController {
             w.like(Loupan::getProjectName, keyword)
              .or().like(Loupan::getDistrict, keyword)
              .or().like(Loupan::getPlate, keyword)
-             .or().like(Loupan::getProjectCompany, keyword);
+             .or().like(Loupan::getProjectCompany, keyword)
+             .or().like(Loupan::getLandNo, keyword);
         }
         w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
         return Result.success(loupanService.page(new Page<>(page, size), w));

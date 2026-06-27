@@ -10,7 +10,7 @@
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div class="flex gap-3 items-center p-4 border-b border-gray-50">
-        <t-input v-model="keyword" placeholder="搜索楼盘名称/行政区/板块/开发商" clearable class="w-[260px]" @enter="search" @clear="search">
+        <t-input v-model="keyword" placeholder="搜索楼盘名称/行政区/板块/开发商/宗地编号" clearable class="w-[280px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
