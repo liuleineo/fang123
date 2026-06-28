@@ -177,6 +177,8 @@ function addMarkers() {
               <h4 style="margin:0 0 4px;font-size:14px;font-weight:bold">${lp.projectName}</h4>
               <p style="margin:0;font-size:12px;color:#86909C">${lp.district}·${lp.plate||''} ${typeStr}</p>
               <p style="margin:2px 0;font-size:13px;color:#E34D59;font-weight:bold">${priceStr}</p>
+              <p style="margin:0;font-size:12px;color:#86909C">${lp.areaMin && lp.areaMax ? `面积范围：${lp.areaMin}㎡-${lp.areaMax}㎡` : ''}</p>
+
               <a href="/loupan/${lp.encodedId}" style="font-size:12px;color:#0052D9;text-decoration:none">查看详情 →</a>
             </div>
           </div>

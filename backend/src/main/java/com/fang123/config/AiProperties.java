@@ -12,5 +12,4 @@ public class AiProperties {
     private String secretId;
     private String secretKey;
     private String region = "ap-guangzhou";
-    private String hunyuanModel = "hunyuan-turbo";
 }

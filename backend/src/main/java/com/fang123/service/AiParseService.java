@@ -3,27 +3,24 @@ package com.fang123.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fang123.config.AiProperties;
+import com.fang123.config.TokenHubProperties;
 import com.fang123.dto.AiParseResult;
 import com.fang123.dto.AiParseResult.ParsedFields;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
-import com.tencentcloudapi.hunyuan.v20230901.HunyuanClient;
-import com.tencentcloudapi.hunyuan.v20230901.models.ChatCompletionsRequest;
-import com.tencentcloudapi.hunyuan.v20230901.models.ChatCompletionsResponse;
-import com.tencentcloudapi.hunyuan.v20230901.models.Message;
 import com.tencentcloudapi.ocr.v20181119.OcrClient;
 import com.tencentcloudapi.ocr.v20181119.models.GeneralBasicOCRRequest;
 import com.tencentcloudapi.ocr.v20181119.models.GeneralBasicOCRResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -31,8 +28,10 @@ import java.util.List;
 public class AiParseService {
 
     private final AiProperties aiProperties;
+    private final TokenHubProperties tokenHubProperties;
     private final CosService cosService;
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     /** AI 解析提示词 */
     private static final String PARSE_PROMPT = """
@@ -102,7 +101,7 @@ public class AiParseService {
             """;
 
     /**
-     * 上传图片到 COS，调用 OCR 识别文字，调用混元大模型解析楼盘字段
+     * 上传图片到 COS，调用 OCR 识别文字，调用 TokenHub 大模型解析楼盘字段
      */
     public AiParseResult parse(MultipartFile[] files) {
         if (files == null || files.length == 0) {
@@ -112,15 +111,12 @@ public class AiParseService {
         List<String> imageUrls = new ArrayList<>();
         StringBuilder ocrTextBuilder = new StringBuilder();
 
-        // 逐张处理：读字节 → COS上传 → base64 OCR
         for (int i = 0; i < files.length; i++) {
             MultipartFile file = files[i];
             try {
-                // 先读取文件字节（用于 OCR），再上传 COS（用于展示）
                 byte[] imageBytes = file.getBytes();
                 String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
 
-                // 上传 COS 获取展示 URL
                 try {
                     String url = cosService.uploadFile(file, "ai-loupan");
                     imageUrls.add(url);
@@ -130,7 +126,6 @@ public class AiParseService {
                     imageUrls.add(null);
                 }
 
-                // OCR 识别（使用 base64，不依赖 COS 公开访问）
                 String text = doOcrWithBase64(imageBase64);
                 ocrTextBuilder.append("【图片").append(i + 1).append("】\n").append(text).append("\n\n");
                 log.info("AI parse: OCR done for image {}, {} chars", i + 1, text.length());
@@ -145,13 +140,13 @@ public class AiParseService {
             throw new RuntimeException("所有图片OCR识别均失败，请检查图片清晰度");
         }
 
-        // 调用混元大模型解析
+        // 调用 TokenHub 大模型解析
         ParsedFields fields;
         try {
-            fields = doHunyuanParse(ocrText);
-            log.info("AI parse: Hunyuan parsing done");
+            fields = doTokenHubParse(ocrText);
+            log.info("AI parse: TokenHub parsing done");
         } catch (Exception e) {
-            log.error("AI parse: Hunyuan parsing failed", e);
+            log.error("AI parse: TokenHub parsing failed", e);
             throw new RuntimeException("AI解析失败: " + e.getMessage());
         }
 
@@ -162,7 +157,7 @@ public class AiParseService {
         return result;
     }
 
-    /** 调用腾讯云 OCR 通用印刷体识别（base64 方式，不依赖 COS 公开访问） */
+    /** 调用腾讯云 OCR 通用印刷体识别（base64 方式） */
     private String doOcrWithBase64(String imageBase64) throws TencentCloudSDKException {
         Credential cred = new Credential(aiProperties.getSecretId(), aiProperties.getSecretKey());
         HttpProfile httpProfile = new HttpProfile();
@@ -186,48 +181,42 @@ public class AiParseService {
         return sb.toString().trim();
     }
 
-    /** 调用腾讯混元大模型解析楼盘字段 */
-    private ParsedFields doHunyuanParse(String ocrText) throws TencentCloudSDKException, JsonProcessingException {
-        Credential cred = new Credential(aiProperties.getSecretId(), aiProperties.getSecretKey());
-        HttpProfile httpProfile = new HttpProfile();
-        httpProfile.setEndpoint("hunyuan.tencentcloudapi.com");
-        ClientProfile clientProfile = new ClientProfile();
-        clientProfile.setHttpProfile(httpProfile);
-        HunyuanClient client = new HunyuanClient(cred, aiProperties.getRegion(), clientProfile);
+    /** 调用 TokenHub OpenAI 兼容接口解析楼盘字段 */
+    private ParsedFields doTokenHubParse(String ocrText) throws JsonProcessingException {
+        String url = tokenHubProperties.getBaseUrl() + "/chat/completions";
 
-        ChatCompletionsRequest req = new ChatCompletionsRequest();
-        req.setModel(aiProperties.getHunyuanModel());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + tokenHubProperties.getApiKey());
 
-        Message[] messages = new Message[2];
-        // System message
-        Message systemMsg = new Message();
-        systemMsg.setRole("system");
-        systemMsg.setContent("你是一个专业的楼盘信息提取助手。请严格按照JSON格式返回提取结果，不要添加任何额外的文字或标记。");
-        messages[0] = systemMsg;
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", tokenHubProperties.getModel());
+        body.put("stream", false);
+        body.put("temperature", 0.1);
 
-        // User message
-        Message userMsg = new Message();
-        userMsg.setRole("user");
-        userMsg.setContent(PARSE_PROMPT + ocrText);
-        messages[1] = userMsg;
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content",
+                "你是一个专业的楼盘信息提取助手。请严格按照JSON格式返回提取结果，不要添加任何额外的文字或标记。"));
+        messages.add(Map.of("role", "user", "content", PARSE_PROMPT + ocrText));
+        body.put("messages", messages);
 
-        req.setMessages(messages);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        ChatCompletionsResponse resp = client.ChatCompletions(req);
-        String content = resp.getChoices()[0].getMessage().getContent();
-        log.debug("Hunyuan raw response: {}", content);
+        log.debug("TokenHub request: model={}, text length={}", tokenHubProperties.getModel(), ocrText.length());
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+        String content = (String) message.get("content");
+        log.debug("TokenHub response: {}", content);
 
         // 清理可能的 markdown 代码块标记
         content = content.trim();
-        if (content.startsWith("```json")) {
-            content = content.substring(7);
-        }
-        if (content.startsWith("```")) {
-            content = content.substring(3);
-        }
-        if (content.endsWith("```")) {
-            content = content.substring(0, content.length() - 3);
-        }
+        if (content.startsWith("```json")) content = content.substring(7);
+        if (content.startsWith("```")) content = content.substring(3);
+        if (content.endsWith("```")) content = content.substring(0, content.length() - 3);
         content = content.trim();
 
         return objectMapper.readValue(content, ParsedFields.class);
