@@ -3,17 +3,21 @@ package com.fang123.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fang123.common.Result;
+import com.fang123.dto.AiParseYfyjResult;
 import com.fang123.entity.LoupanYfyj;
+import com.fang123.service.AiParseService;
 import com.fang123.service.LoupanYfyjService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
 public class LoupanYfyjController {
 
     private final LoupanYfyjService yfyjService;
+    private final AiParseService aiParseService;
 
     @GetMapping("/api/admin/yfyj")
     public Result<Page<LoupanYfyj>> list(
@@ -57,5 +61,12 @@ public class LoupanYfyjController {
     public Result<Void> delete(@PathVariable Long id) {
         yfyjService.removeById(id);
         return Result.success();
+    }
+
+    @PostMapping("/api/admin/yfyj/ai-parse")
+    public Result<AiParseYfyjResult> aiParse(@RequestParam("files") MultipartFile[] files) {
+        if (files == null || files.length == 0) return Result.badRequest("请至少上传一张图片");
+        try { return Result.success("解析完成", aiParseService.parseYfyj(files)); }
+        catch (Exception e) { return Result.error(500, "AI解析失败：" + e.getMessage()); }
     }
 }

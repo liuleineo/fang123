@@ -3,17 +3,21 @@ package com.fang123.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fang123.common.Result;
+import com.fang123.dto.AiParseHuxingResult;
 import com.fang123.entity.LoupanHuxing;
+import com.fang123.service.AiParseService;
 import com.fang123.service.LoupanHuxingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
 public class LoupanHuxingController {
 
     private final LoupanHuxingService huxingService;
+    private final AiParseService aiParseService;
 
     @GetMapping("/api/admin/huxings")
     public Result<Page<LoupanHuxing>> list(
@@ -54,5 +58,18 @@ public class LoupanHuxingController {
     public Result<Void> delete(@PathVariable Long id) {
         huxingService.removeById(id);
         return Result.success();
+    }
+
+    /** AI 解析户型资料图片，支持一次提取多个户型 */
+    @PostMapping("/api/admin/huxings/ai-parse")
+    public Result<AiParseHuxingResult> aiParse(@RequestParam("files") MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            return Result.badRequest("请至少上传一张图片");
+        }
+        try {
+            return Result.success("解析完成", aiParseService.parseHuxings(files));
+        } catch (Exception e) {
+            return Result.error(500, "AI解析失败：" + e.getMessage());
+        }
     }
 }

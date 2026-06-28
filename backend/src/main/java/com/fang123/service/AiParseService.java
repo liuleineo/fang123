@@ -4,8 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fang123.config.AiProperties;
 import com.fang123.config.TokenHubProperties;
+import com.fang123.dto.AiParseHuxingResult;
+import com.fang123.dto.AiParseHuxingResult.HuxingFields;
 import com.fang123.dto.AiParseResult;
 import com.fang123.dto.AiParseResult.ParsedFields;
+import com.fang123.dto.AiParseTupaiLandResult;
+import com.fang123.dto.AiParseTupaiLandResult.TupaiLandFields;
+import com.fang123.dto.AiParseYfyjResult;
+import com.fang123.dto.AiParseYfyjResult.YfyjFields;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
@@ -181,6 +187,123 @@ public class AiParseService {
         return sb.toString().trim();
     }
 
+    // ============ 户型 AI 解析 ============
+
+    /** 户型解析提示词 */
+    private static final String HUXING_PARSE_PROMPT = """
+            你是一个楼盘户型信息提取助手。请从以下OCR识别的文本中提取所有户型信息，返回严格的JSON格式。
+
+            返回格式：
+            {
+              "huxings": [
+                {
+                  "huxingName": "户型名称 如105㎡三房两厅",
+                  "area": "建筑面积㎡，纯数字",
+                  "insideArea": "套内面积㎡，纯数字",
+                  "roomNum": "卧室数量，纯数字",
+                  "hallNum": "厅数量，纯数字",
+                  "toiletNum": "卫生间数量，纯数字",
+                  "balconyNum": "阳台数量，纯数字",
+                  "orientation": "朝向 如南北",
+                  "floorType": "产品类型：1=小高层,2=洋房,3=叠墅,4=排屋",
+                  "unitPrice": "单价元/㎡，纯数字",
+                  "totalPriceStart": "总价起步万元，纯数字",
+                  "totalPriceEnd": "总价封顶万元，纯数字",
+                  "isShowHouse": "是否有样板间：0=无,1=有",
+                  "tag": "户型标签，逗号分隔"
+                }
+              ]
+            }
+
+            规则：
+            1. 只返回JSON，不要有任何其他文字
+            2. huxings 必须是数组，包含所有提取到的户型
+            3. 无法确定的字段值设为null
+            4. 数字型字段只返回数字，去掉单位
+            5. 如果资料中有多个户型（如105㎡、127㎡、130㎡），全部提取
+
+            OCR文本：
+            """;
+
+    /** 上传图片 → OCR → TokenHub 解析多个户型 */
+    public AiParseHuxingResult parseHuxings(MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            throw new IllegalArgumentException("请至少上传一张图片");
+        }
+
+        List<String> imageUrls = new ArrayList<>();
+        StringBuilder ocrTextBuilder = new StringBuilder();
+
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            try {
+                byte[] imageBytes = file.getBytes();
+                String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+                try {
+                    String url = cosService.uploadFile(file, "ai-huxing");
+                    imageUrls.add(url);
+                } catch (Exception e) {
+                    log.error("AI huxing: COS upload failed for image {}", i + 1, e);
+                    imageUrls.add(null);
+                }
+                String text = doOcrWithBase64(imageBase64);
+                ocrTextBuilder.append("【图片").append(i + 1).append("】\n").append(text).append("\n\n");
+            } catch (Exception e) {
+                log.error("AI huxing: failed for image {}", i + 1, e);
+            }
+        }
+
+        String ocrText = ocrTextBuilder.toString().trim();
+        if (ocrText.isEmpty()) throw new RuntimeException("所有图片OCR识别均失败");
+
+        List<HuxingFields> huxings;
+        try {
+            huxings = doTokenHubHuxingParse(ocrText);
+        } catch (Exception e) {
+            log.error("AI huxing: TokenHub parsing failed", e);
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+
+        AiParseHuxingResult result = new AiParseHuxingResult();
+        result.setImageUrls(imageUrls);
+        result.setOcrText(ocrText);
+        result.setHuxings(huxings);
+        return result;
+    }
+
+    /** 调用 TokenHub 解析户型数组 */
+    private List<HuxingFields> doTokenHubHuxingParse(String ocrText) throws JsonProcessingException {
+        String url = tokenHubProperties.getBaseUrl() + "/chat/completions";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + tokenHubProperties.getApiKey());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", tokenHubProperties.getModel());
+        body.put("stream", false);
+        body.put("temperature", 0.1);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content", "你是一个专业的户型信息提取助手。请严格按照JSON格式返回提取结果。"));
+        messages.add(Map.of("role", "user", "content", HUXING_PARSE_PROMPT + ocrText));
+        body.put("messages", messages);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Map.class);
+        @SuppressWarnings("unchecked")
+        String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) response.getBody().get("choices")).get(0).get("message")).get("content");
+
+        content = content.trim();
+        if (content.startsWith("```json")) content = content.substring(7);
+        if (content.startsWith("```")) content = content.substring(3);
+        if (content.endsWith("```")) content = content.substring(0, content.length() - 3);
+        content = content.trim();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> respMap = objectMapper.readValue(content, Map.class);
+        return objectMapper.convertValue(respMap.get("huxings"),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, HuxingFields.class));
+    }
+
     /** 调用 TokenHub OpenAI 兼容接口解析楼盘字段 */
     private ParsedFields doTokenHubParse(String ocrText) throws JsonProcessingException {
         String url = tokenHubProperties.getBaseUrl() + "/chat/completions";
@@ -220,5 +343,141 @@ public class AiParseService {
         content = content.trim();
 
         return objectMapper.readValue(content, ParsedFields.class);
+    }
+
+    // ============ 土拍地块 AI 解析 ============
+
+    private static final String TUPAI_PARSE_PROMPT = """
+            你是一个土拍地块信息提取助手。请从以下OCR识别的文本中提取地块信息，返回严格的JSON格式。
+
+            {
+              "landName": "地块名称",
+              "landNo": "宗地编号",
+              "district": "行政区（如余杭区）",
+              "plate": "板块（如未来科技城）",
+              "landScope": "四至范围",
+              "landStatus": "状态：0=待出让,1=已出让,2=流拍",
+              "winnerCompany": "竞得方企业",
+              "landUseType": "土地用途（如住宅、商住）",
+              "landYear": "土地使用年限，纯数字",
+              "landArea": "占地面积㎡，纯数字",
+              "buildAreaLimit": "最大可建面积㎡，纯数字",
+              "plotRatio": "容积率，纯数字",
+              "startPrice": "起价，万元，纯数字",
+              "dealPrice": "成交价，万元，纯数字",
+              "floorUnitPrice": "楼面单价，元/㎡，纯数字",
+              "premiumRate": "溢价率，%，纯数字",
+              "dealDate": "成交日期，格式YYYY-MM-DD"
+            }
+
+            规则：只返回JSON，数字去单位，无法确定的为null。
+
+            OCR文本：
+            """;
+
+    public AiParseTupaiLandResult parseTupaiLand(MultipartFile[] files) {
+        String ocrText = doOcrBatch(files, "ai-tupai");
+        TupaiLandFields fields;
+        try {
+            String resp = callTokenHub(TUPAI_PARSE_PROMPT + ocrText, "土拍地块信息提取助手");
+            fields = objectMapper.readValue(resp, TupaiLandFields.class);
+        } catch (Exception e) {
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+        AiParseTupaiLandResult r = new AiParseTupaiLandResult();
+        r.setOcrText(ocrText); r.setFields(fields);
+        return r;
+    }
+
+    // ============ 一房一价 AI 解析（批量） ============
+
+    private static final String YFYJ_PARSE_PROMPT = """
+            你是一个楼盘一房一价信息提取助手。请从以下OCR识别的文本中提取所有房源信息，返回严格的JSON格式。
+
+            {
+              "yfyjList": [
+                {
+                  "buildingNo": "楼栋号 如7号楼",
+                  "floorNo": "楼层，纯数字",
+                  "roomNo": "房号 如701",
+                  "area": "建筑面积㎡，纯数字",
+                  "recordUnitPrice": "备案单价，元/㎡，纯数字",
+                  "recordTotalPrice": "备案总价，元，纯数字",
+                  "saleUnitPrice": "销售单价，元/㎡，纯数字",
+                  "saleTotalPrice": "销售总价，元，纯数字",
+                  "houseStatus": "状态：0=未售,1=认购,2=已售,3=抵押,4=保留",
+                  "orientation": "朝向",
+                  "remark": "备注"
+                }
+              ]
+            }
+
+            规则：只返回JSON，yfyjList为数组，数字去单位，无法确定的为null。
+
+            OCR文本：
+            """;
+
+    public AiParseYfyjResult parseYfyj(MultipartFile[] files) {
+        String ocrText = doOcrBatch(files, "ai-yfyj");
+        List<YfyjFields> list;
+        try {
+            String resp = callTokenHub(YFYJ_PARSE_PROMPT + ocrText, "一房一价信息提取助手");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> respMap = objectMapper.readValue(resp, Map.class);
+            list = objectMapper.convertValue(respMap.get("yfyjList"),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, YfyjFields.class));
+        } catch (Exception e) {
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+        AiParseYfyjResult r = new AiParseYfyjResult();
+        r.setOcrText(ocrText); r.setYfyjList(list);
+        return r;
+    }
+
+    // ============ 通用方法 ============
+
+    /** OCR 识别多张图片，返回合并文本 */
+    private String doOcrBatch(MultipartFile[] files, String cosFolder) {
+        if (files == null || files.length == 0) throw new IllegalArgumentException("请至少上传一张图片");
+        StringBuilder ocrTextBuilder = new StringBuilder();
+        for (int i = 0; i < files.length; i++) {
+            try {
+                byte[] bytes = files[i].getBytes();
+                String text = doOcrWithBase64(Base64.getEncoder().encodeToString(bytes));
+                ocrTextBuilder.append("【图片").append(i + 1).append("】\n").append(text).append("\n\n");
+                try { cosService.uploadFile(files[i], cosFolder); } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.error("OCR batch failed for image {}", i + 1, e);
+            }
+        }
+        String ocrText = ocrTextBuilder.toString().trim();
+        if (ocrText.isEmpty()) throw new RuntimeException("所有图片OCR识别均失败");
+        return ocrText;
+    }
+
+    /** 调用 TokenHub，返回清理后的 content */
+    private String callTokenHub(String prompt, String sysRole) throws JsonProcessingException {
+        String url = tokenHubProperties.getBaseUrl() + "/chat/completions";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + tokenHubProperties.getApiKey());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", tokenHubProperties.getModel());
+        body.put("stream", false);
+        body.put("temperature", 0.1);
+        body.put("messages", List.of(
+            Map.of("role", "system", "content", "你是" + sysRole + "。请严格按照JSON格式返回提取结果，不要添加任何额外的文字或标记。"),
+            Map.of("role", "user", "content", prompt)
+        ));
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Map.class);
+        @SuppressWarnings("unchecked")
+        String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) response.getBody().get("choices")).get(0).get("message")).get("content");
+        content = content.trim();
+        if (content.startsWith("```json")) content = content.substring(7);
+        if (content.startsWith("```")) content = content.substring(3);
+        if (content.endsWith("```")) content = content.substring(0, content.length() - 3);
+        return content.trim();
     }
 }

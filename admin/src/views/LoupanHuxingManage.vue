@@ -2,7 +2,10 @@
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div><h1 class="text-2xl font-bold">楼盘户型</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘下的户型信息</p></div>
-      <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建户型</t-button>
+      <div class="flex gap-2">
+        <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建户型</t-button>
+        <t-button theme="warning" variant="outline" @click="openAiDialog"><Sparkles class="w-4 h-4 mr-1" />AI新建户型</t-button>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -69,13 +72,69 @@
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
     </t-drawer>
+
+    <!-- AI 新建户型对话框 -->
+    <t-dialog v-model:visible="aiVisible" header="AI 新建户型" width="680px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-4">
+        <t-alert theme="info" message="上传户型资料图片（如户型图、户型列表等），AI 将自动识别并提取多个户型信息。一次可录入多个户型。" />
+        
+        <t-form label-align="top">
+          <t-form-item label="关联楼盘ID">
+            <t-input-number v-model="aiLoupanId" :min="1" placeholder="所有识别到的户型将关联到此楼盘" />
+          </t-form-item>
+        </t-form>
+
+        <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false"
+          tips="支持 JPG/PNG/WebP，最多 5 张" />
+        
+        <div class="flex justify-center">
+          <t-button theme="primary" size="large" :loading="aiParsing" @click="startAiHuxingParse" :disabled="aiFiles.length===0">
+            <Sparkles class="w-4 h-4 mr-1" />{{ aiParsing ? 'AI 识别中...' : '开始识别' }}
+          </t-button>
+        </div>
+
+        <!-- 结果列表 -->
+        <div v-if="aiResult" class="border rounded-lg p-4 bg-gray-50 max-h-[400px] overflow-y-auto">
+          <h3 class="font-semibold mb-2">识别到 {{ aiResult.huxings?.length || 0 }} 个户型</h3>
+          <t-collapse class="mb-3">
+            <t-collapse-panel header="OCR 原始识别文本">
+              <pre class="text-xs text-gray-600 whitespace-pre-wrap max-h-[200px] overflow-y-auto">{{ aiResult.ocrText }}</pre>
+            </t-collapse-panel>
+          </t-collapse>
+          <t-checkbox-group v-model="aiSelected">
+            <div v-for="(hx,i) in aiResult.huxings" :key="i" class="flex items-center gap-3 p-3 border rounded-lg mb-2 bg-white">
+              <t-checkbox :value="i" />
+              <div class="flex-1 text-sm space-y-1">
+                <div><span class="font-bold">{{ hx.huxingName||'未命名' }}</span>
+                  <span class="text-gray-400 ml-2">{{ hx.area }}㎡</span>
+                  <span v-if="hx.roomNum" class="text-gray-400 ml-1">{{ hx.roomNum }}室{{ hx.hallNum||0 }}厅{{ hx.toiletNum||0 }}卫</span>
+                </div>
+                <div class="flex flex-wrap gap-1 text-xs text-gray-500">
+                  <span v-if="hx.orientation">{{ hx.orientation }}</span>
+                  <span v-if="hx.floorType">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
+                  <span v-if="hx.unitPrice">{{ hx.unitPrice }}元/㎡</span>
+                  <span v-if="hx.totalPriceStart">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
+                </div>
+              </div>
+            </div>
+          </t-checkbox-group>
+
+          <div class="flex justify-end gap-2 pt-2 border-t mt-3">
+            <t-button variant="outline" @click="aiVisible=false">关闭</t-button>
+            <t-button theme="primary" :disabled="aiSelected.length===0" :loading="aiSaving" @click="batchCreateHuxings">
+              <Check class="w-4 h-4 mr-1" />批量创建选中户型 ({{ aiSelected.length }})
+            </t-button>
+          </div>
+        </div>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Check } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -122,6 +181,60 @@ async function uploadHuxingImage(file) {
 function onHuxingSuccess({ file }) { form.huxingImage = file.response?.url || ''; MessagePlugin.success('上传成功'); huxingFiles.value = [] }
 function onHuxingFail() { MessagePlugin.error('上传失败'); huxingFiles.value = [] }
 function onHuxingRemove() { huxingFiles.value = [] }
+
+// ===== AI 新建户型 =====
+const aiVisible = ref(false)
+const aiFiles = ref([])
+const aiLoupanId = ref(null)
+const aiParsing = ref(false)
+const aiSaving = ref(false)
+const aiResult = ref(null)
+const aiSelected = ref([])
+
+function openAiDialog() { aiFiles.value = []; aiResult.value = null; aiSelected.value = []; aiVisible.value = true }
+function aiUploadDummy() { return Promise.resolve({ status: 'success', response: {} }) }
+
+async function startAiHuxingParse() {
+  if (aiFiles.value.length === 0) { MessagePlugin.warning('请先上传图片'); return }
+  aiParsing.value = true; aiResult.value = null
+  try {
+    const fd = new FormData()
+    aiFiles.value.forEach(f => fd.append('files', f.raw))
+    const res = await request.post('/admin/huxings/ai-parse', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000
+    })
+    aiResult.value = res
+    aiSelected.value = res?.huxings ? res.huxings.map((_, i) => i) : []
+    MessagePlugin.success(`识别到 ${res?.huxings?.length || 0} 个户型`)
+  } catch (e) {
+    MessagePlugin.error('AI 识别失败：' + (e.response?.data?.msg || e.message))
+  } finally { aiParsing.value = false }
+}
+
+async function batchCreateHuxings() {
+  if (!aiLoupanId.value) { MessagePlugin.warning('请先输入关联楼盘ID'); return }
+  const selected = aiSelected.value.map(i => aiResult.value.huxings[i])
+  if (selected.length === 0) { MessagePlugin.warning('请至少选择一个户型'); return }
+  aiSaving.value = true
+  let created = 0
+  for (const hx of selected) {
+    try {
+      await request.post('/admin/huxings', {
+        ...hx,
+        loupanId: aiLoupanId.value,
+        sort: 0,
+        area: hx.area ? Math.round(Number(hx.area)) : 0,
+        insideArea: hx.insideArea ? Math.round(Number(hx.insideArea)) : 0,
+        unitPrice: hx.unitPrice ? Math.round(Number(hx.unitPrice)) : null
+      })
+      created++
+    } catch {}
+  }
+  aiSaving.value = false
+  MessagePlugin.success(`成功创建 ${created}/${selected.length} 个户型`)
+  if (created > 0) { aiVisible.value = false; fetchData() }
+}
+
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/huxings/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/huxings',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}

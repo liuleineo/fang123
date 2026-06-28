@@ -2,7 +2,10 @@
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div><h1 class="text-2xl font-bold">一房一价</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理每套房源的备案价和销售价</p></div>
-      <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建房源</t-button>
+      <div class="flex gap-2">
+        <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建房源</t-button>
+        <t-button theme="warning" variant="outline" @click="openAiDialog"><Sparkles class="w-4 h-4 mr-1" />AI新建房源</t-button>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -59,13 +62,40 @@
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
     </t-drawer>
+
+    <t-dialog v-model:visible="aiVisible" header="AI 新建房源" width="680px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-4">
+        <t-alert theme="info" message="上传一房一价表图片，AI 自动识别多套房源信息并批量创建。" />
+        <t-form label-align="top"><t-form-item label="关联楼盘ID"><t-input-number v-model="aiLoupanId" :min="1" placeholder="所有识别的房源将关联到此楼盘" /></t-form-item></t-form>
+        <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
+        <div class="flex justify-center"><t-button theme="primary" size="large" :loading="aiParsing" @click="startAiParse" :disabled="aiFiles.length===0"><Sparkles class="w-4 h-4 mr-1" />{{ aiParsing?'识别中...':'开始识别' }}</t-button></div>
+        <div v-if="aiResult" class="border rounded-lg p-4 bg-gray-50 max-h-[400px] overflow-y-auto">
+          <h3 class="font-semibold mb-2">识别到 {{ aiResult.yfyjList?.length||0 }} 套房源</h3>
+          <t-collapse class="mb-3"><t-collapse-panel header="OCR 原始文本"><pre class="text-xs text-gray-600 whitespace-pre-wrap max-h-[200px] overflow-y-auto">{{ aiResult.ocrText }}</pre></t-collapse-panel></t-collapse>
+          <t-checkbox-group v-model="aiSelected">
+            <div v-for="(item,i) in aiResult.yfyjList" :key="i" class="flex items-center gap-3 p-3 border rounded-lg mb-2 bg-white">
+              <t-checkbox :value="i" />
+              <div class="flex-1 text-sm"><span class="font-bold">{{ item.buildingNo||'' }} {{ item.roomNo||'' }}</span>
+                <span class="text-gray-400 ml-2">{{ item.floorNo }}F</span>
+                <span class="text-gray-400 ml-2">{{ item.area }}㎡</span>
+                <span class="text-gray-400 ml-2" v-if="item.recordUnitPrice">备案{{ item.recordUnitPrice }}元</span>
+              </div>
+            </div>
+          </t-checkbox-group>
+          <div class="flex justify-end gap-2 pt-2 border-t mt-3">
+            <t-button variant="outline" @click="aiVisible=false">关闭</t-button>
+            <t-button theme="primary" :disabled="aiSelected.length===0" :loading="aiSaving" @click="batchCreateYfyj"><Check class="w-4 h-4 mr-1" />批量创建({{ aiSelected.length }})</t-button>
+          </div>
+        </div>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Check } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -105,6 +135,39 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/yfyj/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/yfyj',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/yfyj/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+// ===== AI 新建房源 =====
+const aiVisible = ref(false); const aiFiles = ref([]); const aiLoupanId = ref(null)
+const aiParsing = ref(false); const aiSaving = ref(false); const aiResult = ref(null); const aiSelected = ref([])
+function openAiDialog(){ aiFiles.value=[]; aiResult.value=null; aiSelected.value=[]; aiVisible.value=true }
+function aiUploadDummy(){ return Promise.resolve({status:'success',response:{}}) }
+async function startAiParse(){
+  if(!aiFiles.value.length){ MessagePlugin.warning('请先上传图片'); return }
+  aiParsing.value=true; aiResult.value=null
+  try{
+    const fd=new FormData(); aiFiles.value.forEach(f=>fd.append('files',f.raw))
+    aiResult.value=await request.post('/admin/yfyj/ai-parse',fd,{headers:{'Content-Type':'multipart/form-data'},timeout:120000})
+    aiSelected.value=aiResult.value?.yfyjList?aiResult.value.yfyjList.map((_,i)=>i):[]
+    MessagePlugin.success(`识别到 ${aiResult.value?.yfyjList?.length||0} 套房源`)
+  }catch(e){ MessagePlugin.error('AI识别失败：'+(e.response?.data?.msg||e.message)) }
+  finally{ aiParsing.value=false }
+}
+async function batchCreateYfyj(){
+  if(!aiLoupanId.value){ MessagePlugin.warning('请先输入关联楼盘ID'); return }
+  const selected=aiSelected.value.map(i=>aiResult.value.yfyjList[i])
+  if(!selected.length){ MessagePlugin.warning('请至少选择一套房源'); return }
+  aiSaving.value=true; let created=0
+  for(const item of selected){
+    try{
+      await request.post('/admin/yfyj',{...item,loupanId:aiLoupanId.value,huxingId:null,sort:0,
+        area:item.area?Math.round(Number(item.area)):0})
+      created++
+    }catch{}
+  }
+  aiSaving.value=false
+  MessagePlugin.success(`成功创建 ${created}/${selected.length} 套房源`)
+  if(created>0){ aiVisible.value=false; fetchData() }
+}
 
 onMounted(fetchData)
 </script>
