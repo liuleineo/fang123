@@ -33,7 +33,9 @@ public class LoupanController {
              .or().like(Loupan::getLandNo, keyword);
         }
         w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
-        return Result.success(loupanService.page(new Page<>(page, size), w));
+        Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
+        result.getRecords().forEach(Loupan::computeCompletionRatio);
+        return Result.success(result);
     }
 
     @GetMapping("/api/admin/loupans/{id}")

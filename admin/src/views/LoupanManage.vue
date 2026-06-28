@@ -23,6 +23,12 @@
           </t-tag>
         </template>
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
+        <template #completionRatio="{ row }">
+          <div class="flex items-center gap-2">
+            <t-progress :percentage="row.completionRatio||0" size="small" :color="row.completionRatio>=80?'#00A870':row.completionRatio>=50?'#ED7B2F':'#E34D59'" class="flex-1" />
+            <span class="text-xs text-[var(--color-text-tertiary)] w-8 text-right">{{ row.completionRatio||0 }}%</span>
+          </div>
+        </template>
         <template #operation="{ row }">
           <t-space size="small">
             <t-button variant="text" theme="primary" size="small" @click="openEdit(row)">编辑</t-button>
@@ -375,6 +381,7 @@ const cols = [
   {colKey:'houseTotal',title:'户数',width:60},
   {colKey:'projectCompany',title:'开发商',width:120,ellipsis:true},
   {colKey:'createTime',title:'创建时间',width:160},
+  {colKey:'completionRatio',title:'完善度',width:120},
   {colKey:'operation',title:'操作',width:120,fixed:'right'},
 ]
 
