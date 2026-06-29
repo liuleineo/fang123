@@ -266,6 +266,56 @@
               <div v-else class="text-center py-10 text-[var(--color-text-tertiary)]">暂无位置信息</div>
             </div>
           </t-tab-panel>
+
+          <!-- 一房一价 -->
+          <t-tab-panel value="yfyj" label="一房一价">
+            <div class="p-6">
+              <div v-if="yfyjLoading" class="text-center py-10"><t-loading /></div>
+              <div v-else-if="!yfyjList.length" class="text-center py-10 text-[var(--color-text-tertiary)]">暂无一房一价信息</div>
+              <div v-else>
+                <!-- 楼栋切换 -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <t-button v-for="bd in yfyjBuildings" :key="bd" :theme="yfyjBuilding===bd?'primary':'default'" :variant="yfyjBuilding===bd?'base':'outline'" size="small" @click="yfyjBuilding=bd">{{ bd }}</t-button>
+                </div>
+                <!-- 房源列表 -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm border-collapse">
+                    <thead>
+                      <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
+                        <th class="p-2 font-medium">房号</th>
+                        <th class="p-2 font-medium">楼层</th>
+                        <th class="p-2 font-medium">面积</th>
+                        <th class="p-2 font-medium">朝向</th>
+                        <th class="p-2 font-medium">备案单价</th>
+                        <th class="p-2 font-medium">备案总价</th>
+                        <th class="p-2 font-medium">状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in yfyjFiltered" :key="item.id" class="border-t border-gray-100 hover:bg-gray-50">
+                        <td class="p-2 font-medium">{{ item.roomNo }}</td>
+                        <td class="p-2 text-[var(--color-text-tertiary)]">{{ item.floorNo }}F</td>
+                        <td class="p-2">{{ item.area }}㎡</td>
+                        <td class="p-2 text-[var(--color-text-tertiary)]">{{ item.orientation||'-' }}</td>
+                        <td class="p-2 text-[var(--color-primary)] font-medium">{{ item.recordUnitPrice||'-' }}</td>
+                        <td class="p-2">{{ item.recordTotalPrice||'-' }}万</td>
+                        <td class="p-2">
+                          <span :class="['px-2 py-0.5 rounded text-xs',
+                            item.houseStatus===0?'bg-gray-100 text-gray-500':
+                            item.houseStatus===1?'bg-orange-50 text-orange-600':
+                            item.houseStatus===2?'bg-red-50 text-red-600':
+                            item.houseStatus===3?'bg-purple-50 text-purple-600':
+                            'bg-blue-50 text-blue-600']">
+                            {{ ['未售','认购','已售','抵押','保留'][item.houseStatus]||'未知' }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </t-tab-panel>
         </t-tabs>
       </div>
     </section>
@@ -288,9 +338,12 @@ const route = useRoute()
 const loupan = ref(null)
 const huxings = ref([])
 const medias = ref([])
+const yfyjList = ref([])
 const huxingLoading = ref(false)
 const mediaLoading = ref(false)
+const yfyjLoading = ref(false)
 const activeTab = ref('info')
+const yfyjBuilding = ref('')
 let amapInstance = null
 
 const mediaGroups = computed(() => {
@@ -303,6 +356,9 @@ const mediaGroups = computed(() => {
   })
   return Object.entries(map).map(([label, items]) => ({ label, items }))
 })
+
+const yfyjBuildings = computed(() => [...new Set(yfyjList.value.map(i=>i.buildingNo))].sort())
+const yfyjFiltered = computed(() => yfyjList.value.filter(i=>i.buildingNo===yfyjBuilding.value))
 
 function fmtNum(n) {
   if (!n) return '0'
@@ -341,10 +397,20 @@ async function fetchMedias() {
   } catch {} finally { mediaLoading.value = false }
 }
 
+async function fetchYfyj() {
+  if (yfyjList.value.length) return
+  yfyjLoading.value = true
+  try {
+    yfyjList.value = await request.get(`/public/loupans/${route.params.id}/yfyj`) || []
+    if (yfyjBuildings.value.length) yfyjBuilding.value = yfyjBuildings.value[0]
+  } catch {} finally { yfyjLoading.value = false }
+}
+
 watch(activeTab, (tab) => {
   if (tab === 'huxing') fetchHuxings()
   if (tab === 'media') fetchMedias()
   if (tab === 'map') initMap()
+  if (tab === 'yfyj') fetchYfyj()
 })
 
 // 高德地图初始化

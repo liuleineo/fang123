@@ -7,9 +7,11 @@ import com.fang123.common.Result;
 import com.fang123.entity.Loupan;
 import com.fang123.entity.LoupanHuxing;
 import com.fang123.entity.LoupanMedia;
+import com.fang123.entity.LoupanYfyj;
 import com.fang123.service.LoupanService;
 import com.fang123.service.LoupanHuxingService;
 import com.fang123.service.LoupanMediaService;
+import com.fang123.service.LoupanYfyjService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ public class LoupanPublicController {
     private final LoupanService loupanService;
     private final LoupanHuxingService huxingService;
     private final LoupanMediaService mediaService;
+    private final LoupanYfyjService yfyjService;
 
     /** 公开-楼盘列表（搜索+分页） */
     @GetMapping("/api/public/loupans")
@@ -78,6 +81,15 @@ public class LoupanPublicController {
         LambdaQueryWrapper<LoupanMedia> w = new LambdaQueryWrapper<>();
         w.eq(LoupanMedia::getLoupanId, id).orderByAsc(LoupanMedia::getSort);
         return Result.success(mediaService.list(w));
+    }
+
+    /** 公开-一房一价列表 */
+    @GetMapping("/api/public/loupans/{encodedId}/yfyj")
+    public Result<List<LoupanYfyj>> yfyjList(@PathVariable String encodedId) {
+        Long id = IdObfuscator.decode(encodedId);
+        LambdaQueryWrapper<LoupanYfyj> w = new LambdaQueryWrapper<>();
+        w.eq(LoupanYfyj::getLoupanId, id).orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getFloorNo, LoupanYfyj::getRoomNo);
+        return Result.success(yfyjService.list(w));
     }
 
     /** 公开-筛选选项（行政区、板块列表） */
