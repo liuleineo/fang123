@@ -497,7 +497,7 @@ CREATE TABLE IF NOT EXISTS `loupan_media` (
 CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '房源ID',
   `loupan_id` bigint NOT NULL COMMENT '楼盘ID',
-  `huxing_id` bigint NOT NULL COMMENT '对应户型ID',
+  `huxing_id` bigint DEFAULT NULL COMMENT '对应户型ID，可选',
   `building_no` varchar(20) NOT NULL COMMENT '楼栋号 7号楼',
   `floor_no` int NOT NULL COMMENT '楼层',
   `room_no` varchar(20) NOT NULL COMMENT '房号 7-301',
@@ -518,3 +518,5 @@ CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   KEY `idx_building_floor` (`building_no`,`floor_no`),
   UNIQUE KEY `uk_loupan_room` (`loupan_id`,`building_no`,`room_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='一房一价房源表';
+
+--预售证表
