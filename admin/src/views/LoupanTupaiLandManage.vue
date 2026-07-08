@@ -5,6 +5,7 @@
       <div class="flex gap-2">
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建地块</t-button>
         <t-button theme="warning" variant="outline" @click="openAiDialog"><Sparkles class="w-4 h-4 mr-1" />AI新建地块</t-button>
+        <t-button variant="outline" @click="openResourceDialog"><Download class="w-4 h-4 mr-1" />通过resourceId获取</t-button>
       </div>
     </div>
 
@@ -68,6 +69,16 @@
         <t-form-item label="成交日期">
           <t-date-picker v-model="form.dealDate" />
         </t-form-item>
+        <t-form-item label="位置示意图">
+          <div class="flex flex-col gap-2 w-full">
+            <t-upload v-model="tupaiFiles" :request-method="uploadTupaiImage" :max="1" accept="image/*" theme="image" @success="onTupaiSuccess" @fail="onTupaiFail" @remove="onTupaiRemove" />
+            <t-input v-model="form.locationImage" placeholder="上传后自动填入，也可手动输入URL" />
+          </div>
+        </t-form-item>
+        <div class="grid grid-cols-2 gap-3">
+          <t-form-item label="经度"><t-input v-model="form.longitude" placeholder="如 120.345678" /></t-form-item>
+          <t-form-item label="纬度"><t-input v-model="form.latitude" placeholder="如 30.123456" /></t-form-item>
+        </div>
         <t-form-item label="关联楼盘ID"><t-input-number v-model="form.loupanId" :min="0" /></t-form-item>
         <t-form-item label="排序"><t-input-number v-model="form.sort" :min="0" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
@@ -97,26 +108,51 @@
         </div>
       </div>
     </t-dialog>
+
+    <!-- 通过 resourceId 获取地块 -->
+    <t-dialog v-model:visible="resourceVisible" header="通过 resourceId 获取地块" width="500px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-4">
+        <t-alert theme="info" message="输入 resourceId（每行一个），系统将从浙江自然资源交易平台拉取地块信息并录入数据库。" />
+        <t-textarea v-model="resourceIdsText" placeholder="2062410551727882240&#10;2059919502480637952" :autosize="{minRows:4,maxRows:10}" />
+        <div class="flex justify-between items-center text-xs text-[var(--color-text-tertiary)]">
+          <span>共 {{ resourceIdsText.split('\n').filter(l=>l.trim()).length }} 个，预计耗时 {{ resourceIdsText.split('\n').filter(l=>l.trim()).length }} 秒</span>
+        </div>
+        <div v-if="resourceResult" class="border rounded-lg p-3 bg-gray-50 text-sm space-y-2 max-h-300 overflow-y-auto">
+          <div class="flex gap-4 font-medium">
+            <span class="text-green-600">成功 {{ resourceResult.created }}</span>
+            <span class="text-red-600">失败 {{ resourceResult.failed }}</span>
+          </div>
+          <div v-if="resourceResult.errors?.length">
+            <div v-for="(err,i) in resourceResult.errors" :key="i" class="text-red-500 text-xs">{{ err }}</div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
+          <t-button variant="outline" @click="resourceVisible=false">关闭</t-button>
+          <t-button theme="primary" :loading="resourceLoading" @click="startResourceFetch">开始获取</t-button>
+        </div>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Sparkles } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Download } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref('')
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ landName:'',landNo:'',district:'',plate:'',landScope:'',landStatus:0,winnerCompany:'',landUseType:'',landYear:70,landArea:null,buildAreaLimit:null,plotRatio:null,startPrice:0,dealPrice:0,floorUnitPrice:0,premiumRate:0,dealDate:'',loupanId:null,sort:0 })
+const initForm = () => ({ landName:'',landNo:'',district:'',plate:'',landScope:'',landStatus:0,winnerCompany:'',landUseType:'',landYear:70,landArea:null,buildAreaLimit:null,plotRatio:null,startPrice:0,dealPrice:0,floorUnitPrice:0,premiumRate:0,dealDate:'',locationImage:'',longitude:'',latitude:'',loupanId:null,sort:0 })
 const form = reactive(initForm())
 
 const cols = [
   {colKey:'id',title:'ID',width:60},
   {colKey:'landName',title:'地块名称',width:180,ellipsis:true},
   {colKey:'landNo',title:'宗地编号',width:160},
+  {colKey:'loupanId',title:'关联楼盘ID',width:90},
   {colKey:'district',title:'行政区',width:80},
   {colKey:'plate',title:'板块',width:80},
   {colKey:'landStatus',title:'状态',width:80},
@@ -137,8 +173,18 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+const tupaiFiles = ref([])
+async function uploadTupaiImage(file) {
+  const fd = new FormData(); fd.append('file', file.raw)
+  const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return { status: 'success', response: { url: res.url } }
+}
+function onTupaiSuccess({ file }) { form.locationImage = file.response?.url || ''; MessagePlugin.success('上传成功'); tupaiFiles.value = [] }
+function onTupaiFail() { MessagePlugin.error('上传失败'); tupaiFiles.value = [] }
+function onTupaiRemove() { tupaiFiles.value = [] }
+
+function openCreate(){isEdit.value=false;editId.value=null;tupaiFiles.value=[];Object.assign(form,initForm());drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;tupaiFiles.value=[];Object.assign(form,row);drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/tupai-lands/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/tupai-lands',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
@@ -159,6 +205,26 @@ async function startAiParse(){
   }catch(e){ MessagePlugin.error('AI识别失败：'+(e.response?.data?.msg||e.message)) }
   finally{ aiParsing.value=false }
 }
+// ===== 通过 resourceId 获取地块 =====
+const resourceVisible = ref(false)
+const resourceIdsText = ref('')
+const resourceLoading = ref(false)
+const resourceResult = ref(null)
+
+function openResourceDialog() { resourceVisible.value = true; resourceResult.value = null; resourceIdsText.value = '' }
+async function startResourceFetch() {
+  const ids = resourceIdsText.value.split('\n').map(l => l.trim()).filter(Boolean)
+  if (!ids.length) { MessagePlugin.warning('请至少输入一个resourceId'); return }
+  resourceLoading.value = true; resourceResult.value = null
+  try {
+    resourceResult.value = await request.post('/admin/tupai-lands/fetch-by-resource', { resourceIds: ids }, { timeout: 300000 })
+    MessagePlugin.success(`完成：成功${resourceResult.value.created}，失败${resourceResult.value.failed}`)
+    fetchData()
+  } catch (e) {
+    MessagePlugin.error('请求失败：' + (e.response?.data?.msg || e.message))
+  } finally { resourceLoading.value = false }
+}
+
 function fillFormFromAi(){
   if(!aiResult.value?.fields) return
   Object.assign(form, initForm())

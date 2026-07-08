@@ -367,7 +367,9 @@ public class AiParseService {
               "dealPrice": "成交价，万元，纯数字",
               "floorUnitPrice": "楼面单价，元/㎡，纯数字",
               "premiumRate": "溢价率，%，纯数字",
-              "dealDate": "成交日期，格式YYYY-MM-DD"
+              "dealDate": "成交日期，格式YYYY-MM-DD",
+              "longitude": "经度",
+              "latitude": "纬度"
             }
 
             规则：只返回JSON，数字去单位，无法确定的为null。

@@ -7,10 +7,12 @@ import com.fang123.common.Result;
 import com.fang123.entity.Loupan;
 import com.fang123.entity.LoupanHuxing;
 import com.fang123.entity.LoupanMedia;
+import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.entity.LoupanYfyj;
 import com.fang123.service.LoupanService;
 import com.fang123.service.LoupanHuxingService;
 import com.fang123.service.LoupanMediaService;
+import com.fang123.service.LoupanTupaiLandService;
 import com.fang123.service.LoupanYfyjService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
@@ -27,6 +29,7 @@ public class LoupanPublicController {
     private final LoupanHuxingService huxingService;
     private final LoupanMediaService mediaService;
     private final LoupanYfyjService yfyjService;
+    private final LoupanTupaiLandService tupaiLandService;
 
     /** 公开-楼盘列表（搜索+分页） */
     @GetMapping("/api/public/loupans")
@@ -90,6 +93,23 @@ public class LoupanPublicController {
         LambdaQueryWrapper<LoupanYfyj> w = new LambdaQueryWrapper<>();
         w.eq(LoupanYfyj::getLoupanId, id).orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getFloorNo, LoupanYfyj::getRoomNo);
         return Result.success(yfyjService.list(w));
+    }
+
+    /** 公开-土拍地块列表（支持筛选） */
+    @GetMapping("/api/public/tupai-lands")
+    public Result<List<LoupanTupaiLand>> tupaiList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) String dealDate) {
+        LambdaQueryWrapper<LoupanTupaiLand> w = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(keyword)) {
+            w.and(wr -> wr.like(LoupanTupaiLand::getLandName, keyword)
+                    .or().like(LoupanTupaiLand::getLandNo, keyword));
+        }
+        if (StringUtils.hasText(district)) w.eq(LoupanTupaiLand::getDistrict, district);
+        if (StringUtils.hasText(dealDate)) w.likeRight(LoupanTupaiLand::getDealDate, dealDate);
+        w.orderByDesc(LoupanTupaiLand::getDealDate).orderByDesc(LoupanTupaiLand::getSort);
+        return Result.success(tupaiLandService.list(w));
     }
 
     /** 公开-筛选选项（行政区、板块列表） */

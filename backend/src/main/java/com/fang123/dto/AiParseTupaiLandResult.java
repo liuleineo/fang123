@@ -29,5 +29,7 @@ public class AiParseTupaiLandResult {
         private Integer floorUnitPrice;
         private BigDecimal premiumRate;
         private String dealDate;
+        private BigDecimal longitude;
+        private BigDecimal latitude;
     }
 }

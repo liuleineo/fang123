@@ -61,6 +61,12 @@ const routes = [
         meta: { title: '地图找房' }
       },
       {
+        path: 'tupai-map',
+        name: 'TupaiMap',
+        component: () => import('@/views/TupaiMap.vue'),
+        meta: { title: '土拍地图' }
+      },
+      {
         path: 'loupan/:id',
         name: 'LoupanDetail',
         component: () => import('@/views/LoupanDetail.vue'),

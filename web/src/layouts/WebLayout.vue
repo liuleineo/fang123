@@ -197,5 +197,6 @@ const navItems = [
   { label: '首页', href: '/' },
   { label: '楼盘', href: '/#list' },
   { label: '地图找房', href: '/map' },
+  { label: '土拍地图', href: '/tupai-map' },
 ]
 </script>

@@ -31,6 +31,14 @@ public class LoupanTupaiLand implements Serializable {
     private Integer floorUnitPrice;
     private BigDecimal premiumRate;
     private LocalDate dealDate;
+    /** 经度 */
+    private BigDecimal longitude;
+    /** 纬度 */
+    private BigDecimal latitude;
+    /** 资源ID */
+    private String resourceId;
+    /** 位置示意图URL */
+    private String locationImage;
     private Integer sort;
     @TableLogic(value = "0", delval = "1")
     @TableField("deleted")

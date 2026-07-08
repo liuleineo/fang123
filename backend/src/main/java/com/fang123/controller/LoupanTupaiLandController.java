@@ -7,10 +7,13 @@ import com.fang123.dto.AiParseTupaiLandResult;
 import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.service.AiParseService;
 import com.fang123.service.LoupanTupaiLandService;
+import com.fang123.service.TupaiResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class LoupanTupaiLandController {
 
     private final LoupanTupaiLandService tupaiLandService;
     private final AiParseService aiParseService;
+    private final TupaiResourceService tupaiResourceService;
 
     @GetMapping("/api/admin/tupai-lands")
     public Result<Page<LoupanTupaiLand>> list(
@@ -67,5 +71,13 @@ public class LoupanTupaiLandController {
         if (files == null || files.length == 0) return Result.badRequest("请至少上传一张图片");
         try { return Result.success("解析完成", aiParseService.parseTupaiLand(files)); }
         catch (Exception e) { return Result.error(500, "AI解析失败：" + e.getMessage()); }
+    }
+
+    /** 通过 resourceId 从浙江自然资源交易平台拉取地块信息 */
+    @PostMapping("/api/admin/tupai-lands/fetch-by-resource")
+    public Result<Map<String, Object>> fetchByResourceId(@RequestBody Map<String, List<String>> body) {
+        List<String> ids = body.get("resourceIds");
+        if (ids == null || ids.isEmpty()) return Result.badRequest("请至少输入一个resourceId");
+        return Result.success(tupaiResourceService.fetchByResourceIds(ids));
     }
 }
