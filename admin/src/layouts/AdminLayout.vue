@@ -137,6 +137,7 @@ const menuItems = [
   { path: '/tupai-lands', label: '土拍地块', icon: MapPin },
   { path: '/huxings', label: '楼盘户型', icon: LayoutTemplate },
   { path: '/medias', label: '媒体素材', icon: Image },
+  { path: '/presale-permits', label: '预售证', icon: ScrollText },
   { path: '/yfyj', label: '一房一价', icon: TableProperties },
   { path: '/admins', label: '管理员管理', icon: Shield },
   { path: '/users', label: '用户管理', icon: Users },

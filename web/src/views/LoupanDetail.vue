@@ -277,6 +277,36 @@
             </div>
           </t-tab-panel>
 
+          <!-- 开盘信息 -->
+          <t-tab-panel value="presale" label="开盘信息">
+            <div class="p-6">
+              <div v-if="presaleLoading" class="text-center py-10"><t-loading /></div>
+              <div v-else-if="!presaleList.length" class="text-center py-10 text-[var(--color-text-tertiary)]">暂无开盘信息</div>
+              <div v-else class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                  <thead>
+                    <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
+                      <th class="p-3 font-medium">预售证编号</th>
+                      <th class="p-3 font-medium">项目名称</th>
+                      <th class="p-3 font-medium">预售面积(㎡)</th>
+                      <th class="p-3 font-medium">坐落位置</th>
+                      <th class="p-3 font-medium">公示结束日期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in presaleList" :key="item.id" class="border-t border-gray-100 hover:bg-gray-50">
+                      <td class="p-3 font-medium text-[var(--color-primary)]">{{ item.permitNoStr||item.permitNo }}</td>
+                      <td class="p-3">{{ item.projectName }}</td>
+                      <td class="p-3">{{ item.onlineSaleArea }}㎡</td>
+                      <td class="p-3 text-[var(--color-text-tertiary)] text-xs max-w-[160px] truncate">{{ item.location||'-' }}</td>
+                      <td class="p-3 text-[var(--color-text-secondary)]">{{ item.publicityEndDate||'-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </t-tab-panel>
+
           <!-- 一房一价 -->
           <t-tab-panel value="yfyj" label="一房一价">
             <div class="p-6">
@@ -346,9 +376,11 @@ const loupan = ref(null)
 const huxings = ref([])
 const medias = ref([])
 const yfyjList = ref([])
+const presaleList = ref([])
 const huxingLoading = ref(false)
 const mediaLoading = ref(false)
 const yfyjLoading = ref(false)
+const presaleLoading = ref(false)
 const activeTab = ref('info')
 const yfyjBuilding = ref('')
 let amapInstance = null
@@ -429,11 +461,20 @@ async function fetchYfyj() {
   } catch {} finally { yfyjLoading.value = false }
 }
 
+async function fetchPresale() {
+  if (presaleList.value.length) return
+  presaleLoading.value = true
+  try {
+    presaleList.value = await request.get(`/public/loupans/${route.params.id}/presale-permits`) || []
+  } catch {} finally { presaleLoading.value = false }
+}
+
 watch(activeTab, (tab) => {
   if (tab === 'huxing') fetchHuxings()
   if (tab === 'media') fetchMedias()
   if (tab === 'map') initMap()
   if (tab === 'yfyj') fetchYfyj()
+  if (tab === 'presale') fetchPresale()
 })
 
 // 高德地图初始化

@@ -10,6 +10,8 @@ import com.fang123.dto.AiParseResult;
 import com.fang123.dto.AiParseResult.ParsedFields;
 import com.fang123.dto.AiParseTupaiLandResult;
 import com.fang123.dto.AiParseTupaiLandResult.TupaiLandFields;
+import com.fang123.dto.AiParsePresaleResult;
+import com.fang123.dto.AiParsePresaleResult.PresaleFields;
 import com.fang123.dto.AiParseYfyjResult;
 import com.fang123.dto.AiParseYfyjResult.YfyjFields;
 import com.tencentcloudapi.common.Credential;
@@ -433,6 +435,42 @@ public class AiParseService {
         }
         AiParseYfyjResult r = new AiParseYfyjResult();
         r.setOcrText(ocrText); r.setYfyjList(list);
+        return r;
+    }
+
+    // ============ 预售证 AI 解析 ============
+
+    private static final String PRESALE_PARSE_PROMPT = """
+            你是一个预售许可证信息提取助手。请从以下OCR识别的文本中提取预售证信息，返回严格的JSON格式。
+
+            {
+              "projectName": "项目名称",
+              "permitNo": "留空不要填，由系统从permitNoStr自动推导（年份+编号，如2026+00453=202600453）",
+              "permitNoStr": "预售证编号STR 如杭房预许字（2023）第00692号 或 杭售许字(2026)第00453号",
+              "developCompany": "开发公司",
+              "publicityEndDate": "公示结束日期 格式YYYY-MM-DD",
+              "location": "坐落位置",
+              "saleAddress": "销售部地址",
+              "salePhone": "销售部电话",
+              "onlineSaleArea": "网上预(销)售总面积㎡ 纯数字"
+            }
+
+            规则：只返回JSON，数字去单位，无法确定的为null。
+
+            OCR文本：
+            """;
+
+    public AiParsePresaleResult parsePresale(MultipartFile[] files) {
+        String ocrText = doOcrBatch(files, "ai-presale");
+        PresaleFields fields;
+        try {
+            String resp = callTokenHub(PRESALE_PARSE_PROMPT + ocrText, "预售证信息提取助手");
+            fields = objectMapper.readValue(resp, PresaleFields.class);
+        } catch (Exception e) {
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+        AiParsePresaleResult r = new AiParsePresaleResult();
+        r.setOcrText(ocrText); r.setFields(fields);
         return r;
     }
 

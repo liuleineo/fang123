@@ -112,6 +112,12 @@ const routes = [
         meta: { title: '媒体素材' }
       },
       {
+        path: 'presale-permits',
+        name: 'PresalePermitManage',
+        component: () => import('@/views/PresalePermitManage.vue'),
+        meta: { title: '预售证' }
+      },
+      {
         path: 'yfyj',
         name: 'YfyjManage',
         component: () => import('@/views/LoupanYfyjManage.vue'),

@@ -7,8 +7,10 @@ import com.fang123.common.Result;
 import com.fang123.entity.Loupan;
 import com.fang123.entity.LoupanHuxing;
 import com.fang123.entity.LoupanMedia;
+import com.fang123.entity.LoupanPresalePermit;
 import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.entity.LoupanYfyj;
+import com.fang123.service.LoupanPresalePermitService;
 import com.fang123.service.LoupanService;
 import com.fang123.service.LoupanHuxingService;
 import com.fang123.service.LoupanMediaService;
@@ -30,6 +32,7 @@ public class LoupanPublicController {
     private final LoupanMediaService mediaService;
     private final LoupanYfyjService yfyjService;
     private final LoupanTupaiLandService tupaiLandService;
+    private final LoupanPresalePermitService presalePermitService;
 
     /** 公开-楼盘列表（搜索+分页） */
     @GetMapping("/api/public/loupans")
@@ -93,6 +96,16 @@ public class LoupanPublicController {
         LambdaQueryWrapper<LoupanYfyj> w = new LambdaQueryWrapper<>();
         w.eq(LoupanYfyj::getLoupanId, id).orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getFloorNo, LoupanYfyj::getRoomNo);
         return Result.success(yfyjService.list(w));
+    }
+
+    /** 公开-预售证列表 */
+    @GetMapping("/api/public/loupans/{encodedId}/presale-permits")
+    public Result<List<LoupanPresalePermit>> presalePermits(@PathVariable String encodedId) {
+        Long id = IdObfuscator.decode(encodedId);
+        LambdaQueryWrapper<LoupanPresalePermit> w = new LambdaQueryWrapper<>();
+        w.eq(LoupanPresalePermit::getLoupanId, id)
+         .orderByDesc(LoupanPresalePermit::getPublicityEndDate);
+        return Result.success(presalePermitService.list(w));
     }
 
     /** 公开-土拍地块列表（支持筛选） */

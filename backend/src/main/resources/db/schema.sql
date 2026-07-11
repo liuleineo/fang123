@@ -524,3 +524,21 @@ CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='一房一价房源表';
 
 --预售证表
+CREATE TABLE `loupan_presale_permit` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `loupan_id` bigint DEFAULT NULL COMMENT '楼盘ID',
+  `project_name` VARCHAR(200) NOT NULL COMMENT '项目名称',
+  `publicity_end_date` DATE DEFAULT NULL COMMENT '公示结束日期',
+  `develop_company` VARCHAR(150) NOT NULL COMMENT '开发公司',
+  `location` VARCHAR(200) DEFAULT NULL COMMENT '坐落位置',
+  `sale_address` VARCHAR(255) DEFAULT NULL COMMENT '销售部地址',
+  `sale_phone` VARCHAR(50) DEFAULT NULL COMMENT '销售部电话',
+  `online_sale_area` DECIMAL(12,2) DEFAULT NULL COMMENT '纳入网上预(销)售总面积(㎡)',
+  `permit_no` VARCHAR(100) NOT NULL COMMENT '预售许可证编号',
+  `permit_no_str` VARCHAR(100) NOT NULL COMMENT '预售许可证编号STR',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '是否删除：0正常 1已删除',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_permit_no_str` (`permit_no_str`) COMMENT '预售证编号STR唯一索引'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='楼盘预售许可证信息表';
