@@ -174,21 +174,28 @@
       <div class="space-y-4">
         <t-alert theme="info" message="上传楼盘资料图片（如宣传海报、户型图、规划图等），AI 将自动识别并提取楼盘信息。" />
         
-        <!-- 图片上传区 -->
-        <t-upload 
-          v-model="aiFiles" 
-          :request-method="aiUploadMethod" 
-          :max="5" 
-          multiple 
-          accept="image/*" 
-          theme="image" 
-          :auto-upload="false"
-          tips="支持 JPG/PNG/WebP，单张不超过 5MB，最多 5 张"
-        />
+        <!-- 图片上传/粘贴区 -->
+        <t-tabs v-model="aiTab" size="small">
+          <t-tab-panel value="upload" label="上传图片">
+            <t-upload v-model="aiFiles" :request-method="aiUploadMethod" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，单张不超过 5MB，最多 5 张" />
+          </t-tab-panel>
+          <t-tab-panel value="paste" label="粘贴图片">
+            <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onPaste" tabindex="0">
+              <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+            </div>
+            <div v-if="aiPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+              <div v-for="(f,i) in aiPasteFiles" :key="i" class="relative">
+                <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="aiPasteFiles.splice(i,1)">×</span>
+              </div>
+            </div>
+          </t-tab-panel>
+        </t-tabs>
         
         <!-- 识别按钮 -->
         <div class="flex justify-center">
-          <t-button theme="primary" size="large" :loading="aiParsing" @click="startAiParse" :disabled="aiFiles.length === 0">
+          <t-button theme="primary" size="large" :loading="aiParsing" @click="startAiParse" :disabled="aiTab==='upload' ? aiFiles.length===0 : aiPasteFiles.length===0">
             <Sparkles class="w-4 h-4 mr-1" />{{ aiParsing ? 'AI 识别中...' : '开始识别' }}
           </t-button>
         </div>
@@ -237,7 +244,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Sparkles, Check } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Check, Image } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -247,7 +254,9 @@ const pg = reactive({current:1,pageSize:10,total:0})
 
 // ===== AI 新增楼盘相关 =====
 const aiVisible = ref(false)
+const aiTab = ref('upload')
 const aiFiles = ref([])
+const aiPasteFiles = ref([])
 const aiParsing = ref(false)
 const aiResult = ref(null)
 
@@ -289,27 +298,35 @@ function formatFieldValue(key, val) {
 
 function openAiDialog() {
   aiFiles.value = []
+  aiPasteFiles.value = []
   aiResult.value = null
+  aiTab.value = 'upload'
   aiVisible.value = true
 }
 
 function aiUploadMethod() {
-  // 不自动上传，由 startAiParse 手动提交
   return Promise.resolve({ status: 'success', response: {} })
 }
 
+function onPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); aiPasteFiles.value.push({ blob, url: URL.createObjectURL(blob) }) }
+  }
+}
+
 async function startAiParse() {
-  if (aiFiles.value.length === 0) {
-    MessagePlugin.warning('请先上传图片')
-    return
+  const fd = new FormData()
+  if (aiTab.value === 'upload') {
+    if (aiFiles.value.length === 0) { MessagePlugin.warning('请先上传图片'); return }
+    aiFiles.value.forEach(f => fd.append('files', f.raw))
+  } else {
+    if (aiPasteFiles.value.length === 0) { MessagePlugin.warning('请先粘贴图片'); return }
+    aiPasteFiles.value.forEach(f => fd.append('files', f.blob, 'paste.png'))
   }
   aiParsing.value = true
   aiResult.value = null
   try {
-    const fd = new FormData()
-    aiFiles.value.forEach((f) => {
-      fd.append('files', f.raw)
-    })
     const res = await request.post('/admin/loupans/ai-parse', fd, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 120000

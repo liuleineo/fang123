@@ -88,8 +88,24 @@
     <t-dialog v-model:visible="aiVisible" header="AI 新建地块" width="640px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
         <t-alert theme="info" message="上传土拍地块资料图片，AI 自动识别地块信息并填入表单。" />
-        <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
-        <div class="flex justify-center"><t-button theme="primary" size="large" :loading="aiParsing" @click="startAiParse" :disabled="aiFiles.length===0"><Sparkles class="w-4 h-4 mr-1" />{{ aiParsing?'识别中...':'开始识别' }}</t-button></div>
+        <t-tabs v-model="aiTab" size="small">
+          <t-tab-panel value="upload" label="上传图片">
+            <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
+          </t-tab-panel>
+          <t-tab-panel value="paste" label="粘贴图片">
+            <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onPaste" tabindex="0">
+              <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+            </div>
+            <div v-if="aiPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+              <div v-for="(f,i) in aiPasteFiles" :key="i" class="relative">
+                <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="aiPasteFiles.splice(i,1)">×</span>
+              </div>
+            </div>
+          </t-tab-panel>
+        </t-tabs>
+        <div class="flex justify-center"><t-button theme="primary" size="large" :loading="aiParsing" @click="startAiParse" :disabled="aiTab==='upload' ? aiFiles.length===0 : aiPasteFiles.length===0"><Sparkles class="w-4 h-4 mr-1" />{{ aiParsing?'识别中...':'开始识别' }}</t-button></div>
         <div v-if="aiResult" class="border rounded-lg p-4 bg-gray-50 max-h-[400px] overflow-y-auto">
           <h3 class="font-semibold mb-3">识别结果</h3>
           <t-collapse class="mb-3"><t-collapse-panel header="OCR 原始文本"><pre class="text-xs text-gray-600 whitespace-pre-wrap max-h-[200px] overflow-y-auto">{{ aiResult.ocrText }}</pre></t-collapse-panel></t-collapse>
@@ -192,14 +208,22 @@ async function save(){
 async function del(id){await request.delete(`/admin/tupai-lands/${id}`);MessagePlugin.success('已删除');fetchData()}
 
 // ===== AI 新建地块 =====
-const aiVisible = ref(false); const aiFiles = ref([]); const aiParsing = ref(false); const aiResult = ref(null)
-function openAiDialog(){ aiFiles.value=[]; aiResult.value=null; aiVisible.value=true }
+const aiVisible = ref(false); const aiTab = ref('upload')
+const aiFiles = ref([]); const aiPasteFiles = ref([]); const aiParsing = ref(false); const aiResult = ref(null)
+function openAiDialog(){ aiFiles.value=[]; aiPasteFiles.value=[]; aiResult.value=null; aiTab.value='upload'; aiVisible.value=true }
 function aiUploadDummy(){ return Promise.resolve({status:'success',response:{}}) }
+function onPaste(e){ const items=e.clipboardData?.items; if(!items)return; for(const item of items){ if(item.type.startsWith('image/')){ const blob=item.getAsFile(); aiPasteFiles.value.push({blob,url:URL.createObjectURL(blob)}) } } }
 async function startAiParse(){
-  if(!aiFiles.value.length){ MessagePlugin.warning('请先上传图片'); return }
+  const fd=new FormData()
+  if(aiTab.value==='upload'){
+    if(!aiFiles.value.length){ MessagePlugin.warning('请先上传图片'); return }
+    aiFiles.value.forEach(f=>fd.append('files',f.raw))
+  }else{
+    if(!aiPasteFiles.value.length){ MessagePlugin.warning('请先粘贴图片'); return }
+    aiPasteFiles.value.forEach(f=>fd.append('files',f.blob,'paste.png'))
+  }
   aiParsing.value=true; aiResult.value=null
   try{
-    const fd=new FormData(); aiFiles.value.forEach(f=>fd.append('files',f.raw))
     aiResult.value=await request.post('/admin/tupai-lands/ai-parse',fd,{headers:{'Content-Type':'multipart/form-data'},timeout:120000})
     MessagePlugin.success('识别成功')
   }catch(e){ MessagePlugin.error('AI识别失败：'+(e.response?.data?.msg||e.message)) }
