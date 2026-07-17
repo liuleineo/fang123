@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fang123.common.IdObfuscator;
 import com.fang123.common.Result;
+import com.fang123.dto.TupaiLandPublicVO;
 import com.fang123.entity.Loupan;
 import com.fang123.entity.LoupanHuxing;
 import com.fang123.entity.LoupanMedia;
 import com.fang123.entity.LoupanPresalePermit;
 import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.entity.LoupanYfyj;
+import org.springframework.beans.BeanUtils;
 import com.fang123.service.LoupanPresalePermitService;
 import com.fang123.service.LoupanService;
 import com.fang123.service.LoupanHuxingService;
@@ -108,9 +110,9 @@ public class LoupanPublicController {
         return Result.success(presalePermitService.list(w));
     }
 
-    /** 公开-土拍地块列表（支持筛选） */
+    /** 公开-土拍地块列表（精简字段） */
     @GetMapping("/api/public/tupai-lands")
-    public Result<List<LoupanTupaiLand>> tupaiList(
+    public Result<List<TupaiLandPublicVO>> tupaiList(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String district,
             @RequestParam(required = false) String dealDate) {
@@ -122,7 +124,12 @@ public class LoupanPublicController {
         if (StringUtils.hasText(district)) w.eq(LoupanTupaiLand::getDistrict, district);
         if (StringUtils.hasText(dealDate)) w.likeRight(LoupanTupaiLand::getDealDate, dealDate);
         w.orderByDesc(LoupanTupaiLand::getDealDate).orderByDesc(LoupanTupaiLand::getSort);
-        return Result.success(tupaiLandService.list(w));
+        List<TupaiLandPublicVO> vos = tupaiLandService.list(w).stream().map(e -> {
+            TupaiLandPublicVO vo = new TupaiLandPublicVO();
+            BeanUtils.copyProperties(e, vo);
+            return vo;
+        }).toList();
+        return Result.success(vos);
     }
 
     /** 公开-筛选选项（行政区、板块列表） */
