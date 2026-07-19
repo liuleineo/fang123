@@ -41,7 +41,24 @@
         <t-form-item label="户型名称"><t-input v-model="form.huxingName" /></t-form-item>
         <t-form-item label="户型图">
           <div class="flex flex-col gap-2 w-full">
-            <t-upload v-model="huxingFiles" :request-method="uploadHuxingImage" :max="1" accept="image/*" theme="image" @success="onHuxingSuccess" @fail="onHuxingFail" @remove="onHuxingRemove" />
+            <t-tabs v-model="huxingUploadTab" size="small">
+              <t-tab-panel value="upload" label="上传图片">
+                <t-upload v-model="huxingFiles" :request-method="uploadHuxingImage" :max="1" accept="image/*" theme="image" @success="onHuxingSuccess" @fail="onHuxingFail" @remove="onHuxingRemove" />
+              </t-tab-panel>
+              <t-tab-panel value="paste" label="粘贴图片">
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onHuxingPaste" tabindex="0">
+                  <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+                </div>
+                <div v-if="huxingPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+                  <div v-for="(f,i) in huxingPasteFiles" :key="i" class="relative">
+                    <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="huxingPasteFiles.splice(i,1)">×</span>
+                  </div>
+                </div>
+                <t-button v-if="huxingPasteFiles.length" variant="outline" size="small" class="mt-2" :loading="huxingPasteUploading" @click="uploadHuxingPaste">上传并填入URL</t-button>
+              </t-tab-panel>
+            </t-tabs>
             <t-input v-model="form.huxingImage" placeholder="上传后自动填入，也可手动输入URL" />
           </div>
         </t-form-item>
@@ -159,6 +176,9 @@ const pg = reactive({current:1,pageSize:10,total:0})
 const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0,huxingImage:'' })
 const form = reactive(initForm())
 const huxingFiles = ref([])
+const huxingUploadTab = ref('upload')
+const huxingPasteFiles = ref([])
+const huxingPasteUploading = ref(false)
 
 const cols = [
   {colKey:'id',title:'ID',width:60},
@@ -196,6 +216,24 @@ async function uploadHuxingImage(file) {
 function onHuxingSuccess({ file }) { form.huxingImage = file.response?.url || ''; MessagePlugin.success('上传成功'); huxingFiles.value = [] }
 function onHuxingFail() { MessagePlugin.error('上传失败'); huxingFiles.value = [] }
 function onHuxingRemove() { huxingFiles.value = [] }
+
+function onHuxingPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); huxingPasteFiles.value = [{ blob, url: URL.createObjectURL(blob) }] }
+  }
+}
+async function uploadHuxingPaste() {
+  if (!huxingPasteFiles.value.length) return
+  huxingPasteUploading.value = true
+  try {
+    const fd = new FormData(); fd.append('file', huxingPasteFiles.value[0].blob, 'huxing.png')
+    const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    form.huxingImage = res.url; huxingPasteFiles.value = []
+    MessagePlugin.success('上传成功')
+  } catch { MessagePlugin.error('上传失败') }
+  finally { huxingPasteUploading.value = false }
+}
 
 // ===== AI 新建户型 =====
 const aiVisible = ref(false)

@@ -41,16 +41,33 @@
         </t-form-item>
         <t-form-item label="素材URL">
           <div class="flex flex-col gap-2 w-full">
-            <t-upload
-              v-model="uploadFiles"
-              :request-method="uploadRequest"
-              :max="1"
-              accept="image/*,video/*"
-              theme="file"
-              @success="onUploadSuccess"
-              @fail="onUploadFail"
-              @remove="onUploadRemove"
-            />
+            <t-tabs v-model="uploadTab" size="small">
+              <t-tab-panel value="upload" label="上传文件">
+                <t-upload
+                  v-model="uploadFiles"
+                  :request-method="uploadRequest"
+                  :max="1"
+                  accept="image/*,video/*"
+                  theme="file"
+                  @success="onUploadSuccess"
+                  @fail="onUploadFail"
+                  @remove="onUploadRemove"
+                />
+              </t-tab-panel>
+              <t-tab-panel value="paste" label="粘贴图片">
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onPaste" tabindex="0">
+                  <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+                </div>
+                <div v-if="pasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+                  <div v-for="(f,i) in pasteFiles" :key="i" class="relative">
+                    <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="pasteFiles.splice(i,1)">×</span>
+                  </div>
+                </div>
+                <t-button v-if="pasteFiles.length" variant="outline" size="small" class="mt-2" :loading="pasteUploading" @click="uploadPasted">上传并填入URL</t-button>
+              </t-tab-panel>
+            </t-tabs>
             <t-input v-model="form.mediaUrl" placeholder="上传后自动填入，也可手动输入URL" />
           </div>
         </t-form-item>
@@ -65,13 +82,36 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search } from 'lucide-vue-next'
+import { Plus, Search, Image } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 const uploadFiles = ref([])
+const uploadTab = ref('upload')
+const pasteFiles = ref([])
+const pasteUploading = ref(false)
+
+function onPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); pasteFiles.value.push({ blob, url: URL.createObjectURL(blob) }) }
+  }
+}
+async function uploadPasted() {
+  if (!pasteFiles.value.length) return
+  pasteUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', pasteFiles.value[0].blob, 'paste.png')
+    const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    form.mediaUrl = res.url
+    pasteFiles.value = []
+    MessagePlugin.success('上传成功')
+  } catch { MessagePlugin.error('上传失败') }
+  finally { pasteUploading.value = false }
+}
 
 function onUploadSuccess({ file }) {
   form.mediaUrl = file.response?.url || ''

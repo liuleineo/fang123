@@ -46,7 +46,24 @@
             <t-form-item label="楼盘简称"><t-input v-model="form.shortName" /></t-form-item>
             <t-form-item label="封面图">
               <div class="flex flex-col gap-2 w-full">
-                <t-upload v-model="coverFiles" :request-method="uploadCover" :max="1" accept="image/*" theme="image" @success="onCoverSuccess" @fail="onCoverFail" @remove="onCoverRemove" />
+                <t-tabs v-model="coverTab" size="small">
+                  <t-tab-panel value="upload" label="上传图片">
+                    <t-upload v-model="coverFiles" :request-method="uploadCover" :max="1" accept="image/*" theme="image" @success="onCoverSuccess" @fail="onCoverFail" @remove="onCoverRemove" />
+                  </t-tab-panel>
+                  <t-tab-panel value="paste" label="粘贴图片">
+                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onCoverPaste" tabindex="0">
+                      <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                      <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+                    </div>
+                    <div v-if="coverPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+                      <div v-for="(f,i) in coverPasteFiles" :key="i" class="relative">
+                        <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="coverPasteFiles.splice(i,1)">×</span>
+                      </div>
+                    </div>
+                    <t-button v-if="coverPasteFiles.length" variant="outline" size="small" class="mt-2" :loading="coverPasteUploading" @click="uploadCoverPaste">上传并设为封面</t-button>
+                  </t-tab-panel>
+                </t-tabs>
                 <t-input v-model="form.coverImage" placeholder="上传后自动填入，也可手动输入URL" />
               </div>
             </t-form-item>
@@ -250,6 +267,9 @@ import request from '@/utils/request'
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const activeTab = ref('basic')
 const coverFiles = ref([])
+const coverTab = ref('upload')
+const coverPasteFiles = ref([])
+const coverPasteUploading = ref(false)
 const pg = reactive({current:1,pageSize:10,total:0})
 
 // ===== AI 新增楼盘相关 =====
@@ -422,6 +442,24 @@ async function uploadCover(file) {
 function onCoverSuccess({ file }) { form.coverImage = file.response?.url || ''; MessagePlugin.success('封面上传成功'); coverFiles.value = [] }
 function onCoverFail() { MessagePlugin.error('上传失败'); coverFiles.value = [] }
 function onCoverRemove() { coverFiles.value = [] }
+
+function onCoverPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); coverPasteFiles.value = [{ blob, url: URL.createObjectURL(blob) }] }
+  }
+}
+async function uploadCoverPaste() {
+  if (!coverPasteFiles.value.length) return
+  coverPasteUploading.value = true
+  try {
+    const fd = new FormData(); fd.append('file', coverPasteFiles.value[0].blob, 'cover.png')
+    const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    form.coverImage = res.url; coverPasteFiles.value = []
+    MessagePlugin.success('封面上传成功')
+  } catch { MessagePlugin.error('上传失败') }
+  finally { coverPasteUploading.value = false }
+}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/loupans/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/loupans',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}

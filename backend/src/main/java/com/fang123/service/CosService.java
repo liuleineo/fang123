@@ -128,6 +128,22 @@ public class CosService {
         return "https://" + cosProperties.getBucket() + ".cos." + cosProperties.getRegion() + ".myqcloud.com/" + key;
     }
 
+    /**
+     * 从 COS URL 提取 key 并删除文件
+     */
+    public void deleteByUrl(String url) {
+        if (url == null || url.isEmpty()) return;
+        try {
+            String prefix = "https://" + cosProperties.getBucket() + ".cos." + cosProperties.getRegion() + ".myqcloud.com/";
+            if (!url.startsWith(prefix)) return;
+            String key = url.substring(prefix.length());
+            cosClient.deleteObject(cosProperties.getBucket(), key);
+            log.debug("COS file deleted: {}", key);
+        } catch (Exception e) {
+            log.error("COS delete failed for url: {}", url, e);
+        }
+    }
+
     private String getUploadExtension(String filename, String contentType) {
         if (filename != null && filename.contains(".")) {
             return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();

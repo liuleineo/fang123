@@ -71,7 +71,24 @@
         </t-form-item>
         <t-form-item label="位置示意图">
           <div class="flex flex-col gap-2 w-full">
-            <t-upload v-model="tupaiFiles" :request-method="uploadTupaiImage" :max="1" accept="image/*" theme="image" @success="onTupaiSuccess" @fail="onTupaiFail" @remove="onTupaiRemove" />
+            <t-tabs v-model="tupaiUploadTab" size="small">
+              <t-tab-panel value="upload" label="上传图片">
+                <t-upload v-model="tupaiFiles" :request-method="uploadTupaiImage" :max="1" accept="image/*" theme="image" @success="onTupaiSuccess" @fail="onTupaiFail" @remove="onTupaiRemove" />
+              </t-tab-panel>
+              <t-tab-panel value="paste" label="粘贴图片">
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onTupaiPaste" tabindex="0">
+                  <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+                </div>
+                <div v-if="tupaiPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+                  <div v-for="(f,i) in tupaiPasteFiles" :key="i" class="relative">
+                    <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="tupaiPasteFiles.splice(i,1)">×</span>
+                  </div>
+                </div>
+                <t-button v-if="tupaiPasteFiles.length" variant="outline" size="small" class="mt-2" :loading="tupaiPasteUploading" @click="uploadTupaiPaste">上传并填入URL</t-button>
+              </t-tab-panel>
+            </t-tabs>
             <t-input v-model="form.locationImage" placeholder="上传后自动填入，也可手动输入URL" />
           </div>
         </t-form-item>
@@ -199,8 +216,29 @@ function onTupaiSuccess({ file }) { form.locationImage = file.response?.url || '
 function onTupaiFail() { MessagePlugin.error('上传失败'); tupaiFiles.value = [] }
 function onTupaiRemove() { tupaiFiles.value = [] }
 
-function openCreate(){isEdit.value=false;editId.value=null;tupaiFiles.value=[];Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;tupaiFiles.value=[];Object.assign(form,row);drawer.value=true}
+const tupaiUploadTab = ref('upload')
+const tupaiPasteFiles = ref([])
+const tupaiPasteUploading = ref(false)
+function onTupaiPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); tupaiPasteFiles.value = [{ blob, url: URL.createObjectURL(blob) }] }
+  }
+}
+async function uploadTupaiPaste() {
+  if (!tupaiPasteFiles.value.length) return
+  tupaiPasteUploading.value = true
+  try {
+    const fd = new FormData(); fd.append('file', tupaiPasteFiles.value[0].blob, 'location.png')
+    const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    form.locationImage = res.url; tupaiPasteFiles.value = []
+    MessagePlugin.success('上传成功')
+  } catch { MessagePlugin.error('上传失败') }
+  finally { tupaiPasteUploading.value = false }
+}
+
+function openCreate(){isEdit.value=false;editId.value=null;tupaiFiles.value=[];tupaiPasteFiles.value=[];Object.assign(form,initForm());drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;tupaiFiles.value=[];tupaiPasteFiles.value=[];Object.assign(form,row);drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/tupai-lands/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/tupai-lands',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}

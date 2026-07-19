@@ -162,6 +162,8 @@ public class AiParseService {
         result.setImageUrls(imageUrls);
         result.setOcrText(ocrText);
         result.setFields(fields);
+        // OCR 完成后删除 COS 临时图片
+        imageUrls.forEach(cosService::deleteByUrl);
         return result;
     }
 
@@ -270,6 +272,7 @@ public class AiParseService {
         result.setImageUrls(imageUrls);
         result.setOcrText(ocrText);
         result.setHuxings(huxings);
+        imageUrls.forEach(cosService::deleteByUrl);
         return result;
     }
 
@@ -380,7 +383,7 @@ public class AiParseService {
             """;
 
     public AiParseTupaiLandResult parseTupaiLand(MultipartFile[] files) {
-        String ocrText = doOcrBatch(files, "ai-tupai");
+        String ocrText = doOcrBatch(files, "ai-tupai")[0];
         TupaiLandFields fields;
         try {
             String resp = callTokenHub(TUPAI_PARSE_PROMPT + ocrText, "土拍地块信息提取助手");
@@ -422,7 +425,7 @@ public class AiParseService {
             """;
 
     public AiParseYfyjResult parseYfyj(MultipartFile[] files) {
-        String ocrText = doOcrBatch(files, "ai-yfyj");
+        String ocrText = doOcrBatch(files, "ai-yfyj")[0];
         List<YfyjFields> list;
         try {
             String resp = callTokenHub(YFYJ_PARSE_PROMPT + ocrText, "一房一价信息提取助手");
@@ -461,7 +464,7 @@ public class AiParseService {
             """;
 
     public AiParsePresaleResult parsePresale(MultipartFile[] files) {
-        String ocrText = doOcrBatch(files, "ai-presale");
+        String ocrText = doOcrBatch(files, "ai-presale")[0];
         PresaleFields fields;
         try {
             String resp = callTokenHub(PRESALE_PARSE_PROMPT + ocrText, "预售证信息提取助手");
@@ -476,23 +479,26 @@ public class AiParseService {
 
     // ============ 通用方法 ============
 
-    /** OCR 识别多张图片，返回合并文本 */
-    private String doOcrBatch(MultipartFile[] files, String cosFolder) {
+    /** OCR 识别多张图片，返回 [ocrText, uploadedUrls] */
+    private String[] doOcrBatch(MultipartFile[] files, String cosFolder) {
         if (files == null || files.length == 0) throw new IllegalArgumentException("请至少上传一张图片");
         StringBuilder ocrTextBuilder = new StringBuilder();
+        List<String> urls = new ArrayList<>();
         for (int i = 0; i < files.length; i++) {
             try {
                 byte[] bytes = files[i].getBytes();
                 String text = doOcrWithBase64(Base64.getEncoder().encodeToString(bytes));
                 ocrTextBuilder.append("【图片").append(i + 1).append("】\n").append(text).append("\n\n");
-                try { cosService.uploadFile(files[i], cosFolder); } catch (Exception ignored) {}
+                try { urls.add(cosService.uploadFile(files[i], cosFolder)); } catch (Exception ignored) { urls.add(null); }
             } catch (Exception e) {
                 log.error("OCR batch failed for image {}", i + 1, e);
             }
         }
         String ocrText = ocrTextBuilder.toString().trim();
         if (ocrText.isEmpty()) throw new RuntimeException("所有图片OCR识别均失败");
-        return ocrText;
+        // OCR 完成后删除 COS 临时图片
+        urls.forEach(cosService::deleteByUrl);
+        return new String[]{ocrText};
     }
 
     /** 调用 TokenHub，返回清理后的 content */
