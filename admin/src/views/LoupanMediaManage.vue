@@ -41,7 +41,7 @@
         </t-form-item>
         <t-form-item label="素材URL">
           <div class="flex flex-col gap-2 w-full">
-            <t-tabs v-model="uploadTab" size="small">
+            <t-tabs>
               <t-tab-panel value="upload" label="上传文件">
                 <t-upload
                   v-model="uploadFiles"
@@ -157,7 +157,7 @@ async function fetchData() {
   try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(filterLoupanId.value)p.loupanId=filterLoupanId.value;const r=await request.get('/admin/medias',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
-function onPg(p){pg.current=p.current;fetchData()}
+function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
 function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
 async function save(){

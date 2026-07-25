@@ -16,8 +16,14 @@
         <t-input v-model="filterRoomNo" placeholder="房号" class="w-[100px]" @enter="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
         <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;search()">重置</t-button>
+        <div class="ml-auto">
+          <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
+          <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
+            <t-button theme="danger" size="small" class="ml-2">批量删除({{ selectedIds.length }})</t-button>
+          </t-popconfirm>
+        </div>
       </div>
-      <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
+      <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg" @select-change="onSelectChange">
         <template #houseStatus="{ row }">
           <t-tag :theme="row.houseStatus===0?'default':row.houseStatus===1?'warning':row.houseStatus===2?'success':row.houseStatus===3?'danger':'primary'" size="small">
             {{ ['未售','认购','已售','抵押','保留'][row.houseStatus]||'未知' }}
@@ -60,7 +66,7 @@
       <div class="space-y-4">
         <t-alert theme="info" message="上传一房一价表图片，AI 自动识别多套房源信息并批量创建。" />
         <t-form label-align="top"><t-form-item label="关联楼盘ID"><t-input-number v-model="aiLoupanId" :min="1" placeholder="所有识别的房源将关联到此楼盘" /></t-form-item></t-form>
-        <t-tabs v-model="aiTab" size="small">
+        <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
           </t-tab-panel>
@@ -102,7 +108,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Search, Sparkles, Check, Image } from 'lucide-vue-next'
 import request from '@/utils/request'
@@ -116,6 +122,7 @@ const initForm = () => ({ loupanId:null,huxingId:null,buildingNo:'',unitNo:'',ro
 const form = reactive(initForm())
 
 const cols = [
+  {colKey:'row-select',type:'multiple',width:40},
   {colKey:'id',title:'ID',width:60},
   {colKey:'loupanId',title:'楼盘ID',width:70},
   {colKey:'huxingId',title:'户型ID',width:70},
@@ -137,7 +144,7 @@ async function fetchData() {
   try{const p={page:pg.current,size:pg.pageSize};if(filterLoupanId.value)p.loupanId=filterLoupanId.value;if(filterBuildingNo.value)p.buildingNo=filterBuildingNo.value;if(filterUnitNo.value)p.unitNo=filterUnitNo.value;if(filterRoomNo.value)p.roomNo=filterRoomNo.value;const r=await request.get('/admin/yfyj',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
-function onPg(p){pg.current=p.current;fetchData()}
+function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
 function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
 async function save(){
@@ -145,6 +152,24 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/yfyj/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/yfyj',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/yfyj/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+// 批量选择
+const selectedIds = ref([])
+const selectAll = ref(false)
+const selectIndeterminate = computed(() => selectedIds.value.length > 0 && selectedIds.value.length < data.value.length)
+
+function onSelectChange(val) { selectedIds.value = val }
+function onSelectAll(val) { selectedIds.value = val ? data.value.map(i=>i.id) : [] }
+
+async function batchDelete() {
+  let count = 0
+  for (const id of selectedIds.value) {
+    try { await request.delete(`/admin/yfyj/${id}`); count++ } catch {}
+  }
+  MessagePlugin.success(`成功删除 ${count} 条`)
+  selectedIds.value = []
+  fetchData()
+}
 
 // ===== AI 新建房源 =====
 const aiVisible = ref(false); const aiTab = ref('upload')

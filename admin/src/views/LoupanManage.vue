@@ -46,7 +46,7 @@
             <t-form-item label="楼盘简称"><t-input v-model="form.shortName" /></t-form-item>
             <t-form-item label="封面图">
               <div class="flex flex-col gap-2 w-full">
-                <t-tabs v-model="coverTab" size="small">
+                <t-tabs>
                   <t-tab-panel value="upload" label="上传图片">
                     <t-upload v-model="coverFiles" :request-method="uploadCover" :max="1" accept="image/*" theme="image" @success="onCoverSuccess" @fail="onCoverFail" @remove="onCoverRemove" />
                   </t-tab-panel>
@@ -192,7 +192,7 @@
         <t-alert theme="info" message="上传楼盘资料图片（如宣传海报、户型图、规划图等），AI 将自动识别并提取楼盘信息。" />
         
         <!-- 图片上传/粘贴区 -->
-        <t-tabs v-model="aiTab" size="small">
+        <t-tabs>
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadMethod" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，单张不超过 5MB，最多 5 张" />
           </t-tab-panel>
@@ -429,7 +429,7 @@ async function fetchData() {
   try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;const r=await request.get('/admin/loupans',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
-function onPg(p){pg.current=p.current;fetchData()}
+function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 function openCreate(){isEdit.value=false;editId.value=null;coverFiles.value=[];Object.assign(form,initForm());activeTab.value='basic';drawer.value=true}
 function openEdit(row){isEdit.value=true;editId.value=row.id;coverFiles.value=[];Object.assign(form,row);activeTab.value='basic';drawer.value=true}
 

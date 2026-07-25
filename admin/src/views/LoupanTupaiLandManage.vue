@@ -71,7 +71,7 @@
         </t-form-item>
         <t-form-item label="位置示意图">
           <div class="flex flex-col gap-2 w-full">
-            <t-tabs v-model="tupaiUploadTab" size="small">
+            <t-tabs>
               <t-tab-panel value="upload" label="上传图片">
                 <t-upload v-model="tupaiFiles" :request-method="uploadTupaiImage" :max="1" accept="image/*" theme="image" @success="onTupaiSuccess" @fail="onTupaiFail" @remove="onTupaiRemove" />
               </t-tab-panel>
@@ -105,7 +105,7 @@
     <t-dialog v-model:visible="aiVisible" header="AI 新建地块" width="640px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
         <t-alert theme="info" message="上传土拍地块资料图片，AI 自动识别地块信息并填入表单。" />
-        <t-tabs v-model="aiTab" size="small">
+        <t-tabs>
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
           </t-tab-panel>
@@ -205,7 +205,7 @@ async function fetchData() {
   try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;const r=await request.get('/admin/tupai-lands',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
-function onPg(p){pg.current=p.current;fetchData()}
+function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 const tupaiFiles = ref([])
 async function uploadTupaiImage(file) {
   const fd = new FormData(); fd.append('file', file.raw)

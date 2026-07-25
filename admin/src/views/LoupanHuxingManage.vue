@@ -41,7 +41,7 @@
         <t-form-item label="户型名称"><t-input v-model="form.huxingName" /></t-form-item>
         <t-form-item label="户型图">
           <div class="flex flex-col gap-2 w-full">
-            <t-tabs v-model="huxingUploadTab" size="small">
+            <t-tabs>
               <t-tab-panel value="upload" label="上传图片">
                 <t-upload v-model="huxingFiles" :request-method="uploadHuxingImage" :max="1" accept="image/*" theme="image" @success="onHuxingSuccess" @fail="onHuxingFail" @remove="onHuxingRemove" />
               </t-tab-panel>
@@ -101,7 +101,7 @@
           </t-form-item>
         </t-form>
 
-        <t-tabs v-model="aiTab" size="small">
+        <t-tabs>
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
           </t-tab-panel>
@@ -203,7 +203,7 @@ async function fetchData() {
   try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(filterLoupanId.value)p.loupanId=filterLoupanId.value;const r=await request.get('/admin/huxings',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
-function onPg(p){pg.current=p.current;fetchData()}
+function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];Object.assign(form,initForm());drawer.value=true}
 function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];Object.assign(form,row);drawer.value=true}
 

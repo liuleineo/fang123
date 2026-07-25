@@ -502,7 +502,7 @@ CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '房源ID',
   `loupan_id` bigint NOT NULL COMMENT '楼盘ID',
   `huxing_id` bigint DEFAULT NULL COMMENT '对应户型ID，可选',
-  `building_no` varchar(20) NOT NULL COMMENT '楼栋号 如7',
+  `building_no` varchar(20) NOT NULL DEFAULT '' COMMENT '楼栋号 如7',
   `unit_no` varchar(20) DEFAULT NULL COMMENT '单元号',
   `room_no` varchar(20) NOT NULL COMMENT '房号 301',
   `area` decimal(6,2) NOT NULL COMMENT '建筑面积㎡',
