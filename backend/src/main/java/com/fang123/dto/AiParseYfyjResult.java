@@ -13,15 +13,12 @@ public class AiParseYfyjResult {
     @Data
     public static class YfyjFields {
         private String buildingNo;
-        private Integer floorNo;
+        private String unitNo;
         private String roomNo;
         private BigDecimal area;
         private Integer recordUnitPrice;
         private Integer recordTotalPrice;
-        private Integer saleUnitPrice;
-        private Integer saleTotalPrice;
         private Integer houseStatus;
-        private String orientation;
         private String remark;
     }
 }

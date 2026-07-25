@@ -204,7 +204,6 @@
                     <p class="text-2xl font-bold text-[var(--color-primary)] mb-1">{{ hx.area }}<span class="text-sm font-normal text-[var(--color-text-tertiary)]">㎡</span></p>
                     <p class="text-sm text-[var(--color-text-secondary)] mb-3">{{ hx.roomNum }}室{{ hx.hallNum }}厅{{ hx.toiletNum }}卫
                       <span v-if="hx.balconyNum">· {{ hx.balconyNum }}阳台</span>
-                      <span v-if="hx.orientation">· {{ hx.orientation }}</span>
                     </p>
                     <div class="flex flex-wrap gap-1.5 text-xs">
                       <span class="px-2 py-0.5 rounded bg-blue-50 text-[var(--color-primary)]">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
@@ -322,29 +321,28 @@
                   <table class="w-full text-sm border-collapse table-fixed">
                     <thead>
                       <tr class="bg-gray-50">
-                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)] w-12">楼层</th>
-                        <th v-for="pos in yfyjPositions" :key="pos" class="p-2 font-medium text-center text-[var(--color-text-secondary)]">{{ pos }}室</th>
+                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)] w-12">房号</th>
+                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)]">面积</th>
+                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)]">备案单价</th>
+                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)]">备案总价</th>
+                        <th class="p-2 font-medium text-center text-[var(--color-text-secondary)]">状态</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="floor in yfyjFloors" :key="floor" class="border-t border-gray-100">
-                        <td class="p-1 text-center font-bold text-xs text-[var(--color-text-tertiary)] bg-gray-50 align-middle">{{ floor }}F</td>
-                        <td v-for="pos in yfyjPositions" :key="pos" class="p-1">
-                          <div v-if="yfyjGrid[floor]?.[pos]" class="rounded p-2 text-center text-xs transition-colors min-h-[72px] flex flex-col justify-center"
-                               :class="{
-                                 'bg-gray-50 text-gray-500': yfyjGrid[floor][pos].houseStatus===0,
-                                 'bg-orange-50 text-orange-700': yfyjGrid[floor][pos].houseStatus===1,
-                                 'bg-red-50 text-red-700': yfyjGrid[floor][pos].houseStatus===2,
-                                 'bg-purple-50 text-purple-700': yfyjGrid[floor][pos].houseStatus===3,
-                                 'bg-blue-50 text-blue-700': yfyjGrid[floor][pos].houseStatus===4
-                               }">
-                            <div class="font-bold mb-0.5">{{ yfyjGrid[floor][pos].roomNo }}</div>
-                            <div class="opacity-80">{{ yfyjGrid[floor][pos].area }}㎡</div>
-                            <div class="opacity-80" v-if="yfyjGrid[floor][pos].recordUnitPrice">{{ yfyjGrid[floor][pos].recordUnitPrice }}元/㎡</div>
-                            <div class="opacity-80" v-if="yfyjGrid[floor][pos].recordTotalPrice">{{ (yfyjGrid[floor][pos].recordTotalPrice/10000).toFixed(2) }}万</div>
-                            <div class="font-medium mt-0.5">{{ ['未售','认购','已售','抵押','保留'][yfyjGrid[floor][pos].houseStatus] }}</div>
-                          </div>
-                          <div v-else class="rounded p-1.5 text-center text-xs text-gray-300 bg-gray-50">-</div>
+                      <tr v-for="item in yfyjFiltered" :key="item.id" class="border-t border-gray-100 hover:bg-gray-50">
+                        <td class="p-2 font-medium text-center">{{ item.roomNo }}</td>
+                        <td class="p-2 text-center">{{ item.area }}㎡</td>
+                        <td class="p-2 text-center text-[var(--color-primary)] font-medium">{{ item.recordUnitPrice||'-' }}</td>
+                        <td class="p-2 text-center">{{ (item.recordTotalPrice/10000).toFixed(2) }}万</td>
+                        <td class="p-2 text-center">
+                          <span :class="['px-2 py-0.5 rounded text-xs',
+                            item.houseStatus===0?'bg-gray-100 text-gray-500':
+                            item.houseStatus===1?'bg-orange-50 text-orange-600':
+                            item.houseStatus===2?'bg-red-50 text-red-600':
+                            item.houseStatus===3?'bg-purple-50 text-purple-600':
+                            'bg-blue-50 text-blue-600']">
+                            {{ ['未售','认购','已售','抵押','保留'][item.houseStatus]||'未知' }}
+                          </span>
                         </td>
                       </tr>
                     </tbody>
@@ -396,24 +394,8 @@ const mediaGroups = computed(() => {
   return Object.entries(map).map(([label, items]) => ({ label, items }))
 })
 
-const yfyjBuildings = computed(() => [...new Set(yfyjList.value.map(i=>i.buildingNo))].sort())
-
-// 当前楼栋的房源按楼层和位置建网格
-const yfyjGrid = computed(() => {
-  const grid = {}
-  yfyjList.value.filter(i=>i.buildingNo===yfyjBuilding.value).forEach(item => {
-    const pos = item.roomNo.replace(/^\d+/, '') // 提取房号后缀如 "01"
-    if (!grid[item.floorNo]) grid[item.floorNo] = {}
-    grid[item.floorNo][pos] = item
-  })
-  return grid
-})
-const yfyjFloors = computed(() => Object.keys(yfyjGrid.value).map(Number).sort((a,b)=>b-a))
-const yfyjPositions = computed(() => {
-  const set = new Set()
-  Object.values(yfyjGrid.value).forEach(row => Object.keys(row).forEach(k=>set.add(k)))
-  return [...set].sort()
-})
+const yfyjBuildings = computed(() => [...new Set(yfyjList.value.map(i=>i.buildingNo))].sort((a,b)=>a-b))
+const yfyjFiltered = computed(() => yfyjList.value.filter(i=>i.buildingNo===yfyjBuilding.value))
 
 function fmtNum(n) {
   if (!n) return '0'

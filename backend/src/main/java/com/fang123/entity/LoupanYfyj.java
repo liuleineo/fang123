@@ -14,16 +14,15 @@ public class LoupanYfyj implements Serializable {
     private Long id;
     private Long loupanId;
     private Long huxingId;
+    /** 楼栋号 */
     private String buildingNo;
-    private Integer floorNo;
+    /** 单元号 */
+    private String unitNo;
     private String roomNo;
     private BigDecimal area;
     private Integer recordUnitPrice;
     private Integer recordTotalPrice;
-    private Integer saleUnitPrice;
-    private Integer saleTotalPrice;
     private Integer houseStatus;
-    private String orientation;
     private String remark;
     private Integer sort;
     @TableLogic(value = "0", delval = "1")

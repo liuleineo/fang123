@@ -502,16 +502,13 @@ CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '房源ID',
   `loupan_id` bigint NOT NULL COMMENT '楼盘ID',
   `huxing_id` bigint DEFAULT NULL COMMENT '对应户型ID，可选',
-  `building_no` varchar(20) NOT NULL COMMENT '楼栋号 7号楼',
-  `floor_no` int NOT NULL COMMENT '楼层',
-  `room_no` varchar(20) NOT NULL COMMENT '房号 7-301',
+  `building_no` varchar(20) NOT NULL COMMENT '楼栋号 如7',
+  `unit_no` varchar(20) DEFAULT NULL COMMENT '单元号',
+  `room_no` varchar(20) NOT NULL COMMENT '房号 301',
   `area` decimal(6,2) NOT NULL COMMENT '建筑面积㎡',
   `record_unit_price` int NOT NULL COMMENT '备案单价元/㎡',
   `record_total_price` int NOT NULL COMMENT '备案总价元',
-  `sale_unit_price` int DEFAULT NULL COMMENT '销售单价元/㎡',
-  `sale_total_price` int DEFAULT NULL COMMENT '销售总价元',
   `house_status` tinyint NOT NULL DEFAULT 0 COMMENT '房源状态：0未售 1认购 2已售 3抵押 4保留',
-  `orientation` varchar(20) DEFAULT '' COMMENT '单套朝向',
   `remark` varchar(500) DEFAULT '' COMMENT '房源备注',
   `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
   `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '是否删除：0正常 1已删除',
@@ -519,7 +516,7 @@ CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_loupan_id` (`loupan_id`),
-  KEY `idx_building_floor` (`building_no`,`floor_no`),
+  KEY `idx_building_no` (`building_no`),
   UNIQUE KEY `uk_loupan_room` (`loupan_id`,`building_no`,`room_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='一房一价房源表';
 

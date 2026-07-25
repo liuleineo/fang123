@@ -405,15 +405,12 @@ public class AiParseService {
               "yfyjList": [
                 {
                   "buildingNo": "楼栋号 如7号楼",
-                  "floorNo": "楼层，纯数字",
+                  "unitNo": "单元号，纯数字",
                   "roomNo": "房号 如701",
                   "area": "建筑面积㎡，纯数字",
                   "recordUnitPrice": "备案单价，元/㎡，纯数字",
                   "recordTotalPrice": "备案总价，元，纯数字",
-                  "saleUnitPrice": "销售单价，元/㎡，纯数字",
-                  "saleTotalPrice": "销售总价，元，纯数字",
                   "houseStatus": "状态：0=未售,1=认购,2=已售,3=抵押,4=保留",
-                  "orientation": "朝向",
                   "remark": "备注"
                 }
               ]

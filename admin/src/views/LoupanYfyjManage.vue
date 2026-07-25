@@ -9,13 +9,13 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
-        <t-input v-model="keyword" placeholder="搜索楼栋号/房号" clearable class="w-[200px]" @enter="search" @clear="search">
-          <template #prefix-icon><Search class="w-4 h-4" /></template>
-        </t-input>
-        <t-input-number v-model="filterLoupanId" placeholder="楼盘ID" :min="0" class="w-[140px]" @enter="search" />
+      <div class="flex gap-3 items-center p-4 border-b border-gray-50 flex-wrap">
+        <t-input-number v-model="filterLoupanId" placeholder="楼盘ID" :min="0" class="w-[120px]" @enter="search" />
+        <t-input v-model="filterBuildingNo" placeholder="楼栋号" class="w-[100px]" @enter="search" />
+        <t-input v-model="filterUnitNo" placeholder="单元号" class="w-[100px]" @enter="search" />
+        <t-input v-model="filterRoomNo" placeholder="房号" class="w-[100px]" @enter="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
-        <t-button variant="outline" @click="keyword='';filterLoupanId=null;search()">重置</t-button>
+        <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;search()">重置</t-button>
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
         <template #houseStatus="{ row }">
@@ -39,20 +39,13 @@
         <t-form-item label="户型ID"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <div class="grid grid-cols-3 gap-3">
           <t-form-item label="楼栋号"><t-input v-model="form.buildingNo" /></t-form-item>
-          <t-form-item label="楼层"><t-input-number v-model="form.floorNo" :min="1" /></t-form-item>
+          <t-form-item label="单元号"><t-input v-model="form.unitNo" /></t-form-item>
           <t-form-item label="房号"><t-input v-model="form.roomNo" /></t-form-item>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <t-form-item label="建筑面积(㎡)"><t-input-number v-model="form.area" :min="0" :decimalPlaces="2" /></t-form-item>
-          <t-form-item label="朝向"><t-input v-model="form.orientation" /></t-form-item>
-        </div>
+        <t-form-item label="建筑面积(㎡)"><t-input-number v-model="form.area" :min="0" :decimalPlaces="2" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="备案单价(元/㎡)"><t-input-number v-model="form.recordUnitPrice" :min="0" /></t-form-item>
           <t-form-item label="备案总价(元)"><t-input-number v-model="form.recordTotalPrice" :min="0" /></t-form-item>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <t-form-item label="销售单价(元/㎡)"><t-input-number v-model="form.saleUnitPrice" :min="0" /></t-form-item>
-          <t-form-item label="销售总价(元)"><t-input-number v-model="form.saleTotalPrice" :min="0" /></t-form-item>
         </div>
         <t-form-item label="房源状态">
           <t-select v-model="form.houseStatus" :options="[{label:'未售',value:0},{label:'认购',value:1},{label:'已售',value:2},{label:'抵押',value:3},{label:'保留',value:4}]" />
@@ -92,7 +85,7 @@
             <div v-for="(item,i) in aiResult.yfyjList" :key="i" class="flex items-center gap-3 p-3 border rounded-lg mb-2 bg-white">
               <t-checkbox :value="i" />
               <div class="flex-1 text-sm"><span class="font-bold">{{ item.buildingNo||'' }} {{ item.roomNo||'' }}</span>
-                <span class="text-gray-400 ml-2">{{ item.floorNo }}F</span>
+                <span class="text-gray-400 ml-2">{{ item.unitNo?item.unitNo+'单元':'' }}</span>
                 <span class="text-gray-400 ml-2">{{ item.area }}㎡</span>
                 <span class="text-gray-400 ml-2" v-if="item.recordUnitPrice">备案{{ item.recordUnitPrice }}元</span>
               </div>
@@ -115,10 +108,11 @@ import { Plus, Search, Sparkles, Check, Image } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
-const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
+const data = ref([]); const loading = ref(false)
+const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,huxingId:null,buildingNo:'',floorNo:1,roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,saleUnitPrice:null,saleTotalPrice:null,houseStatus:0,orientation:'',remark:'',sort:0 })
+const initForm = () => ({ loupanId:null,huxingId:null,buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'',sort:0 })
 const form = reactive(initForm())
 
 const cols = [
@@ -126,7 +120,7 @@ const cols = [
   {colKey:'loupanId',title:'楼盘ID',width:70},
   {colKey:'huxingId',title:'户型ID',width:70},
   {colKey:'buildingNo',title:'楼栋',width:80},
-  {colKey:'floorNo',title:'楼层',width:60},
+  {colKey:'unitNo',title:'单元',width:60},
   {colKey:'roomNo',title:'房号',width:80},
   {colKey:'area',title:'面积(㎡)',width:80},
   {colKey:'recordUnitPrice',title:'备案单价',width:90},
@@ -140,7 +134,7 @@ function fmt(t){if(!t)return'';const d=new Date(t);return `${d.getFullYear()}-${
 
 async function fetchData() {
   loading.value=true
-  try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(filterLoupanId.value)p.loupanId=filterLoupanId.value;const r=await request.get('/admin/yfyj',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
+  try{const p={page:pg.current,size:pg.pageSize};if(filterLoupanId.value)p.loupanId=filterLoupanId.value;if(filterBuildingNo.value)p.buildingNo=filterBuildingNo.value;if(filterUnitNo.value)p.unitNo=filterUnitNo.value;if(filterRoomNo.value)p.roomNo=filterRoomNo.value;const r=await request.get('/admin/yfyj',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;fetchData()}

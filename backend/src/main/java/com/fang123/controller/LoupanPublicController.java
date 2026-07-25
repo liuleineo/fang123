@@ -96,7 +96,7 @@ public class LoupanPublicController {
     public Result<List<LoupanYfyj>> yfyjList(@PathVariable String encodedId) {
         Long id = IdObfuscator.decode(encodedId);
         LambdaQueryWrapper<LoupanYfyj> w = new LambdaQueryWrapper<>();
-        w.eq(LoupanYfyj::getLoupanId, id).orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getFloorNo, LoupanYfyj::getRoomNo);
+        w.eq(LoupanYfyj::getLoupanId, id).orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getUnitNo, LoupanYfyj::getRoomNo);
         return Result.success(yfyjService.list(w));
     }
 
