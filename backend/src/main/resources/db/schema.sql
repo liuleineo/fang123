@@ -368,7 +368,7 @@ CREATE TABLE IF NOT EXISTS `loupan` (
   `max_total_price` int DEFAULT NULL COMMENT '最高总价 万元',
   `price_tag` varchar(100) DEFAULT '' COMMENT '价格标签，逗号分隔：刚需/改善/限价',
   `sales_address` varchar(200) NOT NULL COMMENT '售楼部位置',
-  `sales_status` tinyint NOT NULL DEFAULT 0 COMMENT '售楼状态：0待开放 1在售 2售罄 3停工 4交付',
+  `sales_status` tinyint NOT NULL DEFAULT 0 COMMENT '售楼状态：0待售 1在售 2售罄 3已交付',
   `sales_tel` varchar(50) DEFAULT '' COMMENT '售楼电话',
   `project_address` varchar(200) NOT NULL COMMENT '楼盘地址',
   `show_house_desc` text COMMENT '样板房位置说明',

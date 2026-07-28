@@ -45,7 +45,8 @@ public class LoupanPublicController {
             @RequestParam(required = false) String district,
             @RequestParam(required = false) String plate,
             @RequestParam(required = false) Integer houseType,
-            @RequestParam(required = false) Integer decorateType) {
+            @RequestParam(required = false) Integer decorateType,
+            @RequestParam(required = false) String salesStatus) {
         LambdaQueryWrapper<Loupan> w = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(keyword)) {
             w.and(wr -> wr.like(Loupan::getProjectName, keyword)
@@ -56,6 +57,11 @@ public class LoupanPublicController {
         if (StringUtils.hasText(plate)) w.eq(Loupan::getPlate, plate);
         if (houseType != null) w.eq(Loupan::getHouseType, houseType);
         if (decorateType != null) w.eq(Loupan::getDecorateType, decorateType);
+        if (StringUtils.hasText(salesStatus)) {
+            List<Integer> statusList = java.util.Arrays.stream(salesStatus.split(","))
+                    .map(Integer::parseInt).toList();
+            w.in(Loupan::getSalesStatus, statusList);
+        }
         w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
         Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
         result.getRecords().forEach(lp -> lp.setEncodedId(IdObfuscator.encode(lp.getId())));
@@ -80,6 +86,20 @@ public class LoupanPublicController {
         LambdaQueryWrapper<LoupanHuxing> w = new LambdaQueryWrapper<>();
         w.eq(LoupanHuxing::getLoupanId, id).orderByAsc(LoupanHuxing::getSort);
         return Result.success(huxingService.list(w));
+    }
+
+    /** 公开-批量获取楼盘户型（传入多个楼盘ID，逗号分隔） */
+    @GetMapping("/api/public/loupans/huxings/batch")
+    public Result<Map<Long, List<LoupanHuxing>>> batchHuxings(@RequestParam String loupanIds) {
+        List<Long> ids = java.util.Arrays.stream(loupanIds.split(","))
+                .map(Long::parseLong).toList();
+        Map<Long, List<LoupanHuxing>> result = new java.util.HashMap<>();
+        for (Long id : ids) {
+            LambdaQueryWrapper<LoupanHuxing> w = new LambdaQueryWrapper<>();
+            w.eq(LoupanHuxing::getLoupanId, id).orderByDesc(LoupanHuxing::getArea);
+            result.put(id, huxingService.list(w));
+        }
+        return Result.success(result);
     }
 
     /** 公开-楼盘素材列表 */

@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <!-- Hero 搜索区 -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-[#F0F5FF] via-white to-[#E8F2FF] py-16 lg:py-24">
+    <section class="relative overflow-hidden bg-gradient-to-br from-[#F0F5FF] via-white to-[#E8F2FF] py-10 lg:py-14">
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#0052D9]/5 rounded-full blur-3xl" />
         <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-[#618DFF]/5 rounded-full blur-3xl" />
@@ -9,11 +9,11 @@
       </div>
 
       <div class="section-container relative z-10 text-center">
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--color-text-primary)] leading-tight mb-6">
-          找到属于你的<br class="sm:hidden" />
-          <span class="bg-gradient-to-r from-[#0052D9] to-[#618DFF] bg-clip-text text-transparent">理想家园</span>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] leading-tight mb-4">
+          杭房一二三，<br class="sm:hidden" />
+          <span class="bg-gradient-to-r from-[#0052D9] to-[#618DFF] bg-clip-text text-transparent">让买房变简单。</span>
         </h1>
-        <p class="text-base sm:text-lg text-[var(--color-text-tertiary)] max-w-xl mx-auto mb-10 leading-relaxed">
+        <p class="text-sm sm:text-base text-[var(--color-text-tertiary)] max-w-xl mx-auto mb-6 leading-relaxed">
           覆盖杭州全域楼盘，实时掌握开盘、价格、户型动态
         </p>
 
@@ -36,7 +36,7 @@
         </div>
 
         <!-- 热门标签 -->
-        <div class="flex flex-wrap items-center justify-center gap-2 mt-5">
+        <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
           <span class="text-xs text-[var(--color-text-tertiary)]">热门：</span>
           <button
             v-for="tag in hotTags"
@@ -49,9 +49,9 @@
     </section>
 
     <!-- 筛选栏 -->
-    <section class="py-6 border-b border-gray-50 bg-white sticky top-[var(--header-height)] z-40">
-      <div class="section-container flex flex-wrap items-center gap-3">
-        <span class="text-sm text-[var(--color-text-secondary)] font-medium whitespace-nowrap">筛选条件</span>
+    <section class="py-3 border-b border-gray-50 bg-white sticky top-[var(--header-height)] z-40">
+      <div class="section-container flex flex-wrap items-center gap-2">
+        <span class="text-xs text-[var(--color-text-secondary)] font-medium whitespace-nowrap">筛选条件</span>
         <t-select
           v-model="filterDistrict" placeholder="行政区" clearable size="small" class="w-[120px]"
           :options="districtOpts" @change="doSearch"
@@ -100,11 +100,10 @@
                 :class="['absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium',
                   lp.salesStatus===1?'bg-green-500 text-white':
                   lp.salesStatus===2?'bg-gray-400 text-white':
-                  lp.salesStatus===3?'bg-orange-500 text-white':
-                  lp.salesStatus===4?'bg-blue-500 text-white':
+                  lp.salesStatus===3?'bg-blue-500 text-white':
                   'bg-gray-300 text-gray-600']"
               >
-                {{ ['待开盘','在售','售罄','停工','已交付'][lp.salesStatus] || '未知' }}
+                {{ ['待售','在售','售罄','已交付'][lp.salesStatus] || '未知' }}
               </span>
               <!-- 装修类型 -->
               <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-xs bg-white/80 text-[var(--color-text-secondary)]">
@@ -161,7 +160,7 @@
         <p class="text-white/80 mb-8 text-sm max-w-md mx-auto">
           关注我们，第一时间获取新开盘、价格变动等最新消息
         </p>
-        <t-button theme="default" size="large" variant="outline" class="!border-white !text-white !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="searchKeyword=''; fetchData()">
+        <t-button theme="default" size="large" variant="outline" class="!border-white !text-black !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="searchKeyword=''; fetchData()">
           浏览全部楼盘
         </t-button>
       </div>
@@ -187,7 +186,7 @@ const plateOpts = ref([])
 
 const pg = reactive({ current: 1, pageSize: 12 })
 
-const hotTags = ['钱塘区', '金沙湖', '建杭', '滨江']
+const hotTags = ['钱江新城', '金沙湖', '绿城', '滨江']
 
 const houseTypeOpts = [
   { label: '住宅', value: 1 }, { label: '公寓', value: 2 }, { label: '商铺', value: 3 }, { label: '别墅', value: 4 }

@@ -71,6 +71,12 @@ const routes = [
         name: 'LoupanDetail',
         component: () => import('@/views/LoupanDetail.vue'),
         meta: { title: '楼盘详情' }
+      },
+      {
+        path: 'ershoufang',
+        name: 'ErShouFang',
+        component: () => import('@/views/ErShouFang.vue'),
+        meta: { title: '二手房' }
       }
     ]
   },

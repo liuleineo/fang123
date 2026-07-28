@@ -18,8 +18,8 @@
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
         <template #salesStatus="{ row }">
-          <t-tag :theme="row.salesStatus===1?'success':row.salesStatus===2?'default':row.salesStatus===3?'warning':row.salesStatus===4?'primary':'default'" size="small">
-            {{ ['待开放','在售','售罄','停工','交付'][row.salesStatus]||'未知' }}
+          <t-tag :theme="row.salesStatus===1?'success':row.salesStatus===2?'default':row.salesStatus===3?'primary':'default'" size="small">
+            {{ ['待售','在售','售罄','已交付'][row.salesStatus]||'未知' }}
           </t-tag>
         </template>
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
@@ -82,7 +82,7 @@
             <t-form-item label="样板房说明"><t-textarea v-model="form.showHouseDesc" :maxlength="500" /></t-form-item>
             <div class="grid grid-cols-2 gap-3">
               <t-form-item label="售楼状态">
-                <t-select v-model="form.salesStatus" :options="[{label:'待开放',value:0},{label:'在售',value:1},{label:'售罄',value:2},{label:'停工',value:3},{label:'交付',value:4}]" />
+                <t-select v-model="form.salesStatus" :options="[{label:'待售',value:0},{label:'在售',value:1},{label:'售罄',value:2},{label:'已交付',value:3}]" />
               </t-form-item>
               <t-form-item label="售楼电话"><t-input v-model="form.salesTel" /></t-form-item>
             </div>

@@ -23,10 +23,9 @@
               <span :class="['px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap',
                 loupan.salesStatus===1?'bg-green-100 text-green-700':
                 loupan.salesStatus===2?'bg-gray-100 text-gray-500':
-                loupan.salesStatus===3?'bg-orange-100 text-orange-700':
-                loupan.salesStatus===4?'bg-blue-100 text-blue-700':
+                loupan.salesStatus===3?'bg-blue-100 text-blue-700':
                 'bg-gray-100 text-gray-600']">
-                {{ ['待开盘','在售','售罄','停工','已交付'][loupan.salesStatus] || '未知' }}
+                {{ ['待售','在售','售罄','已交付'][loupan.salesStatus] || '未知' }}
               </span>
             </div>
 
