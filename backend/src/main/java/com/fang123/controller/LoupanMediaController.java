@@ -63,7 +63,8 @@ public class LoupanMediaController {
 
     /** 上传素材文件到 COS */
     @PostMapping("/api/admin/medias/upload")
-    public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
+    public Result<Map<String, String>> upload(@RequestParam(value = "file", required = false) MultipartFile file) {
+        if (file == null || file.isEmpty()) return Result.badRequest("文件不能为空");
         String url = cosService.uploadFile(file, "media/loupan");
         return Result.success(Map.of("url", url));
     }

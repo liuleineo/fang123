@@ -208,7 +208,10 @@ async function batchCreateYfyj(){
   for(const item of selected){
     try{
       await request.post('/admin/yfyj',{...item,loupanId:aiLoupanId.value,huxingId:null,sort:0,
-        area:item.area?Math.round(Number(item.area)):0})
+        area:item.area?Math.round(Number(item.area)):0,
+        buildingNo:String(item.buildingNo||'').replace(/[^\d]/g,''),
+        unitNo:String(item.unitNo||'').replace(/[^\d]/g,''),
+        roomNo:String(item.roomNo||'').replace(/[^\d]/g,'')})
       created++
     }catch{}
   }

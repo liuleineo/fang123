@@ -62,8 +62,8 @@
 
             <!-- 快捷信息 -->
             <div class="flex items-center gap-4 text-sm">
-              <span v-if="loupan.salesTel" class="text-[var(--color-text-secondary)]">
-                <Phone class="w-4 h-4 inline -mt-0.5 mr-1 text-[var(--color-primary)]" />{{ loupan.salesTel }}
+              <span v-if="loupan.deliveryDate" class="text-[var(--color-text-tertiary)]">
+                交房时间：{{ loupan.deliveryDate }}
               </span>
               <span v-if="loupan.projectCompany" class="text-[var(--color-text-tertiary)]">
                 开发商：{{ loupan.projectCompany }}
@@ -76,11 +76,9 @@
             <t-button variant="outline" class="!rounded-xl" @click="copyTel">
               <Phone class="w-4 h-4 mr-1" />拨打电话
             </t-button>
-            <t-tooltip content="功能开发中">
-              <t-button variant="outline" class="!rounded-xl">
-                <Heart class="w-4 h-4 mr-1" />收藏
-              </t-button>
-            </t-tooltip>
+            
+           
+          
           </div>
         </div>
       </div>

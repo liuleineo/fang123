@@ -103,8 +103,9 @@ async function uploadPasted() {
   if (!pasteFiles.value.length) return
   pasteUploading.value = true
   try {
-    const fd = new FormData()
-    fd.append('file', pasteFiles.value[0].blob, 'paste.png')
+    let blob = pasteFiles.value[0].blob
+    try { blob = await compressImage(blob) } catch {}
+    const fd = new FormData(); fd.append('file', blob, 'image.jpg')
     const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     form.mediaUrl = res.url
     pasteFiles.value = []
@@ -113,29 +114,68 @@ async function uploadPasted() {
   finally { pasteUploading.value = false }
 }
 
-function onUploadSuccess({ file }) {
-  form.mediaUrl = file.response?.url || ''
-  MessagePlugin.success('上传成功')
-  uploadFiles.value = []
+
+
+// 前端图片压缩：宽2000px，JPG格式
+async function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('img')
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let w = img.width, h = img.height
+      if (w > 2000) { h = Math.round(h * 2000 / w); w = 2000 }
+      canvas.width = w; canvas.height = h
+      const ctx = canvas.getContext('2d')
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h)
+      ctx.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('compress failed')), 'image/jpeg', 0.85)
+    }
+    img.onerror = () => reject(new Error('image load failed'))
+    img.src = URL.createObjectURL(file)
+  })
 }
-function onUploadFail() {
-  MessagePlugin.error('上传失败')
-  uploadFiles.value = []
+
+async function uploadRequest(file) {
+  let blob = file.raw
+  if (blob.type.startsWith('image/') && !blob.type.includes('svg')) {
+    try {
+      const origSize = (blob.size / 1024).toFixed(1)
+      blob = await compressImage(blob)
+      const newSize = (blob.size / 1024).toFixed(1)
+      console.log(`图片压缩: ${origSize}KB → ${newSize}KB`)
+    } catch (e) { console.error('压缩失败:', e) }
+  }
+  const fd = new FormData()
+  fd.append('file', blob, 'image.jpg')
+  const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return { status: 'success', response: { url: res.url } }
 }
-function onUploadRemove() {
-  uploadFiles.value = []
-}
+
+function onUploadSuccess({ file }) { form.mediaUrl = file.response?.url || ''; MessagePlugin.success('上传成功'); uploadFiles.value = [] }
+function onUploadFail() { MessagePlugin.error('上传失败'); uploadFiles.value = [] }
+function onUploadRemove() { uploadFiles.value = [] }
 
 const initForm = () => ({ loupanId:null,huxingId:null,mediaType:1,mediaUrl:'',mediaTitle:'',sort:0 })
 const form = reactive(initForm())
 
-async function uploadRequest(file) {
-  const fd = new FormData()
-  fd.append('file', file.raw)
-  const res = await request.post('/admin/medias/upload', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-  return { status: 'success', response: { url: res.url } }
+async function uploadAllFiles() {
+  if (!form.loupanId) { MessagePlugin.warning('请先选择楼盘ID'); return }
+  batchUploading.value = true
+  let created = 0
+  for (const f of uploadFiles.value) {
+    try {
+      const fd = new FormData(); fd.append('file', f)
+      const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await request.post('/admin/medias', { ...form, id: null, mediaUrl: res.url })
+      created++
+    } catch (e) {
+      console.error('upload failed:', e.response?.status, e.response?.data || e.message)
+      MessagePlugin.error('上传失败: ' + (e.response?.data?.msg || e.message))
+    }
+  }
+  batchUploading.value = false; uploadFiles.value = []
+  MessagePlugin.success(`成功创建 ${created} 条素材`)
+  if (created > 0) { drawer.value = false; fetchData() }
 }
 
 const cols = [

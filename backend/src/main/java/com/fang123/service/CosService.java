@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -126,6 +127,57 @@ public class CosService {
             throw new RuntimeException("文件上传失败，请稍后重试", e);
         }
         return "https://" + cosProperties.getBucket() + ".cos." + cosProperties.getRegion() + ".myqcloud.com/" + key;
+    }
+
+    /**
+     * 上传图片并压缩：宽2000px，高自适应，输出JPG格式
+     */
+    public String uploadAndCompress(MultipartFile file, String folder) {
+        try {
+            byte[] compressed = compressImage(file.getBytes(), file.getContentType());
+            String key = folder + "/" + UUID.randomUUID() + ".jpg";
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(compressed.length);
+            metadata.setContentType("image/jpeg");
+            cosClient.putObject(cosProperties.getBucket(), key, new ByteArrayInputStream(compressed), metadata);
+            return "https://" + cosProperties.getBucket() + ".cos." + cosProperties.getRegion() + ".myqcloud.com/" + key;
+        } catch (Exception e) {
+            log.error("Image compress failed, fallback to original upload", e);
+            return uploadFile(file, folder);
+        }
+    }
+
+    /** 图片压缩：宽2000px，JPG格式 */
+    private byte[] compressImage(byte[] input, String contentType) throws Exception {
+        String type = contentType != null && contentType.contains("/") ? contentType.substring(contentType.indexOf("/") + 1) : "jpg";
+        if ("jpeg".equalsIgnoreCase(type)) type = "jpg";
+        if ("png".equalsIgnoreCase(type)) type = "png";
+
+        java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(input));
+        if (img == null) throw new RuntimeException("无法解析图片");
+
+        int w = img.getWidth(), h = img.getHeight();
+        if (w > 2000) {
+            h = h * 2000 / w;
+            w = 2000;
+            java.awt.image.BufferedImage scaled = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = scaled.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(img, 0, 0, w, h, null);
+            g.dispose();
+            img = scaled;
+        } else {
+            // 原图宽度不大，但需要转 RGB（JPG 不支持透明）
+            java.awt.image.BufferedImage rgb = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = rgb.createGraphics();
+            g.drawImage(img, 0, 0, null);
+            g.dispose();
+            img = rgb;
+        }
+
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, "jpg", out);
+        return out.toByteArray();
     }
 
     /**

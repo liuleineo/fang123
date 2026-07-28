@@ -404,9 +404,9 @@ public class AiParseService {
             {
               "yfyjList": [
                 {
-                  "buildingNo": "楼栋号 如7号楼",
-                  "unitNo": "单元号，纯数字",
-                  "roomNo": "房号 如701",
+                  "buildingNo": "楼栋号，只返回纯数字，如2（不要2号楼）",
+                  "unitNo": "单元号，只返回纯数字，如1",
+                  "roomNo": "房号，只返回纯数字，如701（不要701室）",
                   "area": "建筑面积㎡，纯数字",
                   "recordUnitPrice": "备案单价，元/㎡，纯数字",
                   "recordTotalPrice": "备案总价，元，纯数字",
