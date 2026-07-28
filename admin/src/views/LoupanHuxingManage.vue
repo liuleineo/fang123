@@ -101,7 +101,7 @@
           </t-form-item>
         </t-form>
 
-        <t-tabs>
+        <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
           </t-tab-panel>

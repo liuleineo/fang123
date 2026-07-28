@@ -105,7 +105,7 @@
     <t-dialog v-model:visible="aiVisible" header="AI 新建地块" width="640px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
         <t-alert theme="info" message="上传土拍地块资料图片，AI 自动识别地块信息并填入表单。" />
-        <t-tabs>
+        <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
           </t-tab-panel>

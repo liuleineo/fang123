@@ -192,7 +192,7 @@
         <t-alert theme="info" message="上传楼盘资料图片（如宣传海报、户型图、规划图等），AI 将自动识别并提取楼盘信息。" />
         
         <!-- 图片上传/粘贴区 -->
-        <t-tabs>
+        <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadMethod" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，单张不超过 5MB，最多 5 张" />
           </t-tab-panel>

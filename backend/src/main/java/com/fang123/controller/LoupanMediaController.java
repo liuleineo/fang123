@@ -29,7 +29,7 @@ public class LoupanMediaController {
         LambdaQueryWrapper<LoupanMedia> w = new LambdaQueryWrapper<>();
         if (loupanId != null) w.eq(LoupanMedia::getLoupanId, loupanId);
         if (StringUtils.hasText(keyword)) w.like(LoupanMedia::getMediaTitle, keyword);
-        w.orderByDesc(LoupanMedia::getSort).orderByDesc(LoupanMedia::getCreateTime);
+        w.orderByDesc(LoupanMedia::getId);
         return Result.success(mediaService.page(new Page<>(page, size), w));
     }
 

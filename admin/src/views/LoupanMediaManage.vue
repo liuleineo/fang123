@@ -2,7 +2,10 @@
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div><h1 class="text-2xl font-bold">媒体素材</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘图片/视频/VR素材</p></div>
-      <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建素材</t-button>
+      <div class="flex gap-2">
+        <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建素材</t-button>
+        <t-button theme="primary" variant="outline" @click="openBatch"><Layers class="w-4 h-4 mr-1" />批量新建素材</t-button>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -76,13 +79,39 @@
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
     </t-drawer>
+
+    <!-- 批量新建素材 -->
+    <t-dialog v-model:visible="batchVisible" header="批量新建素材" width="520px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-4">
+        <t-form-item label="楼盘ID"><t-input-number v-model="batchForm.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="素材类型">
+          <t-select v-model="batchForm.mediaType" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
+        </t-form-item>
+        <t-form-item label="选择图片（多选）">
+          <t-upload
+            v-model="batchFiles"
+            :request-method="()=>Promise.resolve({status:'success'})"
+            :max="20"
+            multiple
+            accept="image/*"
+            theme="file"
+            :auto-upload="false"
+            tips="支持 JPG/PNG/WebP，最多 20 张"
+          />
+        </t-form-item>
+        <div v-if="batchFiles.length" class="text-sm text-[var(--color-text-secondary)]">已选择 {{ batchFiles.length }} 张图片</div>
+        <t-button block theme="primary" :loading="batchUploading" @click="doBatchUpload" :disabled="!batchFiles.length">
+          <Upload class="w-4 h-4 mr-1" />{{ batchUploading ? `上传中 ${batchProgress}...` : `批量上传 ${batchFiles.length} 张` }}
+        </t-button>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Image } from 'lucide-vue-next'
+import { Plus, Search, Image, Layers, Upload } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -205,6 +234,54 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/medias/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/medias',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/medias/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+// ===== 批量新建素材 =====
+const batchVisible = ref(false)
+const batchFiles = ref([])
+const batchUploading = ref(false)
+const batchProgress = ref('')
+const batchForm = reactive({ loupanId: null, mediaType: 1 })
+
+function openBatch() {
+  batchForm.loupanId = null
+  batchForm.mediaType = 1
+  batchFiles.value = []
+  batchVisible.value = true
+}
+
+async function doBatchUpload() {
+  if (!batchForm.loupanId) { MessagePlugin.warning('请先选择楼盘ID'); return }
+  if (!batchFiles.value.length) { MessagePlugin.warning('请先选择图片'); return }
+  batchUploading.value = true
+  let created = 0
+  const total = batchFiles.value.length
+  for (let i = 0; i < batchFiles.value.length; i++) {
+    batchProgress.value = `${i + 1}/${total}`
+    try {
+      let blob = batchFiles.value[i].raw
+      // 前端压缩
+      if (blob.type.startsWith('image/') && !blob.type.includes('svg')) {
+        const origSize = (blob.size / 1024).toFixed(1)
+        blob = await compressImage(blob)
+        const newSize = (blob.size / 1024).toFixed(1)
+        console.log(`批量图片压缩: ${origSize}KB → ${newSize}KB`)
+      }
+      // 上传文件
+      const fd = new FormData(); fd.append('file', blob, 'image.jpg')
+      const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      // 创建素材记录
+      await request.post('/admin/medias', { loupanId: batchForm.loupanId, mediaType: batchForm.mediaType, mediaUrl: res.url, mediaTitle: '', sort: 0 })
+      created++
+    } catch (e) {
+      console.error('batch upload failed:', e)
+    }
+  }
+  batchUploading.value = false
+  batchFiles.value = []
+  batchVisible.value = false
+  MessagePlugin.success(`批量创建完成：${created}/${total} 条素材`)
+  if (created > 0) fetchData()
+}
 
 onMounted(fetchData)
 </script>
