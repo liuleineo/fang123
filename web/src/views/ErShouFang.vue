@@ -95,7 +95,7 @@
               <div class="flex gap-3 overflow-x-auto pb-1">
                 <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="flex-shrink-0 w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
                   <div class="aspect-[4/3] bg-gray-50 relative">
-                    <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="cover" class="w-full h-full" />
+                    <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
                     <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
                   </div>
                   <div class="p-2">
