@@ -90,6 +90,25 @@
           <!-- 楼盘详情 -->
           <t-tab-panel value="info" label="楼盘详情">
             <div class="p-6">
+              <!-- 楼盘户型（在基本信息之上） -->
+              <div v-if="huxings.length" class="mb-8">
+                <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                  <Building2 class="w-5 h-5 text-[var(--color-primary)]" />楼盘户型
+                </h3>
+                <div class="flex gap-3 overflow-x-auto pb-2">
+                  <div v-for="hx in huxings.slice(0, 6).sort((a,b)=>(b.area||0)-(a.area||0))" :key="hx.id" class="flex-shrink-0 w-44 border border-gray-100 rounded-lg overflow-hidden">
+                    <div class="aspect-[4/3] bg-gray-50 relative">
+                      <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
+                      <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
+                    </div>
+                    <div class="p-2.5">
+                      <p class="text-sm font-bold text-[var(--color-text-primary)] truncate">{{ hx.huxingName }}</p>
+                      <p class="text-xs text-[var(--color-text-secondary)]">{{ hx.area }}㎡ {{ hx.roomNum }}室{{ hx.hallNum }}厅</p>
+                      <div v-if="hx.unitPrice" class="text-xs text-[var(--color-primary)] font-medium">{{ hx.unitPrice }}元/㎡</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <!-- 基本信息 -->
               <div class="mb-8">
                 <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
@@ -486,7 +505,7 @@ async function fetchPresale() {
 }
 
 watch(activeTab, (tab) => {
-  if (tab === 'huxing') fetchHuxings()
+  if (tab === 'info' || tab === 'huxing') fetchHuxings()
   if (tab === 'media') fetchMedias()
   if (tab === 'map') initMap()
   if (tab === 'yfyj') fetchYfyj()
@@ -516,7 +535,7 @@ async function initMap() {
   amapInstance.add(marker)
 }
 
-onMounted(fetchDetail)
+onMounted(() => { fetchDetail(); fetchHuxings() })
 
 /** 信息项渲染辅助 */
 function show(val) { return val !== null && val !== undefined && val !== '' && val !== 0 }
