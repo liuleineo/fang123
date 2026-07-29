@@ -12,8 +12,8 @@
     <!-- 头部信息 -->
     <section class="bg-white border-b border-gray-50">
       <!-- 封面大图 -->
-      <div v-if="loupan.coverImage" class="w-full h-64 sm:h-80 lg:h-96 bg-gray-100 overflow-hidden">
-        <t-image :src="loupan.coverImage" fit="cover" class="w-full h-full" />
+      <div v-if="loupan.coverImage" class="section-container bg-gray-100 rounded-xl overflow-hidden my-6">
+        <t-image :src="loupan.coverImage" fit="contain" class="w-full" />
       </div>
       <div class="section-container py-8">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
