@@ -9,12 +9,13 @@
       </t-breadcrumb>
     </div>
 
+    <!-- 封面大图 -->
+    <div v-if="loupan.coverImage" class="section-container mb-6">
+      <img :src="loupan.coverImage" class="w-full block rounded-xl" style="display:block" />
+    </div>
+
     <!-- 头部信息 -->
     <section class="bg-white border-b border-gray-50">
-      <!-- 封面大图 -->
-      <div v-if="loupan.coverImage" class="section-container bg-gray-100 rounded-xl overflow-hidden my-6">
-        <t-image :src="loupan.coverImage" fit="contain" class="w-full" />
-      </div>
       <div class="section-container py-8">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div class="flex-1">
