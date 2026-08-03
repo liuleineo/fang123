@@ -199,5 +199,6 @@ const navItems = [
   { label: '二手房', href: '/ershoufang' },
   { label: '地图找房', href: '/map' },
   { label: '土拍地图', href: '/tupai-map' },
+  { label: '学校地图', href: '/school-map' },
 ]
 </script>

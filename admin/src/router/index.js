@@ -118,6 +118,12 @@ const routes = [
         meta: { title: '预售证' }
       },
       {
+        path: 'schools',
+        name: 'SchoolManage',
+        component: () => import('@/views/SchoolManage.vue'),
+        meta: { title: '杭州学校' }
+      },
+      {
         path: 'yfyj',
         name: 'YfyjManage',
         component: () => import('@/views/LoupanYfyjManage.vue'),

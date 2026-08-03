@@ -1,0 +1,35 @@
+-- ============================================
+-- 杭州市小学和初中学校校区信息表
+-- 数据来源: 入学早知道 API (https://rxyj.hzedu.gov.cn/)
+-- ============================================
+
+DROP TABLE IF EXISTS school;
+
+CREATE TABLE school (
+    campus_code                VARCHAR(20)   NOT NULL COMMENT '校区标识码（唯一）',
+    school_org_code            VARCHAR(20)   NOT NULL COMMENT '学校机构标识码',
+    school_org_name            VARCHAR(100)  NOT NULL COMMENT '学校机构名称',
+    campus_name                VARCHAR(50)   DEFAULT '' COMMENT '校区名称',
+    school_address             VARCHAR(200)  DEFAULT '' COMMENT '学校地址',
+    contact_phone              VARCHAR(50)   DEFAULT '' COMMENT '联系电话',
+    school_type                VARCHAR(20)   DEFAULT '' COMMENT '学校类型：小学/初中/九年一贯制',
+    sponsor_type               VARCHAR(20)   DEFAULT '' COMMENT '举办者类型：非民办/民办',
+    longitude                  DECIMAL(10,7) DEFAULT NULL COMMENT '经度',
+    latitude                   DECIMAL(10,7) DEFAULT NULL COMMENT '纬度',
+    edu_admin_department       VARCHAR(50)   DEFAULT '' COMMENT '教育行政主管部门',
+    school_district_scope      TEXT          COMMENT '学区范围',
+    school_intro               TEXT          COMMENT '学校简介',
+    target_middle_school_name  VARCHAR(100)  DEFAULT '' COMMENT '对口初中名称',
+    target_middle_school_code  VARCHAR(20)   DEFAULT '' COMMENT '对口初中编码',
+    community_names            TEXT          COMMENT '小区名称（逗号分隔）',
+    district_map_image         VARCHAR(500)  DEFAULT '' COMMENT '学区地图图片URL',
+    map_fence                  TEXT          COMMENT '高德地图围栏坐标（lng,lat;lng,lat）',
+    photos                     TEXT          COMMENT '学校照片URL列表（逗号分隔）',
+    school_logo                VARCHAR(500)  DEFAULT '' COMMENT '学校Logo URL',
+
+    PRIMARY KEY (campus_code),
+    INDEX idx_school_org_code (school_org_code),
+    INDEX idx_edu_admin_dept (edu_admin_department),
+    INDEX idx_school_type (school_type),
+    INDEX idx_target_middle_code (target_middle_school_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='杭州市小学和初中学校校区信息';

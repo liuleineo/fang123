@@ -67,6 +67,12 @@ const routes = [
         meta: { title: '土拍地图' }
       },
       {
+        path: 'school-map',
+        name: 'SchoolMap',
+        component: () => import('@/views/SchoolMap.vue'),
+        meta: { title: '学校地图' }
+      },
+      {
         path: 'loupan/:id',
         name: 'LoupanDetail',
         component: () => import('@/views/LoupanDetail.vue'),
