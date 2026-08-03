@@ -174,7 +174,7 @@ function clearFence() {
 function showInfo(s) {
   // 清除旧围栏，绘制新围栏
   clearFence()
-  const fencePts = parseFence(s.map_fence)
+  const fencePts = parseFence(s.mapFence)
   if (fencePts.length >= 3) {
     fenceOverlay = new window.AMap.Polygon({
       path: fencePts,
