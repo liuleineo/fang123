@@ -14,6 +14,7 @@ import com.fang123.dto.AiParsePresaleResult;
 import com.fang123.dto.AiParsePresaleResult.PresaleFields;
 import com.fang123.dto.AiParseYfyjResult;
 import com.fang123.dto.AiParseYfyjResult.YfyjFields;
+import com.fang123.dto.AiParseRealDealResult;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
@@ -496,6 +497,65 @@ public class AiParseService {
         // OCR 完成后删除 COS 临时图片
         urls.forEach(cosService::deleteByUrl);
         return new String[]{ocrText};
+    }
+
+    // ============ 真实成交 AI 解析 ============
+
+    /** 真实成交解析提示词 */
+    private static final String REAL_DEAL_PARSE_PROMPT = """
+            你是一个房产成交信息提取助手。请从以下用户提供的成交播报文本中提取真实成交信息，返回严格的JSON格式（不要包含```json标记，直接返回纯JSON）。
+
+            返回格式必须是：
+            {
+              "fields": {
+                "communityName": "小区名称（如：潮映华岸府），无法确定则null",
+                "roomNo": "房号（如：2-1-602），无法确定则null",
+                "houseArea": "房源面积，㎡，纯数字，无法确定则null",
+                "dealPrice": "成交价格，万元，纯数字，无法确定则null",
+                "remark": "备注（如：带双车位、含车位等），无则null",
+                "dealDate": "成交日期，YYYY-MM-DD格式（如文本是8.6则补全年份，如2026-08-06），无法确定则null",
+                "district": "行政区（从地址中推断），无法确定则null",
+                "plate": "板块（从地址中推断），无法确定则null",
+                "loupanId": "楼盘ID（若文本包含，纯数字），否则null",
+                "yfyj": "一手买入价格，万元，纯数字，若文本包含否则null"
+              }
+            }
+
+            规则：
+            1. 只返回这个JSON结构，必须包含"fields"字段，不要有任何其他文字
+            2. 只提取上述字段，不要返回挂牌价格、维护门店、完整地址等其他无关信息
+            3. 无法确定的字段值设为null
+            4. 数字型字段只返回数字，严格去掉任何单位（元、万、㎡等）
+            5. 成交价格如果包含备注（如"1950万带双车位"），把数字放入dealPrice，备注文字放入remark
+            6. communityName 从地址中提取小区名，roomNo 提取房号
+
+            用户提供的成交播报文本：
+            """;
+
+    /**
+     * 从用户提供的文本中解析真实成交字段（调用 TokenHub 大模型）
+     */
+    public AiParseRealDealResult parseRealDealFromText(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("请提供成交播报文本");
+        }
+        String prompt = REAL_DEAL_PARSE_PROMPT + text;
+        try {
+            String content = callTokenHub(prompt, "房产成交信息提取助手");
+            AiParseRealDealResult result = objectMapper.readValue(content, AiParseRealDealResult.class);
+            // 兼容：若AI未返回fields包装，直接把整个内容当字段对象
+            if (result.getFields() == null) {
+                AiParseRealDealResult.RealDealFields fields =
+                        objectMapper.readValue(content, AiParseRealDealResult.RealDealFields.class);
+                if (fields != null && fields.getCommunityName() != null) {
+                    result.setFields(fields);
+                }
+            }
+            result.setRawText(text.trim());
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
     }
 
     /** 调用 TokenHub，返回清理后的 content */

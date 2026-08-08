@@ -570,3 +570,27 @@ CREATE TABLE school (
     INDEX idx_school_type (school_type),
     INDEX idx_target_middle_code (target_middle_school_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='杭州市小学和初中学校校区信息';
+
+
+--真实成交价信息表
+CREATE TABLE `real_deal_info` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `deal_date` date NOT NULL COMMENT '成交日期',
+  `district` varchar(50) NOT NULL DEFAULT '' COMMENT '行政区，如钱塘区',
+  `plate` varchar(50) NOT NULL DEFAULT '' COMMENT '板块，如金沙湖',
+  `community_name` varchar(128) NOT NULL DEFAULT '' COMMENT '小区名称',
+  `room_no` varchar(64) NOT NULL DEFAULT '' COMMENT '房号',
+  `house_area` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '房间面积，单位m2',
+  `deal_price` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '成交价格，单位万元',
+  `remark` varchar(512) NOT NULL DEFAULT '' COMMENT '备注（是否带车位等信息）',
+  `yfyj` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '一手买入价格，手工录入一房一价，单位万元',
+  `loupan_id` bigint NOT NULL DEFAULT 0 COMMENT '楼盘id',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '是否删除：0正常 1已删除',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_district_plate` (`district`,`plate`),
+  KEY `idx_deal_date` (`deal_date`),
+  KEY `idx_loupan_id` (`loupan_id`),
+  KEY `idx_deleted` (`deleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='真实成交';

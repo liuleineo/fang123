@@ -140,6 +140,7 @@ const menuItems = [
   { path: '/presale-permits', label: '预售证', icon: ScrollText },
   { path: '/yfyj', label: '一房一价', icon: TableProperties },
   { path: '/schools', label: '学校', icon: GraduationCap },
+  { path: '/real-deals', label: '真实成交', icon: Coins },
   { path: '/admins', label: '管理员管理', icon: Shield },
   { path: '/users', label: '用户管理', icon: Users },
   { path: '/points', label: '用户积分', icon: Coins },

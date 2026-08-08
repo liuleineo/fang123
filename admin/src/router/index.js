@@ -128,6 +128,12 @@ const routes = [
         name: 'YfyjManage',
         component: () => import('@/views/LoupanYfyjManage.vue'),
         meta: { title: '一房一价' }
+      },
+      {
+        path: 'real-deals',
+        name: 'RealDealManage',
+        component: () => import('@/views/RealDealManage.vue'),
+        meta: { title: '真实成交' }
       }
     ]
   },
