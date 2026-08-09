@@ -28,7 +28,7 @@ public class LoupanHuxingController {
         LambdaQueryWrapper<LoupanHuxing> w = new LambdaQueryWrapper<>();
         if (loupanId != null) w.eq(LoupanHuxing::getLoupanId, loupanId);
         if (StringUtils.hasText(keyword)) w.like(LoupanHuxing::getHuxingName, keyword);
-        w.orderByDesc(LoupanHuxing::getSort).orderByDesc(LoupanHuxing::getCreateTime);
+        w.orderByDesc(LoupanHuxing::getId);
         return Result.success(huxingService.page(new Page<>(page, size), w));
     }
 
