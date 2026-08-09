@@ -48,9 +48,9 @@
           <div v-for="lp in loupanList" :key="lp.id" class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
             <!-- 楼盘卡片：封面图铺满，详情在下 -->
             <div class="flex flex-col">
-              <!-- 封面图（宽度铺满，4:3 比例，超出裁剪） -->
-              <div class="w-full aspect-[4/3] bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden">
-                <img v-if="lp.coverImage" :src="lp.coverImage" class="w-full h-full object-cover block" />
+              <!-- 封面图（宽度铺满，4:3 比例，超出裁剪，可点击） -->
+              <router-link :to="`/loupan/${lp.encodedId}`" class="block w-full aspect-[4/3] bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden group">
+                <img v-if="lp.coverImage" :src="lp.coverImage" class="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300" />
                 <div v-else class="w-full h-full flex items-center justify-center">
                   <Building2 class="w-16 h-16 text-orange-300" />
                 </div>
@@ -60,12 +60,15 @@
                   'bg-green-500 text-white']">
                   {{ ['待售','在售','售罄','已交付'][lp.salesStatus] || '未知' }}
                 </span>
-              </div>
+              </router-link>
               <!-- 楼盘详情 -->
               <div class="flex-1 p-5 flex flex-col justify-between min-w-0">
                 <div>
                   <router-link :to="`/loupan/${lp.encodedId}`" class="block">
-                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] hover:text-orange-500 transition-colors mb-2">{{ lp.projectName }}</h3>
+                    <div class="flex items-center gap-2 mb-2">
+                      <span v-if="lp.brandList" class="flex-shrink-0 px-2 py-0.5 rounded text-xs font-bold text-white bg-orange-500">{{ lp.brandList }}</span>
+                      <h3 class="text-lg font-bold text-[var(--color-text-primary)] hover:text-orange-500 transition-colors">{{ lp.projectName }}</h3>
+                    </div>
                   </router-link>
                   <p class="text-xs text-[var(--color-text-tertiary)] mb-2">
                     <MapPin class="w-3 h-3 inline -mt-0.5 mr-0.5" />{{ lp.district }}{{ lp.plate ? '·'+lp.plate : '' }}
@@ -78,12 +81,16 @@
                     <span v-if="lp.buildingTotal" class="mx-1.5 text-gray-200">|</span>
                     <span v-if="lp.buildingTotal">{{ lp.buildingTotal }}栋</span>
                   </p>
-                  <p class="text-xs text-[var(--color-text-tertiary)] mb-3 truncate">{{ lp.projectCompany }}</p>
-                  <!-- 物业费/车位配比 -->
-                  <div v-if="lp.propertyFeeHigh || lp.propertyFeeVilla || lp.parkRatio" class="flex flex-wrap items-center gap-2 mb-3">
+                  <!-- 物业公司/物业费 -->
+                  <div v-if="lp.propertyCompany || lp.propertyFeeHigh || lp.propertyFeeVilla" class="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span v-if="lp.propertyCompany" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">物业 {{ lp.propertyCompany }}</span>
                     <span v-if="lp.propertyFeeHigh" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">物业费 {{ lp.propertyFeeHigh }}元/㎡/月</span>
                     <span v-if="lp.propertyFeeVilla" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">别墅物业费 {{ lp.propertyFeeVilla }}元/㎡/月</span>
+                  </div>
+                  <!-- 车位（单独一行） -->
+                  <div v-if="lp.parkRatio || lp.parkTotal" class="flex flex-wrap items-center gap-2 mb-3">
                     <span v-if="lp.parkRatio" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">车位配比 {{ lp.parkRatio }}</span>
+                    <span v-if="lp.parkTotal" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">总车位数 {{ lp.parkTotal }}</span>
                   </div>
                   <!-- 标签 -->
                   <div v-if="lp.priceTag" class="flex flex-wrap gap-1.5 mb-2">
