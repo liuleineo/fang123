@@ -187,12 +187,33 @@ function showInfo(s) {
     map.add(fenceOverlay)
   }
   const schoolDetailUrl = `https://rxyj.hzedu.gov.cn/#/schoolDetail?year=2026&schoolName=${s.campusCode}&id=0`
+  // 包含小区：用逗号/顿号分割，两列展示
+  let communityHtml = ''
+  if (s.communityNames) {
+    const list = String(s.communityNames).split(/[,，、;；]/).map(x => x.trim()).filter(Boolean)
+    if (list.length) {
+      // 每行 2 列展示小区
+      const rows = []
+      for (let i = 0; i < list.length; i += 2) {
+        const c1 = `<td style="width:50%;padding:3px 8px;border:1px solid #eee;font-size:11px;color:#555">${list[i]}</td>`
+        const c2 = i + 1 < list.length ? `<td style="width:50%;padding:3px 8px;border:1px solid #eee;font-size:11px;color:#555">${list[i+1]}</td>` : '<td style="width:50%;border:1px solid #eee"></td>'
+        rows.push(`<tr>${c1}${c2}</tr>`)
+      }
+      communityHtml = `
+        <div style="margin:6px 0">
+          <div style="font-weight:500;color:#333;margin-bottom:3px">包含小区（${list.length}个）</div>
+          <table style="width:100%;border-collapse:collapse">
+            <tbody>${rows.join('')}</tbody>
+          </table>
+        </div>`
+    }
+  }
   const content = `
-    <div style="font-size:12px;min-width:180px">
-      <div style="font-weight:bold;font-size:13px;margin-bottom:4px">${s.schoolOrgName}${s.campusName ? '（'+s.campusName+'）':''}</div>
+    <div style="font-size:12px;width:280px;max-height:360px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px">
+      <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:8px">${s.schoolOrgName}${s.campusName ? '（'+s.campusName+'）':''}</div>
       <div style="color:#666;margin:2px 0">${s.schoolType || ''} ${s.sponsorType ? '· '+s.sponsorType : ''}</div>
       <div style="color:#666;margin:2px 0">${s.schoolAddress || ''}</div>
-      ${s.communityNames ? `<div style="margin:3px 0"><span style="font-weight:500;color:#333">包含小区：</span><span style="color:#666">${s.communityNames}</span></div>` : ''}
+      ${communityHtml}
       ${s.targetMiddleSchoolName ? `<div style="color:#0052D9;margin-top:3px">对口初中：${s.targetMiddleSchoolName}</div>` : ''}
       ${s.contactPhone ? `<div style="color:#666">电话：${s.contactPhone}</div>` : ''}
       ${fencePts.length >= 3 ? '<div style="color:#1890ff;margin-top:3px">已显示学区范围</div>' : ''}
@@ -200,7 +221,7 @@ function showInfo(s) {
         <a href="${schoolDetailUrl}" target="_blank" rel="noopener" style="color:#1890ff;text-decoration:none;font-weight:500">访问入学早知道 ›</a>
       </div>
     </div>`
-  new window.AMap.InfoWindow({ content, offset: new window.AMap.Pixel(0, -20) }).open(map, [Number(s.longitude), Number(s.latitude)])
+  new window.AMap.InfoWindow({ content, isCustom: true, offset: new window.AMap.Pixel(0, -20), autoMove: true }).open(map, [Number(s.longitude), Number(s.latitude)])
 }
 
 function focusSchool(s) {
