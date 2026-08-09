@@ -32,7 +32,7 @@
         <t-select v-model="filterPlate" placeholder="板块" clearable size="small" class="w-[120px]" :options="plateOpts" @change="doSearch" />
         <t-select v-model="filterHouseType" placeholder="楼盘类型" clearable size="small" class="w-[110px]" :options="houseTypeOpts" @change="doSearch" />
         <t-select v-model="filterDecorate" placeholder="装修" clearable size="small" class="w-[100px]" :options="decorateOpts" @change="doSearch" />
-        <span class="text-xs text-[var(--color-text-tertiary)] ml-auto">共 {{ total }} 套房源</span>
+        <span class="text-xs text-[var(--color-text-tertiary)] ml-auto">共 {{ total }} 个小区</span>
       </div>
     </section>
 
@@ -46,12 +46,14 @@
         </div>
         <div v-else class="space-y-5">
           <div v-for="lp in loupanList" :key="lp.id" class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
-            <!-- 楼盘信息行 -->
+            <!-- 楼盘卡片：桌面端左右，手机端上下 -->
             <div class="flex flex-col lg:flex-row">
-              <!-- 左侧封面图 -->
-              <div class="lg:w-72 h-48 lg:h-auto flex-shrink-0 bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden">
-                <t-image v-if="lp.coverImage" :src="lp.coverImage" fit="cover" class="w-full h-full absolute inset-0" />
-                <Building2 v-else class="w-16 h-16 text-orange-300 absolute inset-0 m-auto" />
+              <!-- 封面图（手机端4:3铺满，桌面端固定宽铺满高度） -->
+              <div class="w-full lg:w-72 lg:flex-shrink-0 aspect-[4/3] lg:aspect-auto bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden">
+                <img v-if="lp.coverImage" :src="lp.coverImage" class="w-full h-full object-cover block" />
+                <div v-else class="w-full h-full flex items-center justify-center">
+                  <Building2 class="w-16 h-16 text-orange-300" />
+                </div>
                 <span :class="['absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium',
                   lp.salesStatus===2?'bg-orange-500 text-white':
                   lp.salesStatus===3?'bg-blue-500 text-white':
@@ -59,7 +61,7 @@
                   {{ ['待售','在售','售罄','已交付'][lp.salesStatus] || '未知' }}
                 </span>
               </div>
-              <!-- 右侧楼盘详情 -->
+              <!-- 楼盘详情 -->
               <div class="flex-1 p-5 flex flex-col justify-between min-w-0">
                 <div>
                   <router-link :to="`/loupan/${lp.encodedId}`" class="block">
@@ -77,6 +79,12 @@
                     <span v-if="lp.buildingTotal">{{ lp.buildingTotal }}栋</span>
                   </p>
                   <p class="text-xs text-[var(--color-text-tertiary)] mb-3 truncate">{{ lp.projectCompany }}</p>
+                  <!-- 物业费/车位配比 -->
+                  <div v-if="lp.propertyFeeHigh || lp.propertyFeeVilla || lp.parkRatio" class="flex flex-wrap items-center gap-2 mb-3">
+                    <span v-if="lp.propertyFeeHigh" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">物业费 {{ lp.propertyFeeHigh }}元/㎡/月</span>
+                    <span v-if="lp.propertyFeeVilla" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">别墅物业费 {{ lp.propertyFeeVilla }}元/㎡/月</span>
+                    <span v-if="lp.parkRatio" class="px-2 py-0.5 rounded text-xs bg-gray-50 text-[var(--color-text-secondary)]">车位配比 {{ lp.parkRatio }}</span>
+                  </div>
                   <!-- 标签 -->
                   <div v-if="lp.priceTag" class="flex flex-wrap gap-1.5 mb-2">
                     <span v-for="tag in lp.priceTag.split(',')" :key="tag" class="px-2 py-0.5 rounded text-xs bg-orange-50 text-orange-600 border border-orange-100">{{ tag }}</span>
@@ -89,11 +97,11 @@
                 </div>
               </div>
             </div>
-            <!-- 户型横滑区域 -->
+            <!-- 户型展示区域（自适应换行） -->
             <div v-if="lp.huxings && lp.huxings.length" class="border-t border-gray-50 px-5 py-3">
               <p class="text-xs text-[var(--color-text-tertiary)] mb-2 font-medium">户型</p>
-              <div class="flex gap-3 overflow-x-auto pb-1">
-                <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="flex-shrink-0 w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
+              <div class="flex flex-wrap gap-3">
+                <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="w-[calc(50%-0.375rem)] sm:w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
                   <div class="aspect-[4/3] bg-gray-50 relative">
                     <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
                     <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
