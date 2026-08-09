@@ -1,8 +1,20 @@
 <template>
   <div class="map-page">
     <div class="relative w-full h-[calc(100vh-var(--header-height))]">
-      <!-- 侧边筛选面板 -->
-      <div class="absolute top-4 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-2rem)]">
+      <!-- 手机端筛选浮动按钮 -->
+      <button
+        class="md:hidden absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
+        @click="showPanel = !showPanel"
+      >
+        <SlidersHorizontal class="w-4 h-4 text-[var(--color-primary)]" />
+        {{ showPanel ? '关闭列表' : '地块列表' }}
+      </button>
+
+      <!-- 侧边筛选面板（手机端可收起，桌面端常驻） -->
+      <div
+        class="absolute top-14 md:top-4 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-5rem)] md:max-h-[calc(100vh-var(--header-height)-2rem)]"
+        :class="showPanel ? 'flex' : 'hidden md:flex'"
+      >
         <div class="p-4 border-b border-gray-50">
           <div class="text-base font-bold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
             <Map class="w-5 h-5 text-[var(--color-primary)]" />土拍地图
@@ -88,11 +100,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Map, MapPin, AlertCircle } from 'lucide-vue-next'
+import { Search, Map, MapPin, AlertCircle, SlidersHorizontal } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
+const showPanel = ref(false)
 const keyword = ref('')
 const filterDistrict = ref('')
 const filterDate = ref('')

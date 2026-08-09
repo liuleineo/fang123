@@ -1,22 +1,26 @@
 <template>
   <div class="school-map-page flex flex-col h-[calc(100vh-var(--header-height))]">
     <!-- 搜索/筛选栏 -->
-    <div class="bg-white border-b border-gray-50 px-4 py-2 flex flex-wrap items-center gap-2 z-50">
-      <t-input v-model="keyword" placeholder="搜索学校名称/校区/小区" clearable size="small" class="w-[220px]" @enter="doSearch" @clear="doSearch">
+    <div class="bg-white border-b border-gray-50 px-3 md:px-4 py-2 flex flex-wrap items-center gap-2 z-50">
+      <t-input v-model="keyword" placeholder="搜索学校名称/校区/小区" clearable size="small" class="w-full md:w-[220px]" @enter="doSearch" @clear="doSearch">
         <template #prefix-icon><Search class="w-4 h-4 text-[var(--color-text-tertiary)]" /></template>
       </t-input>
-      <t-select v-model="filterType" placeholder="学校类型" clearable size="small" class="w-[130px]" :options="typeOpts" @change="doSearch" />
-      <t-select v-model="filterTier" placeholder="梯队" clearable size="small" class="w-[110px]" :options="tierOpts" @change="doSearch" />
-      <t-select v-model="filterDept" placeholder="行政区" clearable size="small" class="w-[130px]" :options="deptOpts" @change="doSearch" />
-      <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 所学校</span>
-      <t-button size="small" variant="text" @click="reset"><RefreshCw class="w-3.5 h-3.5 mr-1" />重置</t-button>
+      <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <t-select v-model="filterType" placeholder="学校类型" clearable size="small" class="w-[32%] md:w-[130px]" :options="typeOpts" @change="doSearch" />
+        <t-select v-model="filterTier" placeholder="梯队" clearable size="small" class="w-[32%] md:w-[110px]" :options="tierOpts" @change="doSearch" />
+        <t-select v-model="filterDept" placeholder="行政区" clearable size="small" class="w-[32%] md:w-[130px]" :options="deptOpts" @change="doSearch" />
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 所学校</span>
+        <t-button size="small" variant="text" @click="reset"><RefreshCw class="w-3.5 h-3.5 mr-1" />重置</t-button>
+      </div>
     </div>
 
     <!-- 地图 -->
     <div class="flex-1 relative">
       <div id="mapContainer" class="absolute inset-0" />
-      <!-- 侧边栏：学校列表 -->
-      <div class="absolute top-3 left-3 bottom-3 w-[320px] bg-white rounded-xl shadow-lg overflow-hidden flex flex-col z-30">
+      <!-- 侧边栏：学校列表（手机端隐藏） -->
+      <div class="hidden md:flex absolute top-3 left-3 bottom-3 w-[320px] bg-white rounded-xl shadow-lg overflow-hidden flex-col z-30">
         <div class="px-3 py-2 border-b border-gray-50 text-sm font-bold">学校列表 <span class="text-xs font-normal text-[var(--color-text-tertiary)]">{{ schoolList.length }}所</span></div>
         <div class="flex-1 overflow-y-auto">
           <div v-if="loading" class="flex justify-center py-10"><t-loading /></div>
@@ -212,10 +216,8 @@ function showInfo(s) {
     <div style="font-size:12px;width:280px;max-height:360px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px">
       <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:8px">${s.schoolOrgName}${s.campusName ? '（'+s.campusName+'）':''}</div>
       <div style="color:#666;margin:2px 0">${s.schoolType || ''} ${s.sponsorType ? '· '+s.sponsorType : ''}</div>
-      <div style="color:#666;margin:2px 0">${s.schoolAddress || ''}</div>
-      ${communityHtml}
       ${s.targetMiddleSchoolName ? `<div style="color:#0052D9;margin-top:3px">对口初中：${s.targetMiddleSchoolName}</div>` : ''}
-      ${s.contactPhone ? `<div style="color:#666">电话：${s.contactPhone}</div>` : ''}
+      ${communityHtml}
       ${fencePts.length >= 3 ? '<div style="color:#1890ff;margin-top:3px">已显示学区范围</div>' : ''}
       <div style="margin-top:6px;padding-top:6px;border-top:1px dashed #eee">
         <a href="${schoolDetailUrl}" target="_blank" rel="noopener" style="color:#1890ff;text-decoration:none;font-weight:500">访问入学早知道 ›</a>
