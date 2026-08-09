@@ -46,10 +46,10 @@
         </div>
         <div v-else class="space-y-5">
           <div v-for="lp in loupanList" :key="lp.id" class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
-            <!-- 楼盘卡片：桌面端左右，手机端上下 -->
-            <div class="flex flex-col lg:flex-row">
-              <!-- 封面图（手机端4:3铺满，桌面端固定宽铺满高度） -->
-              <div class="w-full lg:w-72 lg:flex-shrink-0 aspect-[4/3] lg:aspect-auto bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden">
+            <!-- 楼盘卡片：封面图铺满，详情在下 -->
+            <div class="flex flex-col">
+              <!-- 封面图（宽度铺满，4:3 比例，超出裁剪） -->
+              <div class="w-full aspect-[4/3] bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden">
                 <img v-if="lp.coverImage" :src="lp.coverImage" class="w-full h-full object-cover block" />
                 <div v-else class="w-full h-full flex items-center justify-center">
                   <Building2 class="w-16 h-16 text-orange-300" />
