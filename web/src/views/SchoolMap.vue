@@ -6,7 +6,7 @@
         <template #prefix-icon><Search class="w-4 h-4 text-[var(--color-text-tertiary)]" /></template>
       </t-input>
       <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-        <t-select v-model="filterType" placeholder="学校类型" clearable size="small" class="w-[32%] md:w-[130px]" :options="typeOpts" @change="doSearch" />
+        <t-select v-model="filterType" placeholder="学校类型" clearable multiple size="small" class="w-full md:w-[220px]" :options="typeOpts" @change="doSearch" />
         <t-select v-model="filterTier" placeholder="梯队" clearable size="small" class="w-[32%] md:w-[110px]" :options="tierOpts" @change="doSearch" />
         <t-select v-model="filterDept" placeholder="行政区" clearable size="small" class="w-[32%] md:w-[130px]" :options="deptOpts" @change="doSearch" />
       </div>
@@ -49,7 +49,7 @@ import request from '@/utils/request'
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
 const keyword = ref('')
-const filterType = ref('小学')
+const filterType = ref(['小学','九年一贯制'])
 const filterTier = ref(null)
 const filterDept = ref('')
 const schoolList = ref([])
@@ -91,7 +91,7 @@ async function fetchData() {
   try {
     const p = {}
     if (keyword.value) p.keyword = keyword.value
-    if (filterType.value) p.schoolType = filterType.value
+    if (filterType.value && filterType.value.length) p.schoolType = filterType.value.join(',')
     if (filterTier.value) p.tier = filterTier.value
     if (filterDept.value) p.eduAdminDepartment = filterDept.value
     const r = await request.get('/public/schools', { params: p })
@@ -233,7 +233,7 @@ function focusSchool(s) {
 }
 
 function doSearch() { fetchData() }
-function reset() { keyword.value=''; filterType.value='小学'; filterTier.value=null; filterDept.value=''; fetchData() }
+function reset() { keyword.value=''; filterType.value=['小学','九年一贯制']; filterTier.value=null; filterDept.value=''; fetchData() }
 
 async function fetchDepts() {
   try {

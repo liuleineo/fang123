@@ -20,13 +20,10 @@
           <t-tag v-if="row.tier" size="small" theme="warning">{{ row.tier }}梯队</t-tag>
           <span v-else class="text-xs text-gray-300">-</span>
         </template>
-        <template #schoolLogo="{ row }">
-          <t-image v-if="row.schoolLogo" :src="row.schoolLogo" fit="cover" class="w-10 h-10 rounded" />
-          <span v-else class="text-xs text-gray-300">无</span>
-        </template>
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
         <template #operation="{ row }">
           <t-space size="small">
+            <t-button variant="text" theme="primary" size="small" :loading="updatingCode===row.campusCode" @click="updateData(row)">更新数据</t-button>
             <t-button variant="text" theme="primary" size="small" @click="openEdit(row)">编辑</t-button>
             <t-popconfirm content="确定删除？" @confirm="del(row.campusCode)"><t-button variant="text" theme="danger" size="small">删除</t-button></t-popconfirm>
           </t-space>
@@ -136,8 +133,7 @@ const cols = [
   {colKey:'campusName',title:'校区名称',width:120,ellipsis:true},
   {colKey:'schoolType',title:'类型',width:100},
   {colKey:'tier',title:'梯队',width:80},
-  {colKey:'schoolAddress',title:'地址',width:180,ellipsis:true},
-  {colKey:'schoolLogo',title:'Logo',width:60},
+  {colKey:'communityNames',title:'小区名称',width:200,ellipsis:true},
   {colKey:'targetMiddleSchoolName',title:'对口初中',width:120,ellipsis:true},
   {colKey:'createTime',title:'创建时间',width:160},
   {colKey:'operation',title:'操作',width:120,fixed:'right'},
@@ -172,6 +168,21 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/schools/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/schools',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){MessagePlugin.error(e.response?.data?.msg||'保存失败')}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/schools/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+const updatingCode = ref('')
+async function updateData(row) {
+  if (updatingCode.value) return
+  updatingCode.value = row.campusCode
+  try {
+    const r = await request.post(`/admin/schools/${row.campusCode}/refresh-community`)
+    MessagePlugin.success(`更新成功：${r.count || 0} 个小区`)
+    fetchData()
+  } catch (e) {
+    MessagePlugin.error(e.response?.data?.msg || '更新失败')
+  } finally {
+    updatingCode.value = ''
+  }
+}
 
 // ===== 围栏绘制地图 =====
 let fenceMap = null
