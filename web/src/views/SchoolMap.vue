@@ -175,9 +175,21 @@ function clearFence() {
   }
 }
 
+let infoWindow = null
+
+// 供弹窗内自定义关闭按钮调用（需挂到 window 供 HTML 内联 onclick 访问）
+function closeInfoWindow() {
+  if (infoWindow) {
+    infoWindow.close()
+    infoWindow = null
+  }
+}
+window.closeInfoWindow = closeInfoWindow
+
 // 点击学校后请求完整详情数据并展示弹窗+围栏
 async function showInfo(s) {
-  // 清除旧围栏
+  // 清除旧弹窗和旧围栏
+  closeInfoWindow()
   clearFence()
   const lng = Number(s.longitude), lat = Number(s.latitude)
   let info = s
@@ -220,8 +232,9 @@ async function showInfo(s) {
     }
   }
   const content = `
-    <div style="font-size:12px;width:280px;max-height:360px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px">
-      <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:8px">${info.schoolOrgName}${info.campusName ? '（'+info.campusName+'）':''}</div>
+    <div style="font-size:12px;width:280px;max-height:360px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px;position:relative">
+      <div onclick="closeInfoWindow()" style="position:absolute;top:8px;right:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:#f2f3f5;color:#999;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;z-index:1" title="关闭">✕</div>
+      <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:20px">${info.schoolOrgName}${info.campusName ? '（'+info.campusName+'）':''}</div>
       <div style="color:#666;margin:2px 0">${info.schoolType || ''} ${info.sponsorType ? '· '+info.sponsorType : ''}</div>
       ${info.targetMiddleSchoolName ? `<div style="color:#0052D9;margin-top:3px">对口初中：${info.targetMiddleSchoolName}</div>` : ''}
       ${communityHtml}
@@ -230,7 +243,8 @@ async function showInfo(s) {
         <a href="${schoolDetailUrl}" target="_blank" rel="noopener" style="color:#1890ff;text-decoration:none;font-weight:500">访问入学早知道 ›</a>
       </div>
     </div>`
-  new window.AMap.InfoWindow({ content, isCustom: true, offset: new window.AMap.Pixel(0, -20), autoMove: true }).open(map, [lng, lat])
+  infoWindow = new window.AMap.InfoWindow({ content, isCustom: true, offset: new window.AMap.Pixel(0, -20), autoMove: true })
+  infoWindow.open(map, [lng, lat])
 }
 
 function focusSchool(s) {
