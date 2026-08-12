@@ -11,8 +11,10 @@
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
         <t-select v-model="filterType" placeholder="学校类型" clearable class="w-[140px]" :options="typeOpts" @change="search" />
+        <t-select v-model="filterDept" placeholder="行政区" clearable class="w-[140px]" :options="deptOpts" @change="search" />
+        <t-select v-model="filterTier" placeholder="梯队" clearable class="w-[110px]" :options="tierOpts" @change="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
-        <t-button variant="outline" @click="keyword='';filterType='';search()">重置</t-button>
+        <t-button variant="outline" @click="keyword='';filterType='';filterDept='';filterTier='';search()">重置</t-button>
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="campusCode" hover stripe size="small" @page-change="onPg">
         <template #schoolType="{ row }"><t-tag size="small">{{ row.schoolType||'-' }}</t-tag></template>
@@ -109,7 +111,8 @@ const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const fenceDrawerVisible = ref(false)
-const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterType = ref('')
+const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterType = ref(''); const filterDept = ref(''); const filterTier = ref('')
+const deptOpts = ref([])
 const pg = reactive({current:1,pageSize:10,total:0})
 
 const typeOpts = [
@@ -143,7 +146,13 @@ function fmt(t){if(!t)return'';const d=new Date(t);return `${d.getFullYear()}-${
 
 async function fetchData() {
   loading.value=true
-  try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(filterType.value)p.schoolType=filterType.value;const r=await request.get('/admin/schools',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
+  try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(filterType.value)p.schoolType=filterType.value;if(filterDept.value)p.eduAdminDepartment=filterDept.value;if(filterTier.value)p.tier=filterTier.value;const r=await request.get('/admin/schools',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
+}
+async function fetchDepts() {
+  try {
+    const r = await request.get('/admin/schools/departments')
+    deptOpts.value = (r || []).filter(Boolean).map(d => ({ label: d, value: d }))
+  } catch {}
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
@@ -296,7 +305,7 @@ function clearDraw() {
   MessagePlugin.success('已清除围栏')
 }
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchDepts() })
 onBeforeUnmount(() => {
   if (mouseTool) mouseTool.close(true)
   if (fenceMap) fenceMap.destroy()

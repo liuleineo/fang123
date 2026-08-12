@@ -56,7 +56,8 @@ public class SchoolController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String schoolType,
-            @RequestParam(required = false) String eduAdminDepartment) {
+            @RequestParam(required = false) String eduAdminDepartment,
+            @RequestParam(required = false) Integer tier) {
         LambdaQueryWrapper<School> w = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(keyword)) {
             w.and(wr -> wr.like(School::getSchoolOrgName, keyword)
@@ -66,6 +67,7 @@ public class SchoolController {
         }
         if (StringUtils.hasText(schoolType)) w.eq(School::getSchoolType, schoolType);
         if (StringUtils.hasText(eduAdminDepartment)) w.eq(School::getEduAdminDepartment, eduAdminDepartment);
+        if (tier != null) w.eq(School::getTier, tier);
         w.orderByAsc(School::getCampusCode);
         return Result.success(schoolService.page(new Page<>(page, size), w));
     }
@@ -75,6 +77,21 @@ public class SchoolController {
         School entity = schoolService.getById(campusCode);
         if (entity == null) return Result.notFound("学校不存在");
         return Result.success(entity);
+    }
+
+    /** 行政区下拉选项（去重） */
+    @GetMapping("/api/admin/schools/departments")
+    public Result<List<String>> departments() {
+        LambdaQueryWrapper<School> w = new LambdaQueryWrapper<>();
+        w.select(School::getEduAdminDepartment)
+                .isNotNull(School::getEduAdminDepartment)
+                .ne(School::getEduAdminDepartment, "")
+                .groupBy(School::getEduAdminDepartment);
+        List<String> list = schoolService.list(w).stream()
+                .map(School::getEduAdminDepartment)
+                .filter(StringUtils::hasText)
+                .toList();
+        return Result.success(list);
     }
 
     @PostMapping("/api/admin/schools")
