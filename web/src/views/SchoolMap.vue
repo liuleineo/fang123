@@ -94,7 +94,7 @@ async function fetchData() {
     if (filterType.value && filterType.value.length) p.schoolType = filterType.value.join(',')
     if (filterTier.value) p.tier = filterTier.value
     if (filterDept.value) p.eduAdminDepartment = filterDept.value
-    const r = await request.get('/public/schools', { params: p })
+    const r = await request.get('/public/schools/light', { params: p })
     schoolList.value = r || []
     total.value = schoolList.value.length
     renderMarkers()
@@ -175,10 +175,18 @@ function clearFence() {
   }
 }
 
-function showInfo(s) {
-  // 清除旧围栏，绘制新围栏
+// 点击学校后请求完整详情数据并展示弹窗+围栏
+async function showInfo(s) {
+  // 清除旧围栏
   clearFence()
-  const fencePts = parseFence(s.mapFence)
+  const lng = Number(s.longitude), lat = Number(s.latitude)
+  let info = s
+  // 精简列表不含完整数据，请求详情接口
+  try {
+    const detail = await request.get(`/public/schools/${s.campusCode}`)
+    if (detail) info = detail
+  } catch {}
+  const fencePts = parseFence(info.mapFence)
   if (fencePts.length >= 3) {
     fenceOverlay = new window.AMap.Polygon({
       path: fencePts,
@@ -190,13 +198,12 @@ function showInfo(s) {
     })
     map.add(fenceOverlay)
   }
-  const schoolDetailUrl = `https://rxyj.hzedu.gov.cn/#/schoolDetail?year=2026&schoolName=${s.campusCode}&id=0`
+  const schoolDetailUrl = `https://rxyj.hzedu.gov.cn/#/schoolDetail?year=2026&schoolName=${info.campusCode}&id=0`
   // 包含小区：用逗号/顿号分割，两列展示
   let communityHtml = ''
-  if (s.communityNames) {
-    const list = String(s.communityNames).split(/[,，、;；]/).map(x => x.trim()).filter(Boolean)
+  if (info.communityNames) {
+    const list = String(info.communityNames).split(/[,，、;；]/).map(x => x.trim()).filter(Boolean)
     if (list.length) {
-      // 每行 2 列展示小区
       const rows = []
       for (let i = 0; i < list.length; i += 2) {
         const c1 = `<td style="width:50%;padding:3px 8px;border:1px solid #eee;font-size:11px;color:#555">${list[i]}</td>`
@@ -214,16 +221,16 @@ function showInfo(s) {
   }
   const content = `
     <div style="font-size:12px;width:280px;max-height:360px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px">
-      <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:8px">${s.schoolOrgName}${s.campusName ? '（'+s.campusName+'）':''}</div>
-      <div style="color:#666;margin:2px 0">${s.schoolType || ''} ${s.sponsorType ? '· '+s.sponsorType : ''}</div>
-      ${s.targetMiddleSchoolName ? `<div style="color:#0052D9;margin-top:3px">对口初中：${s.targetMiddleSchoolName}</div>` : ''}
+      <div style="font-weight:bold;font-size:13px;margin-bottom:4px;padding-right:8px">${info.schoolOrgName}${info.campusName ? '（'+info.campusName+'）':''}</div>
+      <div style="color:#666;margin:2px 0">${info.schoolType || ''} ${info.sponsorType ? '· '+info.sponsorType : ''}</div>
+      ${info.targetMiddleSchoolName ? `<div style="color:#0052D9;margin-top:3px">对口初中：${info.targetMiddleSchoolName}</div>` : ''}
       ${communityHtml}
       ${fencePts.length >= 3 ? '<div style="color:#1890ff;margin-top:3px">已显示学区范围</div>' : ''}
       <div style="margin-top:6px;padding-top:6px;border-top:1px dashed #eee">
         <a href="${schoolDetailUrl}" target="_blank" rel="noopener" style="color:#1890ff;text-decoration:none;font-weight:500">访问入学早知道 ›</a>
       </div>
     </div>`
-  new window.AMap.InfoWindow({ content, isCustom: true, offset: new window.AMap.Pixel(0, -20), autoMove: true }).open(map, [Number(s.longitude), Number(s.latitude)])
+  new window.AMap.InfoWindow({ content, isCustom: true, offset: new window.AMap.Pixel(0, -20), autoMove: true }).open(map, [lng, lat])
 }
 
 function focusSchool(s) {
@@ -237,7 +244,7 @@ function reset() { keyword.value=''; filterType.value=['小学','九年一贯制
 
 async function fetchDepts() {
   try {
-    const r = await request.get('/public/schools', { params: {} })
+    const r = await request.get('/public/schools/light', { params: {} })
     const set = new Set((r||[]).map(s => s.eduAdminDepartment).filter(Boolean))
     deptOpts.value = [...set].map(d => ({ label: d, value: d }))
   } catch {}

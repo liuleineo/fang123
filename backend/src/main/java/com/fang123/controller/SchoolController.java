@@ -50,6 +50,40 @@ public class SchoolController {
         return Result.success(schoolService.list(w));
     }
 
+    /** 公开-学校列表精简字段（地图标记用，减少数据传输） */
+    @GetMapping("/api/public/schools/light")
+    public Result<List<School>> publicLightList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String schoolType,
+            @RequestParam(required = false) String eduAdminDepartment,
+            @RequestParam(required = false) Integer tier) {
+        LambdaQueryWrapper<School> w = new LambdaQueryWrapper<>();
+        w.select(School::getCampusCode, School::getSchoolOrgName, School::getCampusName,
+                School::getSchoolType, School::getTier, School::getLongitude, School::getLatitude,
+                School::getEduAdminDepartment);
+        if (StringUtils.hasText(keyword)) {
+            w.and(wr -> wr.like(School::getSchoolOrgName, keyword)
+                    .or().like(School::getCampusName, keyword));
+        }
+        if (StringUtils.hasText(schoolType)) {
+            List<String> typeList = java.util.Arrays.stream(schoolType.split(","))
+                    .map(String::trim).filter(StringUtils::hasText).toList();
+            w.in(School::getSchoolType, typeList);
+        }
+        if (StringUtils.hasText(eduAdminDepartment)) w.eq(School::getEduAdminDepartment, eduAdminDepartment);
+        if (tier != null) w.eq(School::getTier, tier);
+        w.orderByAsc(School::getSchoolType).orderByAsc(School::getCampusCode);
+        return Result.success(schoolService.list(w));
+    }
+
+    /** 公开-学校详情（点击标记后请求，返回完整数据含围栏） */
+    @GetMapping("/api/public/schools/{campusCode}")
+    public Result<School> publicDetail(@PathVariable String campusCode) {
+        School entity = schoolService.getById(campusCode);
+        if (entity == null) return Result.notFound("学校不存在");
+        return Result.success(entity);
+    }
+
     @GetMapping("/api/admin/schools")
     public Result<Page<School>> list(
             @RequestParam(defaultValue = "1") Integer page,
