@@ -79,6 +79,24 @@ const routes = [
         meta: { title: '楼盘详情' }
       },
       {
+        path: 'loupan/:id/media',
+        name: 'LoupanMedia',
+        component: () => import('@/views/LoupanSubPage.vue'),
+        meta: { title: '楼盘图库' }
+      },
+      {
+        path: 'loupan/:id/huxing',
+        name: 'LoupanHuxing',
+        component: () => import('@/views/LoupanSubPage.vue'),
+        meta: { title: '楼盘户型' }
+      },
+      {
+        path: 'loupan/:id/yfyj',
+        name: 'LoupanYfyj',
+        component: () => import('@/views/LoupanSubPage.vue'),
+        meta: { title: '一房一价' }
+      },
+      {
         path: 'ershoufang',
         name: 'ErShouFang',
         component: () => import('@/views/ErShouFang.vue'),
