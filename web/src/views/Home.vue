@@ -160,7 +160,7 @@
         <p class="text-white/80 mb-8 text-sm max-w-md mx-auto">
           关注我们，第一时间获取新开盘、价格变动等最新消息
         </p>
-        <t-button theme="default" size="large" variant="outline" class="!border-white !text-black !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="searchKeyword=''; fetchData()">
+        <t-button theme="default" size="large" variant="outline" class="!border-white !text-black !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="searchKeyword=''; pg.current=1; fetchData(true)">
           浏览全部楼盘
         </t-button>
       </div>
@@ -195,10 +195,12 @@ const decorateOpts = [
   { label: '精装', value: 1 }, { label: '毛坯', value: 2 }, { label: '简装', value: 3 }
 ]
 
-async function fetchData() {
+async function fetchData(showAll = false) {
   loading.value = true
   try {
     const p = { page: pg.current, size: pg.pageSize }
+    // 默认只展示在售楼盘，点击"浏览全部楼盘"时展示全部
+    if (!showAll) p.salesStatus = '1'
     if (searchKeyword.value) p.keyword = searchKeyword.value
     if (filterDistrict.value) p.district = filterDistrict.value
     if (filterPlate.value) p.plate = filterPlate.value

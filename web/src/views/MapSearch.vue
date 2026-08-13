@@ -175,7 +175,7 @@ function addMarkers() {
       position: [lp.longitude, lp.latitude],
       title: lp.projectName,
       label: {
-        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);text-align:center;line-height:1.5">
+        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);text-align:center;line-height:1.5;border:none;outline:none">
           <div style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</div>
           <div style="color:#FFE58F;font-weight:bold;font-size:11px">${priceStr}</div>
         </div>`,
@@ -183,28 +183,10 @@ function addMarkers() {
       }
     })
 
-    const typeStr = ['','住宅','公寓','商铺','别墅'][lp.houseType] || ''
-    const infoWindow = new window.AMap.InfoWindow({
-      content: `
-        <div style="padding:8px;min-width:160px">
-          <div style="display:flex;gap:8px;align-items:flex-start">
-            ${lp.coverImage ? `<img src="${lp.coverImage}" style="width:60px;height:45px;border-radius:6px;object-fit:cover" />` : ''}
-            <div>
-              <h4 style="margin:0 0 4px;font-size:14px;font-weight:bold">${lp.projectName}</h4>
-              <p style="margin:0;font-size:12px;color:#86909C">${lp.district}·${lp.plate||''} ${typeStr}</p>
-              <p style="margin:2px 0;font-size:13px;color:#E34D59;font-weight:bold">${priceStr}</p>
-              <p style="margin:0;font-size:12px;color:#86909C">${lp.areaMin && lp.areaMax ? `面积范围：${lp.areaMin}㎡-${lp.areaMax}㎡` : ''}</p>
-
-              <a href="/loupan/${lp.encodedId}" style="font-size:12px;color:#0052D9;text-decoration:none">查看详情 →</a>
-            </div>
-          </div>
-        </div>`,
-      offset: new window.AMap.Pixel(0, -30)
-    })
-
     marker.on('click', () => {
       activeId.value = lp.id
-      infoWindow.open(mapInstance, marker.getPosition())
+      // 点击标记：新窗口打开楼盘详情页
+      window.open(`/loupan/${lp.encodedId}`, '_blank')
     })
 
     marker.setMap(mapInstance)
@@ -219,3 +201,11 @@ function addMarkers() {
 watch(filteredList, addMarkers, { deep: true })
 onMounted(fetchData)
 </script>
+
+<style>
+/* 移除高德地图 marker label 外层容器边框 */
+.amap-marker-label {
+  border: none !important;
+  background: transparent !important;
+}
+</style>
