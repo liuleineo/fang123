@@ -170,14 +170,15 @@ function addMarkers() {
 
   list.forEach(lp => {
     if (!lp.longitude || !lp.latitude) return
-    const priceStr = lp.avgUnitPrice ? `${lp.avgUnitPrice}元/㎡` : '价格待定'
+    // 只显示均价（万/㎡）
+    const priceStr = lp.avgUnitPrice ? `${Number((Number(lp.avgUnitPrice) / 10000).toFixed(1))}万/㎡` : '价格待定'
     const marker = new window.AMap.Marker({
       position: [lp.longitude, lp.latitude],
       title: lp.projectName,
       label: {
-        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);text-align:center;line-height:1.5;border:none;outline:none">
-          <div style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</div>
-          <div style="color:#FFE58F;font-weight:bold;font-size:11px">${priceStr}</div>
+        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;gap:6px;border:none;outline:none">
+          <span style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</span>
+          <span style="color:#FFE58F;font-weight:bold;font-size:11px;flex-shrink:0">${priceStr}</span>
         </div>`,
         direction: 'top'
       }
