@@ -170,16 +170,19 @@ function addMarkers() {
 
   list.forEach(lp => {
     if (!lp.longitude || !lp.latitude) return
+    const priceStr = lp.avgUnitPrice ? `${lp.avgUnitPrice}元/㎡` : '价格待定'
     const marker = new window.AMap.Marker({
       position: [lp.longitude, lp.latitude],
       title: lp.projectName,
       label: {
-        content: `<div style="background:#0052D9;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${lp.projectName}</div>`,
+        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);text-align:center;line-height:1.5">
+          <div style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</div>
+          <div style="color:#FFE58F;font-weight:bold;font-size:11px">${priceStr}</div>
+        </div>`,
         direction: 'top'
       }
     })
 
-    const priceStr = lp.avgUnitPrice ? `${lp.avgUnitPrice}元/㎡` : '价格待定'
     const typeStr = ['','住宅','公寓','商铺','别墅'][lp.houseType] || ''
     const infoWindow = new window.AMap.InfoWindow({
       content: `
