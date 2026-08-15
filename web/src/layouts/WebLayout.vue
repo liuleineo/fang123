@@ -128,16 +128,19 @@
           <div>
             <h4 class="text-white font-medium mb-4 text-sm">热门区域</h4>
             <ul class="space-y-2">
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">钱塘区</a></li>
               <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">金沙湖</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">全部楼盘</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">运河新城</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">滨江区</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">钱江新城二期</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">未科</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">世纪城</a></li>
+              
             </ul>
           </div>
           <div>
             <h4 class="text-white font-medium mb-4 text-sm">找房工具</h4>
             <ul class="space-y-2">
               <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">楼盘搜索</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">户型筛选</a></li>
               <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">新盘速递</a></li>
             </ul>
           </div>
@@ -160,7 +163,7 @@
         <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded bg-gradient-to-br from-[#0052D9] to-[#618DFF] flex items-center justify-center text-white text-xs font-bold">N</div>
-            <span class="text-xs text-white/40">hangfang123.com 杭房一二三 - 找到你的理想家园</span>
+            <span class="text-xs text-white/40">hangfang123.com 杭房一二三 - 让买房变简单</span>
           </div>
           <span class="text-xs text-white/30">浙ICP备2021037366号-2</span>
         </div>

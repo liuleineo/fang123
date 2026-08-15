@@ -13,7 +13,7 @@
         <t-input v-model="keyword" placeholder="搜索小区/房号/行政区/板块" clearable class="w-[260px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
-        <t-input v-model="filterLoupanId" placeholder="楼盘ID" clearable type="number" class="w-[120px]" @enter="search" @clear="search" />
+        <t-select v-model="filterLoupanId" placeholder="按楼盘筛选" clearable filterable class="w-[200px]" :options="loupanOpts" @change="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
         <t-button variant="outline" @click="keyword='';filterLoupanId='';search()">重置</t-button>
       </div>
@@ -22,7 +22,13 @@
         <template #dealPrice="{ row }"><span class="text-[var(--color-danger)] font-medium">{{ row.dealPrice }}万</span></template>
         <template #houseArea="{ row }"><span>{{ row.houseArea }}㎡</span></template>
         <template #yfyj="{ row }"><span v-if="row.yfyj" class="text-[var(--color-primary)]">{{ row.yfyj }}万</span><span v-else class="text-xs text-gray-300">-</span></template>
-        <template #loupanId="{ row }"><span v-if="row.loupanId">{{ row.loupanId }}</span><span v-else class="text-xs text-gray-300">-</span></template>
+        <template #loupanId="{ row }">
+          <span v-if="row.loupanId" class="flex flex-col leading-tight">
+            <span class="font-medium text-[var(--color-primary)]">{{ row.loupanId }}</span>
+            <span class="text-xs text-[var(--color-text-tertiary)] truncate max-w-[120px]">{{ loupanMap[row.loupanId] || '未匹配到楼盘' }}</span>
+          </span>
+          <span v-else class="text-xs text-gray-300">-</span>
+        </template>
         <template #operation="{ row }">
           <t-space size="small">
             <t-button variant="text" theme="primary" size="small" @click="openEdit(row)">编辑</t-button>
@@ -51,7 +57,9 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="一手买入价（万元）"><t-input-number v-model="form.yfyj" :min="0" :decimal-places="2" /></t-form-item>
-          <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="0" /></t-form-item>
+          <t-form-item label="楼盘ID（匹配loupan表）">
+            <t-select v-model="form.loupanId" filterable clearable placeholder="选择或输入楼盘" :options="loupanOpts" class="w-full" />
+          </t-form-item>
         </div>
         <t-form-item label="备注（是否带车位等）"><t-input v-model="form.remark" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
@@ -88,8 +96,8 @@
                 <t-input v-model="aiFields.plate" />
               </div>
               <div>
-                <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">楼盘ID</label>
-                <t-input-number v-model="aiFields.loupanId" :min="0" class="w-full" />
+                <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">楼盘ID（匹配loupan表）</label>
+                <t-select v-model="aiFields.loupanId" filterable clearable placeholder="选择或输入楼盘" :options="loupanOpts" class="w-full" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -135,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Search, Sparkles } from 'lucide-vue-next'
 import request from '@/utils/request'
@@ -143,6 +151,18 @@ import request from '@/utils/request'
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref('')
 const pg = reactive({current:1,pageSize:10,total:0})
+
+// ===== 楼盘选项（匹配 loupan.id 便于核对）=====
+const loupanOpts = ref([])
+const loupanMap = reactive({}) // id -> projectName，用于列表展示楼盘名
+async function fetchLoupanOpts(keyword) {
+  try {
+    const params = keyword ? { keyword } : {}
+    const list = await request.get('/admin/loupans/options', { params })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（'+l.district+'）' : ''}`, value: l.id }))
+    ;(list || []).forEach(l => { loupanMap[l.id] = l.projectName })
+  } catch {}
+}
 
 // ===== AI 解析成交播报 =====
 const aiVisible = ref(false)
@@ -204,6 +224,12 @@ const initForm = () => ({
 })
 const form = reactive(initForm())
 
+// 小区名称变化时，默认按小区名搜索加载楼盘下拉选项，方便核对匹配楼盘ID
+watch(() => form.communityName, (val) => {
+  const kw = (val || '').trim()
+  fetchLoupanOpts(kw || undefined)
+})
+
 const cols = [
   {colKey:'dealDate',title:'成交日期',width:110},
   {colKey:'district',title:'行政区',width:90},
@@ -213,7 +239,7 @@ const cols = [
   {colKey:'houseArea',title:'面积',width:90},
   {colKey:'dealPrice',title:'成交价',width:100},
   {colKey:'yfyj',title:'一手价',width:100},
-  {colKey:'loupanId',title:'楼盘ID',width:80},
+  {colKey:'loupanId',title:'楼盘ID',width:160},
   {colKey:'remark',title:'备注',width:120,ellipsis:true},
   {colKey:'operation',title:'操作',width:120,fixed:'right'},
 ]
@@ -244,5 +270,5 @@ async function save(){
 }
 async function del(id){await request.delete(`/admin/real-deals/${id}`);MessagePlugin.success('已删除');fetchData()}
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>

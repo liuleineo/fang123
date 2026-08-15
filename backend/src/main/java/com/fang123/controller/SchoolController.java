@@ -63,7 +63,8 @@ public class SchoolController {
                 School::getEduAdminDepartment);
         if (StringUtils.hasText(keyword)) {
             w.and(wr -> wr.like(School::getSchoolOrgName, keyword)
-                    .or().like(School::getCampusName, keyword));
+                    .or().like(School::getCampusName, keyword)
+                    .or().like(School::getCommunityNames, keyword));
         }
         if (StringUtils.hasText(schoolType)) {
             List<String> typeList = java.util.Arrays.stream(schoolType.split(","))

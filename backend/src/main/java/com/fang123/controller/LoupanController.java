@@ -12,6 +12,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class LoupanController {
@@ -36,6 +41,25 @@ public class LoupanController {
         Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
         result.getRecords().forEach(Loupan::computeCompletionRatio);
         return Result.success(result);
+    }
+
+    /** 楼盘下拉选项（id + 楼盘名），供成交记录等模块选择匹配楼盘ID使用 */
+    @GetMapping("/api/admin/loupans/options")
+    public Result<List<Map<String, Object>>> options(@RequestParam(required = false) String keyword) {
+        LambdaQueryWrapper<Loupan> w = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(keyword)) {
+            w.like(Loupan::getProjectName, keyword).or().like(Loupan::getDistrict, keyword).or().like(Loupan::getPlate, keyword);
+        }
+        w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Loupan lp : loupanService.list(w)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", lp.getId());
+            m.put("projectName", lp.getProjectName());
+            m.put("district", lp.getDistrict());
+            list.add(m);
+        }
+        return Result.success(list);
     }
 
     @GetMapping("/api/admin/loupans/{id}")
