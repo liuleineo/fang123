@@ -166,6 +166,7 @@
             <span class="text-xs text-white/40">hangfang123.com 杭房一二三 - 让买房变简单</span>
           </div>
           <span class="text-xs text-white/30">浙ICP备2021037366号-2</span>
+           <span class="text-xs text-white/30">powered by 公子鱼</span>
         </div>
       </div>
     </footer>

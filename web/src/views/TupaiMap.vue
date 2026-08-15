@@ -199,7 +199,7 @@ async function initMap() {
       document.head.appendChild(script)
     })
   }
-  mapInstance = new window.AMap.Map('amap-container', { zoom: 11, center: [120.2, 30.27], resizeEnable: true })
+  mapInstance = new window.AMap.Map('amap-container', { zoom: 13, center: [120.2, 30.27], resizeEnable: true })
   mapReady.value = true
   addMarkers()
 }
