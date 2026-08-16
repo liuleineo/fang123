@@ -40,10 +40,10 @@
             </div>
 
             <!-- 价格信息 -->
-            <div class="flex items-baseline gap-6 mb-4">
+            <div class="flex items-baseline gap-6 mb-2">
               <div v-if="loupan.avgUnitPrice">
                 <span class="text-3xl font-bold text-[var(--color-danger)]">{{ loupan.avgUnitPrice }}</span>
-                <span class="text-sm text-[var(--color-text-tertiary)] ml-1">元/㎡（均价）</span>
+                <span class="text-sm text-[var(--color-text-tertiary)] ml-1">元/㎡（高层均价）</span>
               </div>
               <div v-if="loupan.minTotalPrice || loupan.maxTotalPrice">
                 <span class="text-lg font-bold text-[var(--color-text-primary)]">
@@ -54,6 +54,19 @@
               <div v-if="!loupan.avgUnitPrice && !loupan.minTotalPrice" class="text-sm text-[var(--color-text-tertiary)]">
                 价格待定
               </div>
+            </div>
+
+            <!-- 洋房/叠墅/排屋均价 -->
+            <div v-if="loupan.avgUnitPriceYangfang || loupan.avgUnitPriceDieshu || loupan.avgUnitPricePaiwu" class="flex flex-wrap gap-x-5 gap-y-1 mb-2 text-sm">
+              <span v-if="loupan.avgUnitPriceYangfang" class="text-[var(--color-text-secondary)]">
+                洋房均价：<span class="text-[var(--color-danger)] font-bold">{{ loupan.avgUnitPriceYangfang }}</span>元/㎡
+              </span>
+              <span v-if="loupan.avgUnitPriceDieshu" class="text-[var(--color-text-secondary)]">
+                叠墅均价：<span class="text-[var(--color-danger)] font-bold">{{ loupan.avgUnitPriceDieshu }}</span>元/㎡
+              </span>
+              <span v-if="loupan.avgUnitPricePaiwu" class="text-[var(--color-text-secondary)]">
+                排屋均价：<span class="text-[var(--color-danger)] font-bold">{{ loupan.avgUnitPricePaiwu }}</span>元/㎡
+              </span>
             </div>
 
             <!-- 标签 -->
