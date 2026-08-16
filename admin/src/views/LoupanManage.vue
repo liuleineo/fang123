@@ -98,7 +98,10 @@
         <t-tab-panel value="sales" label="价格/销售">
           <t-form :data="form" label-align="top">
             <div class="grid grid-cols-3 gap-3">
-              <t-form-item label="均价(元/㎡)"><t-input-number v-model="form.avgUnitPrice" :min="0" /></t-form-item>
+              <t-form-item label="高层均价(元/㎡)"><t-input-number v-model="form.avgUnitPrice" :min="0" /></t-form-item>
+              <t-form-item label="洋房均价(元/㎡)"><t-input-number v-model="form.avgUnitPriceYangfang" :min="0" /></t-form-item>
+              <t-form-item label="叠墅均价(元/㎡)"><t-input-number v-model="form.avgUnitPriceDieshu" :min="0" /></t-form-item>
+              <t-form-item label="排屋均价(元/㎡)"><t-input-number v-model="form.avgUnitPricePaiwu" :min="0" /></t-form-item>
               <t-form-item label="最低总价(万)"><t-input-number v-model="form.minTotalPrice" :min="0" /></t-form-item>
               <t-form-item label="最高总价(万)"><t-input-number v-model="form.maxTotalPrice" :min="0" /></t-form-item>
             </div>
@@ -282,7 +285,8 @@ const aiResult = ref(null)
 
 const fieldLabels = {
   projectName:'楼盘名称', shortName:'楼盘简称', district:'行政区', plate:'板块',
-  avgUnitPrice:'均价(元/㎡)', areaMin:'最小面积(㎡)', areaMax:'最大面积(㎡)',
+  avgUnitPrice:'高层均价(元/㎡)', avgUnitPriceYangfang:'洋房均价(元/㎡)', avgUnitPriceDieshu:'叠墅均价(元/㎡)', avgUnitPricePaiwu:'排屋均价(元/㎡)',
+  areaMin:'最小面积(㎡)', areaMax:'最大面积(㎡)',
   buildArea:'总建面(㎡)', landArea:'占地面积(㎡)', projectCompany:'开发公司',
   brandList:'开发品牌', projectAddress:'楼盘地址', salesAddress:'售楼部位置',
   houseType:'楼盘类型', decorateType:'装修类型', buildingTotal:'楼栋总数',
@@ -392,7 +396,8 @@ function fillFormFromAi() {
 
 const initForm = () => ({
   coverImage:'',projectName:'',shortName:'',district:'',plate:'',longitude:'',latitude:'',
-  avgUnitPrice:null,minTotalPrice:null,maxTotalPrice:null,priceTag:'',
+  avgUnitPrice:null,avgUnitPriceYangfang:null,avgUnitPriceDieshu:null,avgUnitPricePaiwu:null,
+  minTotalPrice:null,maxTotalPrice:null,priceTag:'',
   salesAddress:'',salesStatus:0,salesTel:'',projectAddress:'',showHouseDesc:'',
   deliveryDate:'',floorHeightMin:null,floorHeightMax:null,buildingTotal:0,floorMin:0,floorMax:0,
   areaMin:0,areaMax:0,decorateType:1,propertyRightYear:70,houseType:1,

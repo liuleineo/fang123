@@ -22,6 +22,12 @@ public class Loupan implements Serializable {
     private String district;
     private String plate;
     private Integer avgUnitPrice;
+    /** 洋房均价 元/㎡ */
+    private Integer avgUnitPriceYangfang;
+    /** 叠墅均价 元/㎡ */
+    private Integer avgUnitPriceDieshu;
+    /** 排屋均价 元/㎡ */
+    private Integer avgUnitPricePaiwu;
     private Integer minTotalPrice;
     private Integer maxTotalPrice;
     private String priceTag;

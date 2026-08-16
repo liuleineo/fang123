@@ -37,7 +37,7 @@ public class LoupanController {
              .or().like(Loupan::getProjectCompany, keyword)
              .or().like(Loupan::getLandNo, keyword);
         }
-        w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
+        w.orderByDesc(Loupan::getId);
         Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
         result.getRecords().forEach(Loupan::computeCompletionRatio);
         return Result.success(result);

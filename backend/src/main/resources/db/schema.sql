@@ -363,7 +363,13 @@ CREATE TABLE IF NOT EXISTS `loupan` (
   `short_name` varchar(50) DEFAULT '' COMMENT '楼盘简称',
   `district` varchar(50) NOT NULL DEFAULT '' COMMENT '行政区，如钱塘区',
   `plate` varchar(50) NOT NULL DEFAULT '' COMMENT '板块，如金沙湖',
-  `avg_unit_price` int DEFAULT NULL COMMENT '楼盘均价 元/㎡',
+  `avg_unit_price` int DEFAULT NULL COMMENT '高层楼盘均价 元/㎡',
+  `avg_unit_price_yangfang` int DEFAULT NULL COMMENT '洋房均价 元/㎡',
+  `avg_unit_price_dieshu` int DEFAULT NULL COMMENT '叠墅均价 元/㎡',
+  `avg_unit_price_paiwu` int DEFAULT NULL COMMENT '排屋均价 元/㎡',
+  
+
+
   `min_total_price` int DEFAULT NULL COMMENT '最低总价 万元',
   `max_total_price` int DEFAULT NULL COMMENT '最高总价 万元',
   `price_tag` varchar(100) DEFAULT '' COMMENT '价格标签，逗号分隔：刚需/改善/限价',
