@@ -18,7 +18,7 @@ DATA_URL = "https://data.zjzwfw.gov.cn/interface/gateway.do"
 # 业务参数（二选一：userSecret / appSecret，这里用 userSecret）
 biz_content = {
     "pageNumber": 1,
-    "pageSize": 10,
+    "pageSize": 200,
     "userSecret": USER_SECRET
 }
 

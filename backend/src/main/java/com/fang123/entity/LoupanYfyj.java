@@ -14,6 +14,10 @@ public class LoupanYfyj implements Serializable {
     private Long id;
     private Long loupanId;
     private Long huxingId;
+    /** 预售许可证编号 */
+    private String permitNo;
+    /** 房屋编码 */
+    private String fwcode;
     /** 楼栋号 */
     private String buildingNo;
     /** 单元号 */

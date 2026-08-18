@@ -18,8 +18,8 @@ DATA_URL = "https://data.zjzwfw.gov.cn/interface/gateway.do"
 
 # 业务参数
 biz_content = {
-    "pageNumber": 1,
-    "pageSize": 20,
+    "pageNumber": 10964,
+    "pageSize": 200,
     "userSecret": USER_SECRET
 }
 
@@ -70,34 +70,45 @@ except Exception as e:
 try:
     # 把 data 字段的字符串转成真正的JSON
     data_inner = json.loads(result["data"])
-    
+
     total = data_inner["total"]
-    success = data_inner["success"]
-    message = data_inner["message"]
+    success = data_inner.get("success")
+    message = data_inner.get("msg") or data_inner.get("message")  # 兼容 msg / message 字段
     rows = data_inner["rows"]
-    
+
     print(f"\n📊 数据统计：总数 {total} 条，查询结果：{message}")
     print(f"✅ 业务状态：{success}")
     print("-" * 80)
 
     # ===================== 4. 格式化打印表格 =====================
-    headers = rows[0]  # 第一行是表头
-    data_rows = rows[1:]
+    # rows 是"对象数组"，第一行对象的键即表头
+    headers = list(rows[0].keys()) if rows and isinstance(rows[0], dict) else []
+    data_rows = rows[1:] if rows and isinstance(rows[0], dict) and rows[0] == rows[0] else rows
 
     print("📋 表头：")
     print(headers)
     print("-" * 80)
 
     print("📄 数据内容：")
-    for idx, row in enumerate(data_rows, 1):
-        print(f"第{idx}条：{row}")
+    for idx, row in enumerate(rows, 1):
+        if isinstance(row, dict):
+            print(f"第{idx}条：{row}")
+        else:
+            print(f"第{idx}条：{row}")
 
     # ===================== 5. 自动保存为 CSV 文件 =====================
     filename = f"杭州房价数据_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     with open(filename, "w", newline="", encoding="utf-8-sig") as f:
-        writer = csv.writer(f)
-        writer.writerows(rows)
-    
+        if rows and isinstance(rows[0], dict):
+            # 对象数组：用 DictWriter 按表头写
+            writer = csv.DictWriter(f, fieldnames=headers, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+        else:
+            # 表格数组：第一行是表头
+            writer = csv.writer(f)
+            writer.writerows(rows)
+
     print(f"\n💾 数据已保存到文件：{filename}")
 
 except Exception as e:

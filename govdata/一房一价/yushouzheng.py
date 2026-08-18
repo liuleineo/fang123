@@ -19,7 +19,7 @@ DATA_URL = "https://data.zjzwfw.gov.cn/interface/gateway.do"
 # pageSize 可设置较大值一次性拉取最新数据，接口默认按 ID/时间降序返回
 biz_content = {
     "pageNumber": 1,
-    "pageSize": 100,  # 最新数据通常在首页，调大 pagesize 一次多拿
+    "pageSize": 10,  # 最新数据通常在首页，调大 pagesize 一次多拿
     "userSecret": USER_SECRET
 }
 

@@ -43,6 +43,8 @@
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="户型ID"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
+        <t-form-item label="预售证号"><t-input v-model="form.permitNo" placeholder="预售许可证编号" /></t-form-item>
+        <t-form-item label="房屋编码"><t-input v-model="form.fwcode" placeholder="房屋编码" /></t-form-item>
         <div class="grid grid-cols-3 gap-3">
           <t-form-item label="楼栋号"><t-input v-model="form.buildingNo" /></t-form-item>
           <t-form-item label="单元号"><t-input v-model="form.unitNo" /></t-form-item>
@@ -118,7 +120,7 @@ const data = ref([]); const loading = ref(false)
 const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,huxingId:null,buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'',sort:0 })
+const initForm = () => ({ loupanId:null,huxingId:null,permitNo:'',fwcode:'',buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'',sort:0 })
 const form = reactive(initForm())
 
 const cols = [
@@ -126,6 +128,8 @@ const cols = [
   {colKey:'id',title:'ID',width:60},
   {colKey:'loupanId',title:'楼盘ID',width:70},
   {colKey:'huxingId',title:'户型ID',width:70},
+  {colKey:'permitNo',title:'预售证号',width:110},
+  {colKey:'fwcode',title:'房屋编码',width:110},
   {colKey:'buildingNo',title:'楼栋',width:80},
   {colKey:'unitNo',title:'单元',width:60},
   {colKey:'roomNo',title:'房号',width:80},
