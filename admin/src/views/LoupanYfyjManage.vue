@@ -14,8 +14,9 @@
         <t-input v-model="filterBuildingNo" placeholder="楼栋号" class="w-[100px]" @enter="search" />
         <t-input v-model="filterUnitNo" placeholder="单元号" class="w-[100px]" @enter="search" />
         <t-input v-model="filterRoomNo" placeholder="房号" class="w-[100px]" @enter="search" />
+        <t-input v-model="filterPermitNo" placeholder="预售证号" class="w-[130px]" @enter="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
-        <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;search()">重置</t-button>
+        <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;filterPermitNo=null;search()">重置</t-button>
         <div class="ml-auto">
           <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
           <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
@@ -59,7 +60,6 @@
           <t-select v-model="form.houseStatus" :options="[{label:'未售',value:0},{label:'认购',value:1},{label:'已售',value:2},{label:'抵押',value:3},{label:'保留',value:4}]" />
         </t-form-item>
         <t-form-item label="备注"><t-textarea v-model="form.remark" :maxlength="500" /></t-form-item>
-        <t-form-item label="排序"><t-input-number v-model="form.sort" :min="0" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
     </t-drawer>
@@ -117,10 +117,10 @@ import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false)
-const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null)
+const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null); const filterPermitNo = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,huxingId:null,permitNo:'',fwcode:'',buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'',sort:0 })
+const initForm = () => ({ loupanId:null,huxingId:null,permitNo:'',fwcode:'',buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'' })
 const form = reactive(initForm())
 
 const cols = [
@@ -145,7 +145,7 @@ function fmt(t){if(!t)return'';const d=new Date(t);return `${d.getFullYear()}-${
 
 async function fetchData() {
   loading.value=true
-  try{const p={page:pg.current,size:pg.pageSize};if(filterLoupanId.value)p.loupanId=filterLoupanId.value;if(filterBuildingNo.value)p.buildingNo=filterBuildingNo.value;if(filterUnitNo.value)p.unitNo=filterUnitNo.value;if(filterRoomNo.value)p.roomNo=filterRoomNo.value;const r=await request.get('/admin/yfyj',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
+  try{const p={page:pg.current,size:pg.pageSize};if(filterLoupanId.value)p.loupanId=filterLoupanId.value;if(filterBuildingNo.value)p.buildingNo=filterBuildingNo.value;if(filterUnitNo.value)p.unitNo=filterUnitNo.value;if(filterRoomNo.value)p.roomNo=filterRoomNo.value;if(filterPermitNo.value)p.permitNo=filterPermitNo.value;const r=await request.get('/admin/yfyj',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
@@ -211,7 +211,7 @@ async function batchCreateYfyj(){
   aiSaving.value=true; let created=0
   for(const item of selected){
     try{
-      await request.post('/admin/yfyj',{...item,loupanId:aiLoupanId.value,huxingId:null,sort:0,
+      await request.post('/admin/yfyj',{...item,loupanId:aiLoupanId.value,huxingId:null,
         area:item.area?Math.round(Number(item.area)):0,
         buildingNo:String(item.buildingNo||'').replace(/[^\d]/g,''),
         unitNo:String(item.unitNo||'').replace(/[^\d]/g,''),

@@ -61,6 +61,16 @@
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
 
+      <!-- 卫星地图切换按钮（右下角） -->
+      <button
+        @click="toggleSatellite"
+        class="absolute bottom-6 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+        :class="showSatellite ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
+      >
+        <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
+        {{ showSatellite ? '地图' : '卫星' }}
+      </button>
+
       <!-- 右上角结果数量 -->
       <div class="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur rounded-lg shadow px-3 py-1.5 text-xs text-[var(--color-text-secondary)]">
         共 <span class="font-bold text-[var(--color-text-primary)]">{{ filteredList.length }}</span> 块地
@@ -100,7 +110,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Map, MapPin, AlertCircle, SlidersHorizontal } from 'lucide-vue-next'
+import { Search, Map as MapIcon, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
@@ -119,6 +129,9 @@ const mapError = ref('')
 
 let mapInstance = null
 let markers = []
+let satelliteLayer = null
+let roadNetLayer = null
+const showSatellite = ref(false)
 
 // WGS84/CGCS2000 → GCJ-02 坐标转换
 function wgs84ToGcj02(lng, lat) {
@@ -200,8 +213,23 @@ async function initMap() {
     })
   }
   mapInstance = new window.AMap.Map('amap-container', { zoom: 13, center: [120.2, 30.27], resizeEnable: true })
+  // 卫星图层（默认不显示，供切换）
+  satelliteLayer = new window.AMap.TileLayer.Satellite()
+  roadNetLayer = new window.AMap.TileLayer.RoadNet()
   mapReady.value = true
   addMarkers()
+}
+
+// 切换卫星/标准地图
+function toggleSatellite() {
+  if (!mapInstance) return
+  if (showSatellite.value) {
+    mapInstance.remove([satelliteLayer, roadNetLayer])
+    showSatellite.value = false
+  } else {
+    mapInstance.add([satelliteLayer, roadNetLayer])
+    showSatellite.value = true
+  }
 }
 
 function addMarkers() {

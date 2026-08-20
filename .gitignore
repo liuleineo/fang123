@@ -8,4 +8,11 @@ application-dev.yml
 application-prod.yml
 **/application-dev.yml
 **/application-prod.yml
+# Python 缓存
+**/__pycache__/
+*.pyc
+# 大数据文件（超过 GitHub 100MB 限制，不入库）
+govdata/一房一价/*.csv
+govdata/一房一价/*.log
+govdata/一房一价/*_progress.json
 .codebuddy

@@ -19,7 +19,7 @@
         <!-- 搜索 -->
         <div class="p-4 border-b border-gray-50">
           <div class="text-base font-bold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
-            <Map class="w-5 h-5 text-[var(--color-primary)]" />地图找房
+            <MapIcon class="w-5 h-5 text-[var(--color-primary)]" />地图找房
           </div>
           <t-input v-model="keyword" placeholder="搜索楼盘名称..." clearable size="small" @enter="filterList" @clear="filterList">
             <template #prefix-icon><Search class="w-3.5 h-3.5" /></template>
@@ -63,6 +63,15 @@
 
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
+      <!-- 卫星地图切换按钮（右下角） -->
+      <button
+        @click="toggleSatellite"
+        class="absolute bottom-6 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+        :class="showSatellite ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
+      >
+        <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
+        {{ showSatellite ? '地图' : '卫星' }}
+      </button>
 
       <!-- 未配置 Key 提示 -->
       <div v-if="!mapReady && !mapError" class="absolute inset-0 flex items-center justify-center bg-gray-50/80">
@@ -83,7 +92,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Map, Building2, MapPin, AlertCircle, SlidersHorizontal } from 'lucide-vue-next'
+import { Search, Map as MapIcon, Building2, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 // ====== 高德地图 Key（在此处替换为你的 Key） ======
@@ -102,6 +111,9 @@ const mapError = ref('')
 
 let mapInstance = null
 let markers = []
+let satelliteLayer = null
+let roadNetLayer = null
+const showSatellite = ref(false)
 
 const filteredList = computed(() => {
   let list = loupanList.value.filter(lp => lp.longitude && lp.latitude)
@@ -155,9 +167,24 @@ async function initMap() {
     center: [120.32, 30.31],
     resizeEnable: true
   })
+  // 卫星图层（默认不显示，供切换）
+  satelliteLayer = new window.AMap.TileLayer.Satellite()
+  roadNetLayer = new window.AMap.TileLayer.RoadNet()
 
   mapReady.value = true
   addMarkers()
+}
+
+// 切换卫星/标准地图
+function toggleSatellite() {
+  if (!mapInstance) return
+  if (showSatellite.value) {
+    mapInstance.remove([satelliteLayer, roadNetLayer])
+    showSatellite.value = false
+  } else {
+    mapInstance.add([satelliteLayer, roadNetLayer])
+    showSatellite.value = true
+  }
 }
 
 function addMarkers() {

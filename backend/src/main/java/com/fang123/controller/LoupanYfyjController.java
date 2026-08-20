@@ -26,13 +26,15 @@ public class LoupanYfyjController {
             @RequestParam(required = false) Long loupanId,
             @RequestParam(required = false) String buildingNo,
             @RequestParam(required = false) String unitNo,
-            @RequestParam(required = false) String roomNo) {
+            @RequestParam(required = false) String roomNo,
+            @RequestParam(required = false) String permitNo) {
         LambdaQueryWrapper<LoupanYfyj> w = new LambdaQueryWrapper<>();
         if (loupanId != null) w.eq(LoupanYfyj::getLoupanId, loupanId);
         if (StringUtils.hasText(buildingNo)) w.eq(LoupanYfyj::getBuildingNo, buildingNo);
         if (StringUtils.hasText(unitNo)) w.eq(LoupanYfyj::getUnitNo, unitNo);
         if (StringUtils.hasText(roomNo)) w.like(LoupanYfyj::getRoomNo, roomNo);
-        w.orderByAsc(LoupanYfyj::getBuildingNo, LoupanYfyj::getUnitNo, LoupanYfyj::getRoomNo);
+        if (StringUtils.hasText(permitNo)) w.like(LoupanYfyj::getPermitNo, permitNo);
+        w.orderByDesc(LoupanYfyj::getId);
         return Result.success(yfyjService.page(new Page<>(page, size), w));
     }
 

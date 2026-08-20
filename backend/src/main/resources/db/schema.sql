@@ -506,30 +506,28 @@ CREATE TABLE IF NOT EXISTS `loupan_media` (
 -- 5. 一房一价表
 CREATE TABLE IF NOT EXISTS `loupan_yfyj` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '房源ID',
-  `loupan_id` bigint NOT NULL DEFAULT '' COMMENT '楼盘ID',
+  `loupan_id` bigint DEFAULT NULL COMMENT '楼盘ID',
   `huxing_id` bigint DEFAULT NULL COMMENT '对应户型ID，可选',
 
   `permit_no` VARCHAR(100) DEFAULT NULL COMMENT '预售许可证编号',
   `fwcode` VARCHAR(100) DEFAULT NULL COMMENT '房屋编码',
 
-  `building_no` varchar(20) NOT NULL DEFAULT '' COMMENT '楼栋号 如7',
+  `building_no` varchar(20) DEFAULT NULL COMMENT '楼栋号 如7',
   `unit_no` varchar(20) DEFAULT NULL COMMENT '单元号',
-  `room_no` varchar(20) NOT NULL COMMENT '房号 301',
-  `area` decimal(6,2) NOT NULL COMMENT '建筑面积㎡',
-  `record_unit_price` int NOT NULL DEFAULT '' COMMENT '备案单价元/㎡',
-  `record_total_price` int NOT NULL COMMENT '备案总价元',
+  `room_no` varchar(20) DEFAULT NULL COMMENT '房号 301',
+  `area` decimal(6,2) DEFAULT NULL COMMENT '建筑面积㎡',
+  `record_unit_price` int DEFAULT NULL COMMENT '备案单价元/㎡',
+  `record_total_price` int DEFAULT NULL COMMENT '备案总价元',
 
 
-  `house_status` tinyint NOT NULL DEFAULT 2 COMMENT '房源状态：0未售 1认购 2已售 3抵押 4保留',
-  `remark` varchar(500) DEFAULT '' COMMENT '房源备注',
-  `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
+  `house_status` tinyint DEFAULT NULL COMMENT '房源状态：0未售 1认购 2已售 3抵押 4保留',
+  `remark` varchar(500) DEFAULT NULL COMMENT '房源备注',
   `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '是否删除：0正常 1已删除',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_loupan_id` (`loupan_id`),
-  KEY `idx_building_no` (`building_no`),
-  UNIQUE KEY `uk_loupan_room` (`loupan_id`,`building_no`,`room_no`)
+  UNIQUE KEY `uk_fwcode` (`fwcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='一房一价房源表';
 
 --预售证表

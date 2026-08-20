@@ -28,7 +28,6 @@ public class LoupanYfyj implements Serializable {
     private Integer recordTotalPrice;
     private Integer houseStatus;
     private String remark;
-    private Integer sort;
     @TableLogic(value = "0", delval = "1")
     @TableField("deleted")
     private Integer deleted;

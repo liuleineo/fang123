@@ -19,6 +19,15 @@
     <!-- 地图 -->
     <div class="flex-1 relative">
       <div id="mapContainer" class="absolute inset-0" />
+      <!-- 卫星地图切换按钮（右下角） -->
+      <button
+        @click="toggleSatellite"
+        class="absolute bottom-6 right-4 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+        :class="showSatellite ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
+      >
+        <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
+        {{ showSatellite ? '地图' : '卫星' }}
+      </button>
       <!-- 侧边栏：学校列表（手机端隐藏） -->
       <div class="hidden md:flex absolute top-3 left-3 bottom-3 w-[320px] bg-white rounded-xl shadow-lg overflow-hidden flex-col z-30">
         <div class="px-3 py-2 border-b border-gray-50 text-sm font-bold">学校列表 <span class="text-xs font-normal text-[var(--color-text-tertiary)]">{{ schoolList.length }}所</span></div>
@@ -43,7 +52,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { Search, MapPin, RefreshCw } from 'lucide-vue-next'
+import { Search, MapPin, RefreshCw, Map as MapIcon, Satellite as SatelliteIcon } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
@@ -68,6 +77,9 @@ const tierOpts = [
 
 let map = null
 let markers = []
+let satelliteLayer = null
+let roadNetLayer = null
+const showSatellite = ref(false)
 
 function typeColor(type) {
   return type.includes('小学') && !type.includes('九年') ? 'bg-green-500' :
@@ -266,11 +278,28 @@ async function fetchDepts() {
 
 let lastShowNameState = null
 
+// 切换卫星/标准地图
+function toggleSatellite() {
+  if (!map) return
+  if (showSatellite.value) {
+    // 切回标准地图
+    map.remove([satelliteLayer, roadNetLayer])
+    showSatellite.value = false
+  } else {
+    // 切换卫星地图（叠加道路标注）
+    map.add([satelliteLayer, roadNetLayer])
+    showSatellite.value = true
+  }
+}
+
 onMounted(async () => {
   await nextTick()
   try {
     await loadScript()
     map = new window.AMap.Map('mapContainer', { zoom: 13, center: [120.217345, 30.241814] })
+    // 卫星图层（默认不显示，供切换）
+    satelliteLayer = new window.AMap.TileLayer.Satellite()
+    roadNetLayer = new window.AMap.TileLayer.RoadNet()
     map.on('zoomchange', () => {
       const showName = (map.getZoom() || 11) >= SHOW_NAME_ZOOM
       if (lastShowNameState !== showName) {
