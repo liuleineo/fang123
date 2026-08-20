@@ -17,6 +17,8 @@
         <t-input v-model="filterPermitNo" placeholder="预售证号" class="w-[130px]" @enter="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
         <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;filterPermitNo=null;search()">重置</t-button>
+        <t-button variant="outline" @click="openBatch('loupanId')"><Tag class="w-4 h-4 mr-1" />批量设楼盘ID</t-button>
+        <t-button variant="outline" @click="openBatch('huxingId')"><Tag class="w-4 h-4 mr-1" />批量设户型ID</t-button>
         <div class="ml-auto">
           <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
           <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
@@ -39,6 +41,19 @@
         </template>
       </t-table>
     </div>
+
+    <!-- 批量设置楼盘ID / 户型ID -->
+    <t-dialog v-model:visible="batchVisible" :header="batchType==='loupanId' ? '批量设置楼盘ID' : '批量设置户型ID'" width="420px" :confirm-btn="{ content: '确认设置', loading: batchSaving }" :cancel-btn="{}" @confirm="doBatchUpdate">
+      <div class="space-y-3">
+        <p class="text-sm text-[var(--color-text-tertiary)]">
+          将对当前筛选结果（{{ filterDesc }}）下的所有房源批量设置
+          <b class="text-[var(--color-text-primary)]">{{ batchType==='loupanId' ? '楼盘ID' : '户型ID' }}</b>
+        </p>
+        <t-form-item :label="batchType==='loupanId' ? '楼盘ID' : '户型ID'" label-align="top">
+          <t-input-number v-model="batchValue" :min="0" :max="999999999" style="width:100%" :placeholder="`输入${batchType==='loupanId'?'楼盘':'户型'}ID`" />
+        </t-form-item>
+      </div>
+    </t-dialog>
 
     <t-drawer v-model:visible="drawer" :header="isEdit?'编辑房源':'新建房源'" size="450px" :footer="false">
       <t-form :data="form" label-align="top">
@@ -112,13 +127,38 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Sparkles, Check, Image } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Check, Image, Tag } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false)
 const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null); const filterPermitNo = ref(null)
-const pg = reactive({current:1,pageSize:10,total:0})
+const pg = reactive({current:1,pageSize:10,total:0,pageSizeOptions:[10,20,50,100,200]})
+
+// 批量设置楼盘ID / 户型ID
+const batchVisible = ref(false); const batchType = ref('loupanId'); const batchValue = ref(null); const batchSaving = ref(false)
+const filterDesc = computed(() => {
+  const parts = []
+  if (filterLoupanId.value) parts.push(`楼盘ID=${filterLoupanId.value}`)
+  if (filterBuildingNo.value) parts.push(`楼栋=${filterBuildingNo.value}`)
+  if (filterUnitNo.value) parts.push(`单元=${filterUnitNo.value}`)
+  if (filterRoomNo.value) parts.push(`房号=${filterRoomNo.value}`)
+  if (filterPermitNo.value) parts.push(`预售证=${filterPermitNo.value}`)
+  return parts.length ? parts.join('，') : '全部'
+})
+function openBatch(type) { batchType.value = type; batchValue.value = null; batchVisible.value = true }
+async function doBatchUpdate() {
+  if (batchValue.value == null) { MessagePlugin.warning('请输入要设置的ID'); return }
+  batchSaving.value = true
+  try {
+    const payload = { loupanId: filterLoupanId.value, buildingNo: filterBuildingNo.value, unitNo: filterUnitNo.value, roomNo: filterRoomNo.value, permitNo: filterPermitNo.value }
+    payload[batchType.value === 'loupanId' ? 'setLoupanId' : 'setHuxingId'] = batchValue.value
+    const r = await request.post('/admin/yfyj/batch-update', payload)
+    MessagePlugin.success(`批量设置成功，共更新 ${r ?? 0} 条`)
+    batchVisible.value = false
+    search()
+  } catch (e) { MessagePlugin.error(e?.message || '批量设置失败') } finally { batchSaving.value = false }
+}
 
 const initForm = () => ({ loupanId:null,huxingId:null,permitNo:'',fwcode:'',buildingNo:'',unitNo:'',roomNo:'',area:0,recordUnitPrice:0,recordTotalPrice:0,houseStatus:0,remark:'' })
 const form = reactive(initForm())
