@@ -82,9 +82,11 @@ public class LoupanYfyjController {
         // 要设置的值（set）
         boolean hasLoupan = body.containsKey("setLoupanId");
         boolean hasHuxing = body.containsKey("setHuxingId");
-        if (!hasLoupan && !hasHuxing) return Result.badRequest("请指定要批量设置的字段（setLoupanId 或 setHuxingId）");
+        boolean hasPermit = body.containsKey("setPermitNo");
+        if (!hasLoupan && !hasHuxing && !hasPermit) return Result.badRequest("请指定要批量设置的字段（setLoupanId / setHuxingId / setPermitNo）");
         if (hasLoupan) uw.set(LoupanYfyj::getLoupanId, toLongOrNull(body.get("setLoupanId")));
         if (hasHuxing) uw.set(LoupanYfyj::getHuxingId, toLongOrNull(body.get("setHuxingId")));
+        if (hasPermit) uw.set(LoupanYfyj::getPermitNo, asStr(body.get("setPermitNo")));
 
         int affected = yfyjService.getBaseMapper().update(null, uw);
         return Result.success("批量设置成功", affected);

@@ -19,6 +19,7 @@
         <t-button variant="outline" @click="filterLoupanId=null;filterBuildingNo=null;filterUnitNo=null;filterRoomNo=null;filterPermitNo=null;search()">重置</t-button>
         <t-button variant="outline" @click="openBatch('loupanId')"><Tag class="w-4 h-4 mr-1" />批量设楼盘ID</t-button>
         <t-button variant="outline" @click="openBatch('huxingId')"><Tag class="w-4 h-4 mr-1" />批量设户型ID</t-button>
+        <t-button variant="outline" @click="openBatch('permitNo')"><Tag class="w-4 h-4 mr-1" />批量设预售证号</t-button>
         <div class="ml-auto">
           <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
           <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
@@ -42,15 +43,16 @@
       </t-table>
     </div>
 
-    <!-- 批量设置楼盘ID / 户型ID -->
-    <t-dialog v-model:visible="batchVisible" :header="batchType==='loupanId' ? '批量设置楼盘ID' : '批量设置户型ID'" width="420px" :confirm-btn="{ content: '确认设置', loading: batchSaving }" :cancel-btn="{}" @confirm="doBatchUpdate">
+    <!-- 批量设置楼盘ID / 户型ID / 预售证号 -->
+    <t-dialog v-model:visible="batchVisible" :header="batchTitle" width="420px" :confirm-btn="{ content: '确认设置', loading: batchSaving }" :cancel-btn="{}" @confirm="doBatchUpdate">
       <div class="space-y-3">
         <p class="text-sm text-[var(--color-text-tertiary)]">
           将对当前筛选结果（{{ filterDesc }}）下的所有房源批量设置
-          <b class="text-[var(--color-text-primary)]">{{ batchType==='loupanId' ? '楼盘ID' : '户型ID' }}</b>
+          <b class="text-[var(--color-text-primary)]">{{ batchLabel }}</b>
         </p>
-        <t-form-item :label="batchType==='loupanId' ? '楼盘ID' : '户型ID'" label-align="top">
-          <t-input-number v-model="batchValue" :min="0" :max="999999999" style="width:100%" :placeholder="`输入${batchType==='loupanId'?'楼盘':'户型'}ID`" />
+        <t-form-item :label="batchLabel" label-align="top">
+          <t-input v-if="batchType==='permitNo'" v-model="batchValue" style="width:100%" placeholder="输入预售证号，如 202600001" />
+          <t-input-number v-else v-model="batchValue" :min="0" :max="999999999" style="width:100%" :placeholder="`输入${batchType==='loupanId'?'楼盘':'户型'}ID`" />
         </t-form-item>
       </div>
     </t-dialog>
@@ -137,6 +139,13 @@ const pg = reactive({current:1,pageSize:10,total:0,pageSizeOptions:[10,20,50,100
 
 // 批量设置楼盘ID / 户型ID
 const batchVisible = ref(false); const batchType = ref('loupanId'); const batchValue = ref(null); const batchSaving = ref(false)
+const batchMeta = {
+  loupanId: { label: '楼盘ID', title: '批量设置楼盘ID' },
+  huxingId: { label: '户型ID', title: '批量设置户型ID' },
+  permitNo: { label: '预售证号', title: '批量设置预售证号' }
+}
+const batchTitle = computed(() => batchMeta[batchType.value]?.title || '批量设置')
+const batchLabel = computed(() => batchMeta[batchType.value]?.label || '')
 const filterDesc = computed(() => {
   const parts = []
   if (filterLoupanId.value) parts.push(`楼盘ID=${filterLoupanId.value}`)
@@ -148,11 +157,12 @@ const filterDesc = computed(() => {
 })
 function openBatch(type) { batchType.value = type; batchValue.value = null; batchVisible.value = true }
 async function doBatchUpdate() {
-  if (batchValue.value == null) { MessagePlugin.warning('请输入要设置的ID'); return }
+  if (batchValue.value == null || String(batchValue.value).trim() === '') { MessagePlugin.warning('请输入要设置的值'); return }
   batchSaving.value = true
   try {
     const payload = { loupanId: filterLoupanId.value, buildingNo: filterBuildingNo.value, unitNo: filterUnitNo.value, roomNo: filterRoomNo.value, permitNo: filterPermitNo.value }
-    payload[batchType.value === 'loupanId' ? 'setLoupanId' : 'setHuxingId'] = batchValue.value
+    const keyMap = { loupanId: 'setLoupanId', huxingId: 'setHuxingId', permitNo: 'setPermitNo' }
+    payload[keyMap[batchType.value]] = batchType.value === 'permitNo' ? String(batchValue.value).trim() : batchValue.value
     const r = await request.post('/admin/yfyj/batch-update', payload)
     MessagePlugin.success(`批量设置成功，共更新 ${r ?? 0} 条`)
     batchVisible.value = false
