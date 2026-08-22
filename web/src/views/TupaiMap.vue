@@ -46,8 +46,11 @@
               <MapPin class="w-8 h-8 text-gray-300" />
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-bold text-[var(--color-text-primary)] line-clamp-1">{{ item.landName }}</h4>
-              <p class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ item.landNo }}</p>
+              <h4 class="text-sm font-bold text-[var(--color-text-primary)] line-clamp-1 flex items-center gap-1.5">
+                <span class="truncate">{{ item.landName }}</span>
+                <span v-if="item.dealDate" class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 flex-shrink-0">{{ String(item.dealDate).substring(0,4) }}年</span>
+              </h4>
+              <p class="text-xs text-[var(--color-text-tertiary)] mt-0.5 truncate">{{ item.landNo }}</p>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs text-[var(--color-text-secondary)]">{{ item.district }}{{ item.plate ? '·'+item.plate : '' }}</span>
                 <span v-if="item.dealPrice" class="text-xs font-bold text-[var(--color-danger)]">{{ item.dealPrice }}万</span>
@@ -60,6 +63,11 @@
 
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
+
+      <!-- 缩放级别显示（右下角） -->
+      <div class="absolute bottom-16 right-4 z-20 px-2.5 py-1 rounded bg-white/95 text-xs font-medium text-gray-600 shadow-md border border-gray-200">
+        级别 {{ currentZoom }}
+      </div>
 
       <!-- 卫星地图切换按钮（右下角） -->
       <button
@@ -132,6 +140,7 @@ let markers = []
 let satelliteLayer = null
 let roadNetLayer = null
 const showSatellite = ref(false)
+const currentZoom = ref(13)
 
 // WGS84/CGCS2000 → GCJ-02 坐标转换
 function wgs84ToGcj02(lng, lat) {
@@ -185,9 +194,8 @@ async function fetchData() {
     districtOpts.value = districts.map(d => ({ label: d, value: d }))
     const dates = [...new Set(tupaiList.value.map(i => String(i.dealDate).substring(0,4)).filter(Boolean))].sort().reverse()
     dateOpts.value = dates.map(d => ({ label: d+'年', value: d }))
-    // 默认筛选今年
-    const thisYear = String(new Date().getFullYear())
-    if (dateOpts.value.find(d => d.value === thisYear)) filterDate.value = thisYear
+    // 默认不筛选年份，展示所有年份地块
+    filterDate.value = null
     await initMap()
   } catch {} finally { loading.value = false }
 }
@@ -212,12 +220,30 @@ async function initMap() {
       document.head.appendChild(script)
     })
   }
-  mapInstance = new window.AMap.Map('amap-container', { zoom: 13, center: [120.2, 30.27], resizeEnable: true })
+  mapInstance = new window.AMap.Map('amap-container', { zoom: 13, center: [120.21, 30.29], resizeEnable: true })
   // 卫星图层（默认不显示，供切换）
   satelliteLayer = new window.AMap.TileLayer.Satellite()
   roadNetLayer = new window.AMap.TileLayer.RoadNet()
+  // 缩放级别变化时，按需显示/隐藏地块 label（zoomend 更可靠，缩放结束后触发）
+  mapInstance.on('zoomend', syncLabelVisibility)
+  mapInstance.on('zoomchange', syncLabelVisibility)
   mapReady.value = true
   addMarkers()
+}
+
+// 缩放级别 <= 14 时只显示定位图标（隐藏文字 label），> 14 时显示文字
+// 通过给地图容器加 class 配合 CSS 隐藏 .amap-marker-label，最可靠
+function syncLabelVisibility() {
+  if (!mapInstance) return
+  const z = mapInstance.getZoom() || 0
+  currentZoom.value = z
+  const el = document.getElementById('amap-container')
+  if (!el) return
+  if (z <= 14) {
+    el.classList.add('hide-label')
+  } else {
+    el.classList.remove('hide-label')
+  }
 }
 
 // 切换卫星/标准地图
@@ -242,14 +268,13 @@ function addMarkers() {
   list.forEach(item => {
     if (!item.longitude || !item.latitude) return
     const pos = wgs84ToGcj02(item.longitude, item.latitude)
+    const labelContent = `<div style="background:#E37318;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+String(item.dealDate).substring(0,4)+'年）':''}</div>`
     const marker = new window.AMap.Marker({
       position: pos,
       title: item.landName,
-      label: {
-        content: `<div style="background:#E37318;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${item.landName||item.landNo}</div>`,
-        direction: 'top'
-      }
+      label: { content: labelContent, direction: 'top' }
     })
+    marker._labelContent = labelContent
 
     const dealStr = item.dealPrice ? `${item.dealPrice}万` : '待出让'
     const infoWindow = new window.AMap.InfoWindow({
@@ -271,10 +296,21 @@ function addMarkers() {
     marker.setMap(mapInstance)
     markers.push(marker)
   })
-  if (markers.length && !fitDone) { mapInstance.setFitView(markers); fitDone = true }
+  syncLabelVisibility()
 }
 
-let fitDone = false
 watch(filteredList, addMarkers, { deep: true })
 onMounted(fetchData)
 </script>
+
+<style>
+/* 缩放级别 <=14 时隐藏地块文字 label（只显示定位图标） */
+#amap-container.hide-label .amap-marker-label {
+  display: none !important;
+}
+/* 移除高德地图 marker label 外层容器边框 */
+.amap-marker-label {
+  border: none !important;
+  background: transparent !important;
+}
+</style>
