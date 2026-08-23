@@ -192,7 +192,7 @@ const filteredList = computed(() => {
   }
   if (filterDistrict.value) list = list.filter(item => item.district === filterDistrict.value)
   if (filterDate.value) {
-    list = list.filter(item => item.dealDate && ym(item.dealDate) === filterDate.value)
+    list = list.filter(item => item.dealDate && String(item.dealDate).substring(0,4) === filterDate.value)
   }
   return list
 })
@@ -203,8 +203,8 @@ async function fetchData() {
     tupaiList.value = await request.get('/public/tupai-lands') || []
     const districts = [...new Set(tupaiList.value.map(i => i.district).filter(Boolean))].sort()
     districtOpts.value = districts.map(d => ({ label: d, value: d }))
-    const dates = [...new Set(tupaiList.value.map(i => ym(i.dealDate)).filter(Boolean))].sort().reverse()
-    dateOpts.value = dates.map(d => ({ label: d, value: d }))
+    const dates = [...new Set(tupaiList.value.map(i => String(i.dealDate).substring(0,4)).filter(Boolean))].sort().reverse()
+    dateOpts.value = dates.map(d => ({ label: d+'年', value: d }))
     // 默认不筛选年份，展示所有年份地块
     filterDate.value = null
     await initMap()
