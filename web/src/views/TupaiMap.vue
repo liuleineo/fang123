@@ -48,7 +48,7 @@
             <div class="flex-1 min-w-0">
               <h4 class="text-sm font-bold text-[var(--color-text-primary)] line-clamp-1 flex items-center gap-1.5">
                 <span class="truncate">{{ item.landName }}</span>
-                <span v-if="item.dealDate" class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 flex-shrink-0">{{ String(item.dealDate).substring(0,4) }}年</span>
+                <span v-if="item.dealDate" class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 flex-shrink-0">{{ ym(item.dealDate) }}</span>
               </h4>
               <p class="text-xs text-[var(--color-text-tertiary)] mt-0.5 truncate">{{ item.landNo }}</p>
               <div class="flex items-center gap-2 mt-1">
@@ -135,6 +135,17 @@ const activeId = ref(null)
 const mapReady = ref(false)
 const mapError = ref('')
 
+// 从 dealDate 提取"年份月份"，如 2025年03月，兼容 2025-03-15 / 20250315 格式
+function ym(d) {
+  const s = String(d || '')
+  const y = s.substring(0, 4)
+  if (!y) return ''
+  let m = ''
+  if (s[4] === '-') m = s.substring(5, 7)
+  else m = s.substring(4, 6)
+  return m && m !== '00' ? `${y}年${m}月` : `${y}年`
+}
+
 let mapInstance = null
 let markers = []
 let satelliteLayer = null
@@ -181,7 +192,7 @@ const filteredList = computed(() => {
   }
   if (filterDistrict.value) list = list.filter(item => item.district === filterDistrict.value)
   if (filterDate.value) {
-    list = list.filter(item => item.dealDate && String(item.dealDate).substring(0,4) === filterDate.value)
+    list = list.filter(item => item.dealDate && ym(item.dealDate) === filterDate.value)
   }
   return list
 })
@@ -192,8 +203,8 @@ async function fetchData() {
     tupaiList.value = await request.get('/public/tupai-lands') || []
     const districts = [...new Set(tupaiList.value.map(i => i.district).filter(Boolean))].sort()
     districtOpts.value = districts.map(d => ({ label: d, value: d }))
-    const dates = [...new Set(tupaiList.value.map(i => String(i.dealDate).substring(0,4)).filter(Boolean))].sort().reverse()
-    dateOpts.value = dates.map(d => ({ label: d+'年', value: d }))
+    const dates = [...new Set(tupaiList.value.map(i => ym(i.dealDate)).filter(Boolean))].sort().reverse()
+    dateOpts.value = dates.map(d => ({ label: d, value: d }))
     // 默认不筛选年份，展示所有年份地块
     filterDate.value = null
     await initMap()
@@ -268,7 +279,7 @@ function addMarkers() {
   list.forEach(item => {
     if (!item.longitude || !item.latitude) return
     const pos = wgs84ToGcj02(item.longitude, item.latitude)
-    const labelContent = `<div style="background:#E37318;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+String(item.dealDate).substring(0,4)+'年）':''}</div>`
+    const labelContent = `<div style="background:#E37318;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+ym(item.dealDate)+'）':''}</div>`
     const marker = new window.AMap.Marker({
       position: pos,
       title: item.landName,

@@ -21,8 +21,11 @@
         <template #huxingImage="{ row }">
           <img v-if="row.huxingImage" :src="row.huxingImage" class="w-12 h-12 object-cover rounded border" @error="e => e.target.style.display='none'" />
         </template>
+        <template #standardHuxingImage="{ row }">
+          <img v-if="row.standardHuxingImage" :src="row.standardHuxingImage" class="w-12 h-12 object-cover rounded border" @error="e => e.target.style.display='none'" />
+        </template>
         <template #floorType="{ row }">
-          <t-tag size="small">{{ ['','小高层','洋房','叠墅','排屋'][row.floorType]||'未知' }}</t-tag>
+          <t-tag size="small">{{ ['','高层','小高层','洋房','叠墅','排屋'][row.floorType]||'未知' }}</t-tag>
         </template>
         <template #isShowHouse="{ row }"><t-tag :theme="row.isShowHouse?'success':'default'" size="small">{{ row.isShowHouse?'有':'无' }}样板间</t-tag></template>
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
@@ -62,9 +65,33 @@
             <t-input v-model="form.huxingImage" placeholder="上传后自动填入，也可手动输入URL" />
           </div>
         </t-form-item>
+        <t-form-item label="标准户型图">
+          <div class="flex flex-col gap-2 w-full">
+            <t-tabs>
+              <t-tab-panel value="upload" label="上传图片">
+                <t-upload v-model="standardFiles" :request-method="uploadStandardImage" :max="1" accept="image/*" theme="image" @success="onStandardSuccess" @fail="onStandardFail" @remove="onStandardRemove" />
+              </t-tab-panel>
+              <t-tab-panel value="paste" label="粘贴图片">
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onStandardPaste" tabindex="0">
+                  <Image class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p class="text-sm text-[var(--color-text-tertiary)]">在此区域按 Ctrl+V 粘贴截图</p>
+                </div>
+                <div v-if="standardPasteFiles.length" class="flex flex-wrap gap-2 mt-3">
+                  <div v-for="(f,i) in standardPasteFiles" :key="i" class="relative">
+                    <img :src="f.url" class="w-20 h-20 object-cover rounded border" />
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs cursor-pointer" @click="standardPasteFiles.splice(i,1)">×</span>
+                  </div>
+                </div>
+                <t-button v-if="standardPasteFiles.length" variant="outline" size="small" class="mt-2" :loading="standardPasteUploading" @click="uploadStandardPaste">上传并填入URL</t-button>
+              </t-tab-panel>
+            </t-tabs>
+            <t-input v-model="form.standardHuxingImage" placeholder="上传后自动填入，也可手动输入URL" />
+          </div>
+        </t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="建筑面积(㎡)"><t-input-number v-model="form.area" :min="0" /></t-form-item>
           <t-form-item label="套内面积(㎡)"><t-input-number v-model="form.insideArea" :min="0" /></t-form-item>
+          <t-form-item label="套内面积含赠送(㎡)"><t-input-number v-model="form.insideAreaWithGift" :min="0" /></t-form-item>
         </div>
         <div class="grid grid-cols-4 gap-3">
           <t-form-item label="卧室"><t-input-number v-model="form.roomNum" :min="0" /></t-form-item>
@@ -75,7 +102,7 @@
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="朝向"><t-input v-model="form.orientation" /></t-form-item>
           <t-form-item label="产品类型">
-            <t-select v-model="form.floorType" :options="[{label:'小高层',value:1},{label:'洋房',value:2},{label:'叠墅',value:3},{label:'排屋',value:4}]" />
+            <t-select v-model="form.floorType" :options="[{label:'高层',value:0},{label:'小高层',value:1},{label:'洋房',value:2},{label:'叠墅',value:3},{label:'排屋',value:4}]" />
           </t-form-item>
         </div>
         <div class="grid grid-cols-3 gap-3">
@@ -143,7 +170,7 @@
                 </div>
                 <div class="flex flex-wrap gap-1 text-xs text-gray-500">
                   <span v-if="hx.orientation">{{ hx.orientation }}</span>
-                  <span v-if="hx.floorType">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
+                  <span v-if="hx.floorType">{{ ['高层','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
                   <span v-if="hx.unitPrice">{{ hx.unitPrice }}元/㎡</span>
                   <span v-if="hx.totalPriceStart">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
                 </div>
@@ -173,18 +200,22 @@ const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); 
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0,huxingImage:'' })
+const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,insideAreaWithGift:null,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0,huxingImage:'',standardHuxingImage:'' })
 const form = reactive(initForm())
 const huxingFiles = ref([])
 const huxingUploadTab = ref('upload')
 const huxingPasteFiles = ref([])
 const huxingPasteUploading = ref(false)
+const standardFiles = ref([])
+const standardPasteFiles = ref([])
+const standardPasteUploading = ref(false)
 
 const cols = [
   {colKey:'id',title:'ID',width:60},
   {colKey:'loupanId',title:'楼盘ID',width:70},
   {colKey:'huxingName',title:'户型名称',width:160},
   {colKey:'huxingImage',title:'户型图',width:80},
+  {colKey:'standardHuxingImage',title:'标准户型图',width:80},
   {colKey:'area',title:'面积(㎡)',width:80},
   {colKey:'roomNum',title:'居室',width:80},
   {colKey:'orientation',title:'朝向',width:70},
@@ -204,8 +235,8 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,initForm());drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,row);drawer.value=true}
 
 async function uploadHuxingImage(file) {
   const fd = new FormData()
@@ -233,6 +264,34 @@ async function uploadHuxingPaste() {
     MessagePlugin.success('上传成功')
   } catch { MessagePlugin.error('上传失败') }
   finally { huxingPasteUploading.value = false }
+}
+
+// ===== 标准户型图上传/粘贴 =====
+async function uploadStandardImage(file) {
+  const fd = new FormData()
+  fd.append('file', file.raw)
+  const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return res
+}
+function onStandardSuccess({ file }) { form.standardHuxingImage = file.response?.url || ''; MessagePlugin.success('上传成功'); standardFiles.value = [] }
+function onStandardFail() { MessagePlugin.error('上传失败'); standardFiles.value = [] }
+function onStandardRemove() { standardFiles.value = [] }
+function onStandardPaste(e) {
+  const items = e.clipboardData?.items; if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) { const blob = item.getAsFile(); standardPasteFiles.value = [{ blob, url: URL.createObjectURL(blob) }] }
+  }
+}
+async function uploadStandardPaste() {
+  if (!standardPasteFiles.value.length) return
+  standardPasteUploading.value = true
+  try {
+    const fd = new FormData(); fd.append('file', standardPasteFiles.value[0].blob, 'standard.png')
+    const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    form.standardHuxingImage = res.url; standardPasteFiles.value = []
+    MessagePlugin.success('上传成功')
+  } catch { MessagePlugin.error('上传失败') }
+  finally { standardPasteUploading.value = false }
 }
 
 // ===== AI 新建户型 =====
@@ -267,8 +326,6 @@ async function startAiHuxingParse() {
   }
   aiParsing.value = true; aiResult.value = null
   try {
-    const fd = new FormData()
-    aiFiles.value.forEach(f => fd.append('files', f.raw))
     const res = await request.post('/admin/huxings/ai-parse', fd, {
       headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000
     })
@@ -294,6 +351,7 @@ async function batchCreateHuxings() {
         sort: 0,
         area: hx.area ? Math.round(Number(hx.area)) : 0,
         insideArea: hx.insideArea ? Math.round(Number(hx.insideArea)) : 0,
+        insideAreaWithGift: hx.insideAreaWithGift ? Math.round(Number(hx.insideAreaWithGift)) : null,
         unitPrice: hx.unitPrice ? Math.round(Number(hx.unitPrice)) : null
       })
       created++

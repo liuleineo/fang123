@@ -15,6 +15,8 @@ public class LoupanHuxing implements Serializable {
     private String huxingName;
     private Integer area;
     private Integer insideArea;
+    /** 套内面积含赠送㎡ */
+    private Integer insideAreaWithGift;
     private Integer roomNum;
     private Integer hallNum;
     private Integer toiletNum;
@@ -29,6 +31,8 @@ public class LoupanHuxing implements Serializable {
     private Integer sort;
     /** 户型图URL */
     private String huxingImage;
+    /** 标准户型图URL */
+    private String standardHuxingImage;
     @TableLogic(value = "0", delval = "1")
     @TableField("deleted")
     private Integer deleted;

@@ -61,7 +61,7 @@
                   <span v-if="hx.balconyNum">· {{ hx.balconyNum }}阳台</span>
                 </p>
                 <div class="flex flex-wrap gap-1.5 text-xs">
-                  <span class="px-2 py-0.5 rounded bg-blue-50 text-[var(--color-primary)]">{{ ['','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-50 text-[var(--color-primary)]">{{ ['','高层','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
                   <span v-if="hx.unitPrice" class="px-2 py-0.5 rounded bg-gray-50 text-[var(--color-text-secondary)]">{{ hx.unitPrice }}元/㎡</span>
                   <span v-if="hx.totalPriceStart" class="px-2 py-0.5 rounded bg-orange-50 text-orange-600">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
                 </div>

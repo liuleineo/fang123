@@ -210,7 +210,7 @@ public class AiParseService {
                   "toiletNum": "卫生间数量，纯数字",
                   "balconyNum": "阳台数量，纯数字",
                   "orientation": "朝向 如南北",
-                  "floorType": "产品类型：1=小高层,2=洋房,3=叠墅,4=排屋",
+                  "floorType": "产品类型：0=高层,1=小高层,2=洋房,3=叠墅,4=排屋",
                   "unitPrice": "单价元/㎡，纯数字",
                   "totalPriceStart": "总价起步万元，纯数字",
                   "totalPriceEnd": "总价封顶万元，纯数字",
