@@ -1,6 +1,7 @@
 package com.fang123.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("loupan")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Loupan implements Serializable {
     private static final long serialVersionUID = 1L;
     @TableId(type = IdType.AUTO)

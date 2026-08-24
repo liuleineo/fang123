@@ -46,8 +46,17 @@ public class LoupanPublicController {
             @RequestParam(required = false) String plate,
             @RequestParam(required = false) Integer houseType,
             @RequestParam(required = false) Integer decorateType,
-            @RequestParam(required = false) String salesStatus) {
+            @RequestParam(required = false) String salesStatus,
+            @RequestParam(required = false) Boolean light) {
         LambdaQueryWrapper<Loupan> w = new LambdaQueryWrapper<>();
+        if (Boolean.TRUE.equals(light)) {
+            // 精简模式：只查询地图/列表所需字段，减少传输
+            w.select(Loupan::getId, Loupan::getProjectName, Loupan::getCoverImage,
+                    Loupan::getLongitude, Loupan::getLatitude, Loupan::getDistrict, Loupan::getPlate,
+                    Loupan::getHouseType, Loupan::getDecorateType, Loupan::getAvgUnitPrice,
+                    Loupan::getAreaMin, Loupan::getAreaMax, Loupan::getSalesStatus,
+                    Loupan::getMinTotalPrice, Loupan::getMaxTotalPrice);
+        }
         if (StringUtils.hasText(keyword)) {
             w.and(wr -> wr.like(Loupan::getProjectName, keyword)
                     .or().like(Loupan::getProjectCompany, keyword)

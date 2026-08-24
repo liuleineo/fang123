@@ -129,7 +129,7 @@ const filteredList = computed(() => {
 async function fetchData() {
   loading.value = true
   try {
-    const r = await request.get('/public/loupans', { params: { page: 1, size: 200, salesStatus: '0,1' } })
+    const r = await request.get('/public/loupans', { params: { page: 1, size: 200, salesStatus: '0,1', light: true } })
     loupanList.value = r?.records || []
     const districts = [...new Set(loupanList.value.map(l => l.district).filter(Boolean))].sort()
     districtOpts.value = districts.map(d => ({ label: d, value: d }))
