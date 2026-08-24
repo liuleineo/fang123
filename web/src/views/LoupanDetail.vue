@@ -95,6 +95,9 @@
           <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/yfyj`)">
             <BadgeCent class="w-4 h-4 mr-1" />一房一价
           </t-button>
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/dynamic`)">
+            <Newspaper class="w-4 h-4 mr-1" />楼盘动态
+          </t-button>
         </div>
       </div>
     </section>
@@ -299,7 +302,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { Info, Building2, Shield, Car, Sparkles, MapPin, Paintbrush, Eye, Images, LayoutGrid, BadgeCent, FileText } from 'lucide-vue-next'
+import { Info, Building2, Shield, Car, Sparkles, MapPin, Paintbrush, Eye, Images, LayoutGrid, BadgeCent, FileText, Newspaper } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()

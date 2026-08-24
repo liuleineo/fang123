@@ -29,7 +29,7 @@
             <div v-for="group in mediaGroups" :key="group.label">
               <h4 class="text-base font-bold text-[var(--color-text-primary)] mb-3">{{ group.label }}（{{ group.items.length }}）</h4>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                <div v-for="m in group.items" :key="m.id" class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
+                <div v-for="m in group.items" :key="m.id" class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden" :class="(m.mediaType!==5&&m.mediaType!==6)?'cursor-pointer hover:opacity-90 transition-opacity':''" @click="previewMedia(group.items, m)">
                   <t-image v-if="m.mediaType!==5&&m.mediaType!==6" :src="m.mediaUrl" fit="cover" class="w-full h-full" />
                   <div v-else class="w-full h-full flex items-center justify-center bg-gray-200 text-sm text-[var(--color-text-tertiary)]">
                     {{ m.mediaType===6?'VR全景':'短视频' }}
@@ -52,7 +52,7 @@
                   <span v-if="hx.isShowHouse" class="px-2 py-0.5 text-xs rounded bg-green-50 text-green-600 border border-green-100">有样板间</span>
                 </div>
               </div>
-              <div v-if="hx.huxingImage" class="aspect-[4/3] bg-gray-50">
+              <div v-if="hx.huxingImage" class="aspect-[4/3] bg-gray-50 cursor-pointer hover:opacity-90 transition-opacity" @click="previewImages(hx.huxingImage, 0)">
                 <t-image :src="hx.huxingImage" fit="cover" class="w-full h-full" />
               </div>
               <div class="p-5 pt-0">
@@ -124,15 +124,37 @@
             </div>
           </div>
         </template>
+
+        <!-- 楼盘动态 -->
+        <template v-else-if="subType === 'dynamic'">
+          <div v-if="dynamicLoading" class="text-center py-16"><t-loading /></div>
+          <div v-else-if="!dynamics.length" class="text-center py-16 text-[var(--color-text-tertiary)]">暂无楼盘动态</div>
+          <div v-else class="space-y-4">
+            <div v-for="d in dynamics" :key="d.id" class="bg-white rounded-xl border border-gray-100 p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <t-tag size="small" :theme="typeTheme[d.type]||'default'">{{ typeMap[d.type]||'动态' }}</t-tag>
+                <span class="text-sm font-bold text-[var(--color-text-primary)]">{{ d.title }}</span>
+              </div>
+              <div v-if="d.images" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-3">
+                <img v-for="(url,i) in (d.images||'').split(',').filter(Boolean)" :key="i" :src="url" class="w-full aspect-[4/3] object-cover rounded-lg border border-gray-100 cursor-pointer hover:opacity-90 transition-opacity" @error="e=>e.target.style.display='none'" @click="previewImages(d.images, i)" />
+              </div>
+              <p class="text-sm leading-6 text-[var(--color-text-secondary)] whitespace-pre-wrap">{{ d.content }}</p>
+              <p class="text-xs text-[var(--color-text-tertiary)] mt-3">{{ fmt(d.createTime) }}</p>
+            </div>
+          </div>
+        </template>
       </div>
     </section>
+
+    <!-- 图片全屏预览 -->
+    <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -140,30 +162,38 @@ const loupan = ref(null)
 const huxings = ref([])
 const medias = ref([])
 const yfyjList = ref([])
+const dynamics = ref([])
 const huxingLoading = ref(false)
 const mediaLoading = ref(false)
 const yfyjLoading = ref(false)
+const dynamicLoading = ref(false)
 const yfyjBuilding = ref('')
+
+const typeMap = { 1: '建设动态', 2: '销售动态', 3: '优惠动态' }
+const typeTheme = { 1: 'primary', 2: 'success', 3: 'warning' }
 
 // 根据路由 name 判断子页面类型
 const subType = computed(() => {
   if (route.name === 'LoupanMedia') return 'media'
   if (route.name === 'LoupanHuxing') return 'huxing'
   if (route.name === 'LoupanYfyj') return 'yfyj'
+  if (route.name === 'LoupanDynamic') return 'dynamic'
   return ''
 })
 
 const titleMap = {
   media: '楼盘图库',
   huxing: '楼盘户型',
-  yfyj: '一房一价'
+  yfyj: '一房一价',
+  dynamic: '楼盘动态'
 }
 const title = computed(() => titleMap[subType.value] || '')
 
 const iconMap = {
   media: Images,
   huxing: LayoutGrid,
-  yfyj: BadgeCent
+  yfyj: BadgeCent,
+  dynamic: Newspaper
 }
 const titleIcon = computed(() => iconMap[subType.value] || Images)
 
@@ -239,10 +269,39 @@ async function fetchYfyj() {
   } catch {} finally { yfyjLoading.value = false }
 }
 
+async function fetchDynamics() {
+  dynamicLoading.value = true
+  try {
+    dynamics.value = await request.get(`/public/loupans/${id.value}/dynamics`) || []
+  } catch {} finally { dynamicLoading.value = false }
+}
+
+function fmt(t) { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
+// ===== 图片全屏预览 =====
+const viewerVisible = ref(false)
+const viewerImages = ref([])
+const viewerIndex = ref(0)
+function previewImages(images, index) {
+  viewerImages.value = (images || '').split(',').filter(Boolean)
+  viewerIndex.value = index || 0
+  viewerVisible.value = true
+}
+
+// 图库图片预览：收集分组内可预览的图片，定位到点击的那张
+function previewMedia(items, current) {
+  if (current.mediaType === 5 || current.mediaType === 6) return
+  const urls = items.filter(m => m.mediaType !== 5 && m.mediaType !== 6).map(m => m.mediaUrl)
+  viewerImages.value = urls
+  viewerIndex.value = urls.indexOf(current.mediaUrl)
+  viewerVisible.value = true
+}
+
 onMounted(async () => {
   fetchDetail()
   if (subType.value === 'media') fetchMedias()
   else if (subType.value === 'huxing') fetchHuxings()
   else if (subType.value === 'yfyj') fetchYfyj()
+  else if (subType.value === 'dynamic') fetchDynamics()
 })
 </script>

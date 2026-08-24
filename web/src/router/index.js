@@ -97,6 +97,12 @@ const routes = [
         meta: { title: '一房一价' }
       },
       {
+        path: 'loupan/:id/dynamic',
+        name: 'LoupanDynamic',
+        component: () => import('@/views/LoupanSubPage.vue'),
+        meta: { title: '楼盘动态' }
+      },
+      {
         path: 'ershoufang',
         name: 'ErShouFang',
         component: () => import('@/views/ErShouFang.vue'),

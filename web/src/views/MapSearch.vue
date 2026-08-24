@@ -170,6 +170,9 @@ async function initMap() {
   // 卫星图层（默认不显示，供切换）
   satelliteLayer = new window.AMap.TileLayer.Satellite()
   roadNetLayer = new window.AMap.TileLayer.RoadNet()
+  // 交通路况图层（默认显示当前交通情况）
+  const trafficLayer = new window.AMap.TileLayer.Traffic()
+  mapInstance.add(trafficLayer)
 
   mapReady.value = true
   addMarkers()

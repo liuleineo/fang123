@@ -64,10 +64,6 @@
           v-model="filterHouseType" placeholder="楼盘类型" clearable size="small" class="w-[110px]"
           :options="houseTypeOpts" @change="doSearch"
         />
-        <t-select
-          v-model="filterDecorate" placeholder="装修" clearable size="small" class="w-[100px]"
-          :options="decorateOpts" @change="doSearch"
-        />
         <span class="text-xs text-[var(--color-text-tertiary)] ml-auto">共 {{ total }} 个楼盘</span>
       </div>
     </section>
@@ -112,8 +108,9 @@
             </div>
             <div class="p-5">
               <div class="flex items-start justify-between mb-2">
-                <h3 class="text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
+                <h3 class="text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1 flex items-center gap-1.5">
                   {{ lp.projectName }}
+                  <span v-if="lp.brandList" class="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium text-white bg-orange-500">{{ lp.brandList }}</span>
                 </h3>
                 <span v-if="lp.avgUnitPrice" class="text-sm font-bold text-[var(--color-danger)] whitespace-nowrap ml-2">
                   {{ lp.avgUnitPrice }}元/㎡
@@ -132,9 +129,6 @@
                 <span v-if="lp.buildingTotal" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">
                   {{ lp.buildingTotal }}栋
                 </span>
-              </div>
-              <div class="text-xs text-[var(--color-text-tertiary)] truncate">
-                {{ lp.projectCompany }}
               </div>
             </div>
           </router-link>
@@ -180,7 +174,6 @@ const searchKeyword = ref('')
 const filterDistrict = ref('')
 const filterPlate = ref('')
 const filterHouseType = ref(null)
-const filterDecorate = ref(null)
 const districtOpts = ref([])
 const plateOpts = ref([])
 
@@ -190,9 +183,6 @@ const hotTags = ['钱江新城', '金沙湖', '绿城', '滨江']
 
 const houseTypeOpts = [
   { label: '住宅', value: 1 }, { label: '公寓', value: 2 }, { label: '商铺', value: 3 }, { label: '别墅', value: 4 }
-]
-const decorateOpts = [
-  { label: '精装', value: 1 }, { label: '毛坯', value: 2 }, { label: '简装', value: 3 }
 ]
 
 async function fetchData(showAll = false) {
@@ -205,7 +195,6 @@ async function fetchData(showAll = false) {
     if (filterDistrict.value) p.district = filterDistrict.value
     if (filterPlate.value) p.plate = filterPlate.value
     if (filterHouseType.value) p.houseType = filterHouseType.value
-    if (filterDecorate.value) p.decorateType = filterDecorate.value
     const r = await request.get('/public/loupans', { params: p })
     loupanList.value = r?.records || []
     total.value = r?.total || 0

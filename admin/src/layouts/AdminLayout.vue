@@ -119,7 +119,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import {
   Home, LayoutDashboard, Users, Shield, Coins, ScrollText, UsersRound, ListTodo, ClipboardCheck, DollarSign, Crown, UserCheck, Settings, Bell,
-  Building2, MapPin, LayoutTemplate, Image, TableProperties, GraduationCap,
+  Building2, MapPin, LayoutTemplate, Image, TableProperties, GraduationCap, Megaphone,
   ChevronRight, ChevronLeft, ChevronDown, Menu
 } from 'lucide-vue-next'
 
@@ -138,6 +138,7 @@ const menuItems = [
   { path: '/huxings', label: '楼盘户型', icon: LayoutTemplate },
   { path: '/medias', label: '媒体素材', icon: Image },
   { path: '/presale-permits', label: '预售证', icon: ScrollText },
+  { path: '/dynamics', label: '楼盘动态', icon: Megaphone },
   { path: '/yfyj', label: '一房一价', icon: TableProperties },
   { path: '/schools', label: '学校', icon: GraduationCap },
   { path: '/real-deals', label: '真实成交', icon: Coins },

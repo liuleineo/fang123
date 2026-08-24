@@ -118,6 +118,12 @@ const routes = [
         meta: { title: '预售证' }
       },
       {
+        path: 'dynamics',
+        name: 'LoupanDynamicManage',
+        component: () => import('@/views/LoupanDynamicManage.vue'),
+        meta: { title: '楼盘动态' }
+      },
+      {
         path: 'schools',
         name: 'SchoolManage',
         component: () => import('@/views/SchoolManage.vue'),

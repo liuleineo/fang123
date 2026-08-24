@@ -552,6 +552,21 @@ CREATE TABLE `loupan_presale_permit` (
   UNIQUE KEY `uk_permit_no_str` (`permit_no_str`) COMMENT '预售证编号STR唯一索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='楼盘预售许可证信息表';
 
+--楼盘动态信息表：建设动态，销售动态，优惠动态（动态标题，动态内容，动态类型，动态多张图）
+CREATE TABLE `loupan_dynamic` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `loupan_id` bigint DEFAULT NULL COMMENT '楼盘ID',
+  `title` VARCHAR(200) NOT NULL COMMENT '动态标题',
+  `content` TEXT COMMENT '动态内容',
+  `type` TINYINT NOT NULL COMMENT '动态类型：1建设动态 2销售动态 3优惠动态',
+  `images` TEXT COMMENT '动态图片URL列表（逗号分隔）',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '是否删除：0正常 1已删除',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT= '楼盘动态信息表';
+
+
 --杭州市小学和初中学校校区信息
 CREATE TABLE school (
     campus_code                VARCHAR(20)   NOT NULL COMMENT '校区标识码（唯一）',

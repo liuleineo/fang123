@@ -6,12 +6,14 @@ import com.fang123.common.IdObfuscator;
 import com.fang123.common.Result;
 import com.fang123.dto.TupaiLandPublicVO;
 import com.fang123.entity.Loupan;
+import com.fang123.entity.LoupanDynamic;
 import com.fang123.entity.LoupanHuxing;
 import com.fang123.entity.LoupanMedia;
 import com.fang123.entity.LoupanPresalePermit;
 import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.entity.LoupanYfyj;
 import org.springframework.beans.BeanUtils;
+import com.fang123.service.LoupanDynamicService;
 import com.fang123.service.LoupanPresalePermitService;
 import com.fang123.service.LoupanService;
 import com.fang123.service.LoupanHuxingService;
@@ -35,6 +37,7 @@ public class LoupanPublicController {
     private final LoupanYfyjService yfyjService;
     private final LoupanTupaiLandService tupaiLandService;
     private final LoupanPresalePermitService presalePermitService;
+    private final LoupanDynamicService dynamicService;
 
     /** 公开-楼盘列表（搜索+分页） */
     @GetMapping("/api/public/loupans")
@@ -137,6 +140,16 @@ public class LoupanPublicController {
         w.eq(LoupanPresalePermit::getLoupanId, id)
          .orderByDesc(LoupanPresalePermit::getPublicityEndDate);
         return Result.success(presalePermitService.list(w));
+    }
+
+    /** 公开-楼盘动态列表 */
+    @GetMapping("/api/public/loupans/{encodedId}/dynamics")
+    public Result<List<LoupanDynamic>> dynamics(@PathVariable String encodedId) {
+        Long id = IdObfuscator.decode(encodedId);
+        LambdaQueryWrapper<LoupanDynamic> w = new LambdaQueryWrapper<>();
+        w.eq(LoupanDynamic::getLoupanId, id)
+         .orderByDesc(LoupanDynamic::getCreateTime);
+        return Result.success(dynamicService.list(w));
     }
 
     /** 公开-土拍地块列表（精简字段） */
