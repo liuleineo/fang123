@@ -36,8 +36,9 @@
         <t-form-item label="预售证编号STR"><t-input v-model="form.permitNoStr" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="开发公司"><t-input v-model="form.developCompany" /></t-form-item>
-          <t-form-item label="公示结束日期"><t-date-picker v-model="form.publicityEndDate" /></t-form-item>
+          <t-form-item label="公示日期"><t-date-picker v-model="form.publicityDate" /></t-form-item>
         </div>
+        <t-form-item label="核发日期"><t-date-picker v-model="form.issueDate" /></t-form-item>
         <t-form-item label="坐落位置"><t-input v-model="form.location" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="销售部地址"><t-input v-model="form.saleAddress" /></t-form-item>
@@ -106,7 +107,7 @@ const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); 
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
-const initForm = () => ({ loupanId:null,projectName:'',publicityEndDate:'',developCompany:'',location:'',saleAddress:'',salePhone:'',onlineSaleArea:0,permitNo:'',permitNoStr:'' })
+const initForm = () => ({ loupanId:null,projectName:'',publicityDate:'',issueDate:'',developCompany:'',location:'',saleAddress:'',salePhone:'',onlineSaleArea:0,permitNo:'',permitNoStr:'' })
 const form = reactive(initForm())
 
 const cols = [
@@ -120,7 +121,8 @@ const cols = [
   {colKey:'saleAddress',title:'销售部地址',width:140,ellipsis:true},
   {colKey:'salePhone',title:'销售部电话',width:120},
   {colKey:'onlineSaleArea',title:'总面积(㎡)',width:110},
-  {colKey:'publicityEndDate',title:'公示结束日期',width:120},
+  {colKey:'publicityDate',title:'公示日期',width:110},
+  {colKey:'issueDate',title:'核发日期',width:110},
   {colKey:'createTime',title:'创建时间',width:160},
   {colKey:'operation',title:'操作',width:120,fixed:'right'},
 ]

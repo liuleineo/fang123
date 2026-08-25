@@ -153,14 +153,16 @@
                 <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
                   <th class="p-3 font-medium">预售证编号</th>
                   <th class="p-3 font-medium">坐落位置</th>
-                  <th class="p-3 font-medium">公示结束日期</th>
+                  <th class="p-3 font-medium">公示日期</th>
+                  <th class="p-3 font-medium">核发日期</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="item in presaleList" :key="item.id" class="border-t border-gray-100 hover:bg-gray-50">
                   <td class="p-3 font-medium text-[var(--color-primary)]">{{ item.permitNoStr||item.permitNo }}</td>
                   <td class="p-3 text-[var(--color-text-tertiary)] text-xs max-w-[160px] truncate">{{ item.location||'-' }}</td>
-                  <td class="p-3 text-[var(--color-text-secondary)]">{{ item.publicityEndDate||'-' }}</td>
+                  <td class="p-3 text-[var(--color-text-secondary)]">{{ item.publicityDate||'-' }}</td>
+                  <td class="p-3 text-[var(--color-text-secondary)]">{{ item.issueDate||'-' }}</td>
                 </tr>
               </tbody>
             </table>

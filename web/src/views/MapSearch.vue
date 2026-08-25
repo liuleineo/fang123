@@ -44,9 +44,8 @@
             :class="{ 'bg-blue-50/50': activeId === lp.id }"
             @click="focusLoupan(lp)"
           >
-            <div class="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-              <t-image v-if="lp.coverImage" :src="lp.coverImage" fit="cover" class="w-full h-full" />
-              <Building2 v-else class="w-8 h-8 text-gray-300 m-3" />
+            <div class="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+              <Building2 class="w-8 h-8 text-gray-300" />
             </div>
             <div class="flex-1 min-w-0">
               <h4 class="text-sm font-bold text-[var(--color-text-primary)] line-clamp-1">{{ lp.projectName }}</h4>

@@ -138,7 +138,7 @@ public class LoupanPublicController {
         Long id = IdObfuscator.decode(encodedId);
         LambdaQueryWrapper<LoupanPresalePermit> w = new LambdaQueryWrapper<>();
         w.eq(LoupanPresalePermit::getLoupanId, id)
-         .orderByDesc(LoupanPresalePermit::getPublicityEndDate);
+         .orderByDesc(LoupanPresalePermit::getIssueDate);
         return Result.success(presalePermitService.list(w));
     }
 

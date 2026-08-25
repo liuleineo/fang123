@@ -15,7 +15,8 @@ public class LoupanPresalePermit implements Serializable {
     private Long id;
     private Long loupanId;
     private String projectName;
-    private LocalDate publicityEndDate;
+    private LocalDate publicityDate;
+    private LocalDate issueDate;
     private String developCompany;
     private String location;
     private String saleAddress;

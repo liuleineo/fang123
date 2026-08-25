@@ -16,7 +16,8 @@ public class AiParsePresaleResult {
         private String permitNo;
         private String permitNoStr;
         private String developCompany;
-        private String publicityEndDate;
+        private String publicityDate;
+        private String issueDate;
         private String location;
         private String saleAddress;
         private String salePhone;
