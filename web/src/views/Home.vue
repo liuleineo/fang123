@@ -116,6 +116,11 @@
                   {{ lp.avgUnitPrice }}元/㎡
                 </span>
               </div>
+              <div v-if="lp.avgUnitPriceYangfang||lp.avgUnitPriceDieshu||lp.avgUnitPricePaiwu" class="flex flex-wrap gap-1.5 mb-3">
+                <span v-if="lp.avgUnitPriceYangfang" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">洋房 {{ lp.avgUnitPriceYangfang }}元/㎡</span>
+                <span v-if="lp.avgUnitPriceDieshu" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">叠墅 {{ lp.avgUnitPriceDieshu }}元/㎡</span>
+                <span v-if="lp.avgUnitPricePaiwu" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">排屋 {{ lp.avgUnitPricePaiwu }}元/㎡</span>
+              </div>
               <p class="text-xs text-[var(--color-text-tertiary)] mb-3">
                 <MapPin class="w-3 h-3 inline -mt-0.5 mr-0.5" />{{ lp.district }}{{ lp.plate ? '·'+lp.plate : '' }}
               </p>

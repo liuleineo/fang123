@@ -47,9 +47,9 @@
         <div v-else class="space-y-5">
           <div v-for="lp in loupanList" :key="lp.id" class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all">
             <!-- 楼盘卡片：封面图铺满，详情在下 -->
-            <div class="flex flex-col">
-              <!-- 封面图（宽度铺满，4:3 比例，超出裁剪，可点击） -->
-              <router-link :to="`/loupan/${lp.encodedId}`" class="block w-full aspect-[4/3] bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden group">
+            <div class="flex flex-col md:flex-row">
+              <!-- 封面图（移动端铺满4:3；PC端左侧占3/4，高度与右侧信息区等高） -->
+              <router-link :to="`/loupan/${lp.encodedId}`" class="block w-full aspect-[4/3] md:w-2/3 md:aspect-auto bg-gradient-to-br from-orange-50 to-red-50 relative overflow-hidden group">
                 <img v-if="lp.coverImage" :src="lp.coverImage" class="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300" />
                 <div v-else class="w-full h-full flex items-center justify-center">
                   <Building2 class="w-16 h-16 text-orange-300" />
@@ -61,8 +61,8 @@
                   {{ ['待售','在售','售罄','已交付'][lp.salesStatus] || '未知' }}
                 </span>
               </router-link>
-              <!-- 楼盘详情 -->
-              <div class="flex-1 p-5 flex flex-col justify-between min-w-0">
+              <!-- 楼盘详情（PC端右侧占1/4） -->
+              <div class="flex-1 p-5 flex flex-col justify-between min-w-0 md:w-1/3 md:flex-none">
                 <div>
                   <router-link :to="`/loupan/${lp.encodedId}`" class="block">
                     <div class="flex items-center gap-2 mb-2">
