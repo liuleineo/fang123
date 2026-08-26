@@ -102,11 +102,14 @@
                     <span class="text-xs text-[var(--color-text-tertiary)] ml-1">元/㎡（开盘均价）</span>
                   </div>
                 </div>
-                <!-- 户型展示区域（放在右侧楼盘信息下面） -->
+                <!-- 户型展示区域（放在右侧楼盘信息下面，最多6个） -->
                 <div v-if="lp.huxings && lp.huxings.length" class="border-t border-gray-100 pt-3 mt-3">
-                  <p class="text-xs text-[var(--color-text-tertiary)] mb-2 font-medium">户型</p>
+                  <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-[var(--color-text-tertiary)] font-medium">户型</p>
+                    <router-link v-if="lp.huxings.length > 6" :to="`/loupan/${lp.encodedId}/huxing`" class="text-xs text-[var(--color-primary)] hover:underline flex-shrink-0">更多 {{ lp.huxings.length }} 个 ›</router-link>
+                  </div>
                   <div class="flex flex-wrap gap-3">
-                    <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="w-[calc(50%-0.375rem)] sm:w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
+                    <router-link v-for="hx in lp.huxings.slice(0, 6)" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="w-[calc(50%-0.375rem)] sm:w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
                       <div class="aspect-[4/3] bg-gray-50 relative">
                         <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
                         <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
