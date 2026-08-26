@@ -12,6 +12,7 @@ import com.fang123.entity.LoupanMedia;
 import com.fang123.entity.LoupanPresalePermit;
 import com.fang123.entity.LoupanTupaiLand;
 import com.fang123.entity.LoupanYfyj;
+import com.fang123.entity.RealDealInfo;
 import org.springframework.beans.BeanUtils;
 import com.fang123.service.LoupanDynamicService;
 import com.fang123.service.LoupanPresalePermitService;
@@ -20,6 +21,7 @@ import com.fang123.service.LoupanHuxingService;
 import com.fang123.service.LoupanMediaService;
 import com.fang123.service.LoupanTupaiLandService;
 import com.fang123.service.LoupanYfyjService;
+import com.fang123.service.RealDealInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +40,7 @@ public class LoupanPublicController {
     private final LoupanTupaiLandService tupaiLandService;
     private final LoupanPresalePermitService presalePermitService;
     private final LoupanDynamicService dynamicService;
+    private final RealDealInfoService realDealService;
 
     /** 公开-楼盘列表（搜索+分页） */
     @GetMapping("/api/public/loupans")
@@ -150,6 +153,18 @@ public class LoupanPublicController {
         w.eq(LoupanDynamic::getLoupanId, id)
          .orderByDesc(LoupanDynamic::getCreateTime);
         return Result.success(dynamicService.list(w));
+    }
+
+    /** 公开-真实成交列表（按成交时间倒序） */
+    @GetMapping("/api/public/loupans/{encodedId}/real-deals")
+    public Result<List<RealDealInfo>> realDeals(@PathVariable String encodedId) {
+        Long id = IdObfuscator.decode(encodedId);
+        LambdaQueryWrapper<RealDealInfo> w = new LambdaQueryWrapper<>();
+        w.eq(RealDealInfo::getLoupanId, id)
+         .eq(RealDealInfo::getDeleted, 0)
+         .orderByDesc(RealDealInfo::getDealDate)
+         .orderByDesc(RealDealInfo::getId);
+        return Result.success(realDealService.list(w));
     }
 
     /** 公开-土拍地块列表（精简字段） */

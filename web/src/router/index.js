@@ -103,6 +103,12 @@ const routes = [
         meta: { title: '楼盘动态' }
       },
       {
+        path: 'loupan/:id/real-deal',
+        name: 'LoupanRealDeal',
+        component: () => import('@/views/LoupanSubPage.vue'),
+        meta: { title: '真实成交', requiresAuth: true }
+      },
+      {
         path: 'ershoufang',
         name: 'ErShouFang',
         component: () => import('@/views/ErShouFang.vue'),

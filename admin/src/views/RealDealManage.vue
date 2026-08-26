@@ -20,6 +20,7 @@
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
         <template #dealDate="{ row }"><span>{{ fmtDate(row.dealDate) }}</span></template>
         <template #dealPrice="{ row }"><span class="text-[var(--color-danger)] font-medium">{{ row.dealPrice }}万</span></template>
+        <template #dealUnitPrice="{ row }"><span>{{ (row.dealPrice!=null && row.houseArea) ? (Number(row.dealPrice)*10000/Number(row.houseArea)).toFixed(0)+'元/㎡' : '-' }}</span></template>
         <template #houseArea="{ row }"><span>{{ row.houseArea }}㎡</span></template>
         <template #yfyj="{ row }"><span v-if="row.yfyj" class="text-[var(--color-primary)]">{{ row.yfyj }}万</span><span v-else class="text-xs text-gray-300">-</span></template>
         <template #loupanId="{ row }">
@@ -237,6 +238,7 @@ const cols = [
   {colKey:'communityName',title:'小区名称',width:140,ellipsis:true},
   {colKey:'roomNo',title:'房号',width:80,ellipsis:true},
   {colKey:'houseArea',title:'面积',width:90},
+  {colKey:'dealUnitPrice',title:'成交单价',width:110},
   {colKey:'dealPrice',title:'成交价',width:100},
   {colKey:'yfyj',title:'一手价',width:100},
   {colKey:'loupanId',title:'楼盘ID',width:160},

@@ -143,6 +143,38 @@
             </div>
           </div>
         </template>
+
+        <!-- 真实成交（表格） -->
+        <template v-else-if="subType === 'real-deal'">
+          <div v-if="realDealLoading" class="text-center py-16"><t-loading /></div>
+          <div v-else-if="!realDeals.length" class="text-center py-16 text-[var(--color-text-tertiary)]">暂无真实成交信息</div>
+          <div v-else class="overflow-x-auto bg-white rounded-xl border border-gray-100">
+            <table class="w-full text-sm border-collapse">
+              <thead>
+                <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
+                  <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
+                  <th class="p-3 font-medium whitespace-nowrap">房号</th>
+                  <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
+                  <th class="p-3 font-medium whitespace-nowrap text-right">成交单价</th>
+                  <th class="p-3 font-medium whitespace-nowrap text-right">成交总价(万)</th>
+                  <th class="p-3 font-medium whitespace-nowrap">备注</th>
+                  <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in realDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
+                  <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
+                  <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
+                  <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
+                  <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
+                  <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
+                  <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                  <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
     </section>
 
@@ -154,7 +186,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent, Newspaper } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -163,10 +195,12 @@ const huxings = ref([])
 const medias = ref([])
 const yfyjList = ref([])
 const dynamics = ref([])
+const realDeals = ref([])
 const huxingLoading = ref(false)
 const mediaLoading = ref(false)
 const yfyjLoading = ref(false)
 const dynamicLoading = ref(false)
+const realDealLoading = ref(false)
 const yfyjBuilding = ref('')
 
 const typeMap = { 1: '建设动态', 2: '销售动态', 3: '优惠动态' }
@@ -178,6 +212,7 @@ const subType = computed(() => {
   if (route.name === 'LoupanHuxing') return 'huxing'
   if (route.name === 'LoupanYfyj') return 'yfyj'
   if (route.name === 'LoupanDynamic') return 'dynamic'
+  if (route.name === 'LoupanRealDeal') return 'real-deal'
   return ''
 })
 
@@ -185,7 +220,8 @@ const titleMap = {
   media: '楼盘图库',
   huxing: '楼盘户型',
   yfyj: '一房一价',
-  dynamic: '楼盘动态'
+  dynamic: '楼盘动态',
+  'real-deal': '真实成交'
 }
 const title = computed(() => titleMap[subType.value] || '')
 
@@ -193,7 +229,8 @@ const iconMap = {
   media: Images,
   huxing: LayoutGrid,
   yfyj: BadgeCent,
-  dynamic: Newspaper
+  dynamic: Newspaper,
+  'real-deal': HandCoins
 }
 const titleIcon = computed(() => iconMap[subType.value] || Images)
 
@@ -276,6 +313,13 @@ async function fetchDynamics() {
   } catch {} finally { dynamicLoading.value = false }
 }
 
+async function fetchRealDeals() {
+  realDealLoading.value = true
+  try {
+    realDeals.value = await request.get(`/public/loupans/${id.value}/real-deals`) || []
+  } catch {} finally { realDealLoading.value = false }
+}
+
 function fmt(t) { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 // ===== 图片全屏预览 =====
@@ -303,5 +347,6 @@ onMounted(async () => {
   else if (subType.value === 'huxing') fetchHuxings()
   else if (subType.value === 'yfyj') fetchYfyj()
   else if (subType.value === 'dynamic') fetchDynamics()
+  else if (subType.value === 'real-deal') fetchRealDeals()
 })
 </script>
