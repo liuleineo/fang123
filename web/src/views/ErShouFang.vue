@@ -62,7 +62,7 @@
                 </span>
               </router-link>
               <!-- 楼盘详情（PC端右侧占1/4） -->
-              <div class="flex-1 p-5 flex flex-col justify-between min-w-0 md:w-1/3 md:flex-none">
+              <div class="flex-1 p-5 flex flex-col min-w-0 md:w-1/3 md:flex-none">
                 <div>
                   <router-link :to="`/loupan/${lp.encodedId}`" class="block">
                     <div class="flex items-center gap-2 mb-2">
@@ -102,22 +102,22 @@
                     <span class="text-xs text-[var(--color-text-tertiary)] ml-1">元/㎡（开盘均价）</span>
                   </div>
                 </div>
-              </div>
-            </div>
-            <!-- 户型展示区域（自适应换行） -->
-            <div v-if="lp.huxings && lp.huxings.length" class="border-t border-gray-50 px-5 py-3">
-              <p class="text-xs text-[var(--color-text-tertiary)] mb-2 font-medium">户型</p>
-              <div class="flex flex-wrap gap-3">
-                <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="w-[calc(50%-0.375rem)] sm:w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
-                  <div class="aspect-[4/3] bg-gray-50 relative">
-                    <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
-                    <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
+                <!-- 户型展示区域（放在右侧楼盘信息下面） -->
+                <div v-if="lp.huxings && lp.huxings.length" class="border-t border-gray-100 pt-3 mt-3">
+                  <p class="text-xs text-[var(--color-text-tertiary)] mb-2 font-medium">户型</p>
+                  <div class="flex flex-wrap gap-3">
+                    <router-link v-for="hx in lp.huxings" :key="hx.id" :to="`/loupan/${lp.encodedId}`" class="w-[calc(50%-0.375rem)] sm:w-40 border border-gray-100 rounded-lg overflow-hidden hover:border-orange-300 transition-colors group/hx">
+                      <div class="aspect-[4/3] bg-gray-50 relative">
+                        <t-image v-if="hx.huxingImage" :src="hx.huxingImage" fit="contain" class="w-full h-full" />
+                        <span v-else class="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">暂无图</span>
+                      </div>
+                      <div class="p-2">
+                        <p class="text-xs font-bold text-[var(--color-text-primary)] group-hover/hx:text-orange-500 transition-colors truncate">{{ hx.huxingName }}</p>
+                        <p class="text-xs text-[var(--color-text-secondary)]">{{ hx.area }}㎡ {{ hx.roomNum }}室{{ hx.hallNum }}厅</p>
+                      </div>
+                    </router-link>
                   </div>
-                  <div class="p-2">
-                    <p class="text-xs font-bold text-[var(--color-text-primary)] group-hover/hx:text-orange-500 transition-colors truncate">{{ hx.huxingName }}</p>
-                    <p class="text-xs text-[var(--color-text-secondary)]">{{ hx.area }}㎡ {{ hx.roomNum }}室{{ hx.hallNum }}厅</p>
-                  </div>
-                </router-link>
+                </div>
               </div>
             </div>
           </div>
