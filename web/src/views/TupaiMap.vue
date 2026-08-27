@@ -66,7 +66,7 @@
 
       <!-- 动画演示年份月份（屏幕底部居中，动画结束隐藏） -->
       <div v-if="isAnimating && animationYear" class="absolute inset-x-0 bottom-12 z-10 flex justify-center pointer-events-none">
-        <div class="anim-year">{{ animationYear }}年{{ animationMonth }}月</div>
+        <div class="anim-year">{{ animationYear }}年{{ animationMonth }}月{{ animationDay }}日</div>
       </div>
 
       <!-- 缩放级别显示（右下角） -->
@@ -175,6 +175,7 @@ const animationIndex = ref(0)
 const animationSorted = ref([])
 const animationYear = ref('')
 const animationMonth = ref('')
+const animationDay = ref('')
 let animationTimer = null
 let defaultMarkerIconSrc = ''
 
@@ -324,14 +325,16 @@ function startAnimation() {
       m.setMap(mapInstance)
       activeId.value = item.id
     }
-    // 屏幕中央显示当前地块年份+月份
+    // 屏幕底部显示当前地块年月日
     const ds = String(item.dealDate || '')
     const year = ds.substring(0, 4)
     let month = ''
-    if (ds[4] === '-') month = ds.substring(5, 7)
-    else month = ds.substring(4, 6)
+    let day = ''
+    if (ds[4] === '-') { month = ds.substring(5, 7); day = ds.substring(8, 10) }
+    else { month = ds.substring(4, 6); day = ds.substring(6, 8) }
     if (year && year !== animationYear.value) animationYear.value = year
     if (month && month !== '00' && month !== animationMonth.value) animationMonth.value = month
+    if (day && day !== '00' && day !== animationDay.value) animationDay.value = day
     animationIndex.value = idx + 1
   }, 30)
 }
@@ -342,6 +345,7 @@ function stopAnimation() {
   animationIndex.value = 0
   animationYear.value = ''
   animationMonth.value = ''
+  animationDay.value = ''
   addMarkers() // 重建所有 marker，恢复默认定位图标
 }
 
