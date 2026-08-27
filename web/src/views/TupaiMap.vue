@@ -1,19 +1,19 @@
 <template>
   <div class="map-page">
     <div class="relative w-full h-[calc(100vh-var(--header-height))]">
-      <!-- 手机端筛选浮动按钮 -->
+      <!-- 侧边筛选面板开关按钮（全端可见，默认收起） -->
       <button
-        class="md:hidden absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
+        class="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
         @click="showPanel = !showPanel"
       >
         <SlidersHorizontal class="w-4 h-4 text-[var(--color-primary)]" />
         {{ showPanel ? '关闭列表' : '地块列表' }}
       </button>
 
-      <!-- 侧边筛选面板（手机端可收起，桌面端常驻） -->
+      <!-- 侧边筛选面板（默认收起，点击按钮展开/收起） -->
       <div
-        class="absolute top-14 md:top-4 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-5rem)] md:max-h-[calc(100vh-var(--header-height)-2rem)]"
-        :class="showPanel ? 'flex' : 'hidden md:flex'"
+        class="absolute top-14 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-5rem)]"
+        :class="showPanel ? 'flex' : 'hidden'"
       >
         <div class="p-4 border-b border-gray-50">
           <div class="text-base font-bold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
@@ -64,10 +64,26 @@
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
 
+      <!-- 动画演示年份月份（屏幕底部居中，动画结束隐藏） -->
+      <div v-if="isAnimating && animationYear" class="absolute inset-x-0 bottom-12 z-10 flex justify-center pointer-events-none">
+        <div class="anim-year">{{ animationYear }}年{{ animationMonth }}月</div>
+      </div>
+
       <!-- 缩放级别显示（右下角） -->
-      <div class="absolute bottom-16 right-4 z-20 px-2.5 py-1 rounded bg-white/95 text-xs font-medium text-gray-600 shadow-md border border-gray-200">
+      <div class="absolute bottom-28 right-4 z-20 px-2.5 py-1 rounded bg-white/95 text-xs font-medium text-gray-600 shadow-md border border-gray-200">
         级别 {{ currentZoom }}
       </div>
+
+      <!-- 动画演示按钮（右下角） -->
+      <button
+        @click="startAnimation"
+        :disabled="isAnimating || !filteredList.length"
+        class="absolute bottom-16 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        :class="isAnimating ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
+      >
+        <Play class="w-4 h-4" />
+        {{ isAnimating ? `演示中 ${animationIndex+1}/${animationSorted.length}` : '动画演示' }}
+      </button>
 
       <!-- 卫星地图切换按钮（右下角） -->
       <button
@@ -118,7 +134,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Map as MapIcon, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon } from 'lucide-vue-next'
+import { Search, Map as MapIcon, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon, Play } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
@@ -152,6 +168,15 @@ let satelliteLayer = null
 let roadNetLayer = null
 const showSatellite = ref(false)
 const currentZoom = ref(13)
+
+// 动画演示
+const isAnimating = ref(false)
+const animationIndex = ref(0)
+const animationSorted = ref([])
+const animationYear = ref('')
+const animationMonth = ref('')
+let animationTimer = null
+let defaultMarkerIconSrc = ''
 
 // WGS84/CGCS2000 → GCJ-02 坐标转换
 function wgs84ToGcj02(lng, lat) {
@@ -269,8 +294,60 @@ function toggleSatellite() {
   }
 }
 
+// 动画演示：按成交时间从早到晚依次显示地块（地图中心不变，默认定位图标经 CSS 滤镜橙→蓝渐变）
+function startAnimation() {
+  if (!mapInstance || isAnimating.value || !filteredList.value.length) return
+  // 提取高德默认定位图标 URL（保持原图标样式）
+  if (!defaultMarkerIconSrc) {
+    const img = document.querySelector('#amap-container .amap-marker-content img')
+    if (img) defaultMarkerIconSrc = img.src
+  }
+  // 按成交时间从早到晚排序
+  const sorted = [...filteredList.value].sort((a, b) =>
+    String(a.dealDate || '').localeCompare(String(b.dealDate || ''))
+  )
+  animationSorted.value = sorted
+  animationIndex.value = 0
+  isAnimating.value = true
+  // 隐藏所有 marker，逐个展示，地图中心/缩放保持当前视角不变
+  markers.forEach(m => m.setMap(null))
+  animationTimer = setInterval(() => {
+    const idx = animationIndex.value
+    if (idx >= sorted.length) { stopAnimation(); return }
+    const item = sorted[idx]
+    const m = markers.find(mk => mk._item && mk._item.id === item.id)
+    if (m) {
+      // 用默认图标，加橙色滤镜，1秒渐变回原色（地块名称保持默认蓝色，不做颜色变化）
+      if (defaultMarkerIconSrc) {
+        m.setContent(`<div class="anim-marker-icon"><img src="${defaultMarkerIconSrc}" /></div>`)
+      }
+      m.setMap(mapInstance)
+      activeId.value = item.id
+    }
+    // 屏幕中央显示当前地块年份+月份
+    const ds = String(item.dealDate || '')
+    const year = ds.substring(0, 4)
+    let month = ''
+    if (ds[4] === '-') month = ds.substring(5, 7)
+    else month = ds.substring(4, 6)
+    if (year && year !== animationYear.value) animationYear.value = year
+    if (month && month !== '00' && month !== animationMonth.value) animationMonth.value = month
+    animationIndex.value = idx + 1
+  }, 30)
+}
+
+function stopAnimation() {
+  if (animationTimer) { clearInterval(animationTimer); animationTimer = null }
+  isAnimating.value = false
+  animationIndex.value = 0
+  animationYear.value = ''
+  animationMonth.value = ''
+  addMarkers() // 重建所有 marker，恢复默认定位图标
+}
+
 function addMarkers() {
   if (!mapInstance || !window.AMap) return
+  if (isAnimating.value) stopAnimation()
   markers.forEach(m => mapInstance.remove(m))
   markers = []
   const list = filteredList.value
@@ -279,13 +356,15 @@ function addMarkers() {
   list.forEach(item => {
     if (!item.longitude || !item.latitude) return
     const pos = wgs84ToGcj02(item.longitude, item.latitude)
-    const labelContent = `<div style="background:#E37318;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+ym(item.dealDate)+'）':''}</div>`
+    const labelContent = `<div style="background:#1677FF;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+ym(item.dealDate)+'）':''}</div>`
     const marker = new window.AMap.Marker({
       position: pos,
       title: item.landName,
-      label: { content: labelContent, direction: 'top' }
+      label: { content: labelContent, direction: 'top', offset: new window.AMap.Pixel(8, -2) }
     })
     marker._labelContent = labelContent
+    marker._item = item
+    marker._pos = pos
 
     const dealStr = item.dealPrice ? `${item.dealPrice}万` : '待出让'
     const infoWindow = new window.AMap.InfoWindow({
@@ -324,4 +403,31 @@ onMounted(fetchData)
   border: none !important;
   background: transparent !important;
 }
+/* 动画演示：默认定位图标经滤镜由橙色渐变回蓝色，并闪烁突出 */
+.anim-marker-icon img {
+  animation: markerColorPulse 0.5s ease-in-out forwards;
+  transform-origin: center bottom;
+}
+/* 动画演示：屏幕中央年份月份（一行） */
+.anim-year {
+  font-size: 36px;
+  font-weight: 600;
+  color: #000;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  animation: yearFade 0.5s ease-out;
+}
+@keyframes yearFade {
+  0% { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes markerColorPulse {
+  0% { filter: hue-rotate(168deg) saturate(2.2); transform: scale(1.15); opacity: 0.3; }
+  25% { opacity: 1; }
+  50% { opacity: 0.4; }
+  75% { opacity: 1; }
+  100% { filter: hue-rotate(0deg) saturate(1); transform: scale(1); opacity: 1; }
+}
+
 </style>
