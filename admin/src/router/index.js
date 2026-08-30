@@ -140,6 +140,12 @@ const routes = [
         name: 'RealDealManage',
         component: () => import('@/views/RealDealManage.vue'),
         meta: { title: '真实成交' }
+      },
+      {
+        path: 'customers',
+        name: 'CustomerManage',
+        component: () => import('@/views/CustomerManage.vue'),
+        meta: { title: '客户管理' }
       }
     ]
   },

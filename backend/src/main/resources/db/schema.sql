@@ -622,3 +622,45 @@ CREATE TABLE `real_deal_info` (
   KEY `idx_loupan_id` (`loupan_id`),
   KEY `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='真实成交';
+
+
+---客户管理/跟进/分享
+CREATE TABLE `customers` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '客户姓名',
+  `phone` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '手机号',
+  `remark` TEXT NULL COMMENT '备注',
+  `intention` VARCHAR(100) NULL COMMENT '意向：高/中/低',
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '所属用户id',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `photo` VARCHAR(500) NULL COMMENT '客户头像图片地址',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户表';
+
+CREATE TABLE `follow_ups` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `customer_id` BIGINT UNSIGNED NOT NULL COMMENT '客户id',
+  `method` VARCHAR(50) NULL COMMENT '跟进方式',
+  `content` TEXT NULL COMMENT '跟进内容',
+  `follow_up_time` DATETIME NULL COMMENT '跟进时间',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `photos` JSON NULL COMMENT '跟进图片数组，存图片url列表',
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '操作人id',
+  PRIMARY KEY (`id`),
+  KEY `idx_customer_id` (`customer_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户跟进记录';
+
+CREATE TABLE `customer_shares` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `customer_id` BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
+  `owner_user_id` BIGINT UNSIGNED NOT NULL COMMENT '原拥有人',
+  `shared_user_id` BIGINT UNSIGNED NOT NULL COMMENT '被共享人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '共享时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_customer_owner_shared` (`customer_id`,`owner_user_id`,`shared_user_id`),
+  KEY `idx_customer_id` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户共享分配';
+

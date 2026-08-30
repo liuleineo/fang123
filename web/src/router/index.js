@@ -31,6 +31,12 @@ const routes = [
         meta: { title: '个人中心', requiresAuth: true }
       },
       {
+        path: 'customers',
+        name: 'Customers',
+        component: () => import('@/views/Customers.vue'),
+        meta: { title: '我的客户', requiresAuth: true }
+      },
+      {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/Tasks.vue'),

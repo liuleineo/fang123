@@ -118,7 +118,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import {
-  Home, LayoutDashboard, Users, Shield, Coins, ScrollText, UsersRound, ListTodo, ClipboardCheck, DollarSign, Crown, UserCheck, Settings, Bell,
+  Home, LayoutDashboard, Users, User, Shield, Coins, ScrollText, UsersRound, ListTodo, ClipboardCheck, DollarSign, Crown, UserCheck, Settings, Bell,
   Building2, MapPin, LayoutTemplate, Image, TableProperties, GraduationCap, Megaphone,
   ChevronRight, ChevronLeft, ChevronDown, Menu
 } from 'lucide-vue-next'
@@ -142,6 +142,7 @@ const menuItems = [
   { path: '/yfyj', label: '一房一价', icon: TableProperties },
   { path: '/schools', label: '学校', icon: GraduationCap },
   { path: '/real-deals', label: '真实成交', icon: Coins },
+  { path: '/customers', label: '客户管理', icon: User },
   { path: '/admins', label: '管理员管理', icon: Shield },
   { path: '/users', label: '用户管理', icon: Users },
   { path: '/points', label: '用户积分', icon: Coins },

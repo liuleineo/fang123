@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fang123.config.AiProperties;
 import com.fang123.config.TokenHubProperties;
 import com.fang123.dto.AiParseHuxingResult;
+import com.fang123.dto.AiParseCustomerResult;
 import com.fang123.dto.AiParseHuxingResult.HuxingFields;
 import com.fang123.dto.AiParseResult;
 import com.fang123.dto.AiParseResult.ParsedFields;
@@ -557,6 +558,102 @@ public class AiParseService {
         } catch (Exception e) {
             throw new RuntimeException("AI解析失败: " + e.getMessage());
         }
+    }
+
+    // ============ 客户信息 AI 解析（图片识别） ============
+
+    /** 客户信息解析提示词 */
+    private static final String CUSTOMER_PARSE_PROMPT = """
+            你是一个客户信息提取助手。请从以下OCR识别的文本中提取客户信息，返回严格的JSON格式（不要包含```json标记，直接返回纯JSON）。
+
+            需要提取的字段（无法确定的设为null）：
+            {
+              "name": "客户姓名",
+              "phone": "手机号，只保留数字，如13800138000",
+              "intention": "购房意向等级：高/中/低，根据文本中的意向描述或需求强烈程度判断，无法确定则null",
+              "remark": "备注/购房需求描述，保留关键信息"
+            }
+
+            规则：
+            1. 只返回这个JSON结构，不要有任何其他文字
+            2. 无法确定的字段值设为null
+            3. phone 只保留11位数字，去掉空格、横线等符号；若识别到多个号码，取第一个
+            4. intention 只能为 高/中/低 三选一，识别到"意向高/意向强烈/急需购房"等映射为"高"
+            5. remark 提炼客户的核心需求，如购房预算、意向区域、户型偏好等
+
+            OCR文本：
+            """;
+
+    /**
+     * 上传客户资料图片（名片、登记表、聊天截图等）→ OCR → TokenHub 解析客户字段
+     */
+    public AiParseCustomerResult parseCustomer(MultipartFile[] files) {
+        String ocrText = doOcrBatch(files, "ai-customer")[0];
+        AiParseCustomerResult.CustomerFields fields;
+        try {
+            String resp = callTokenHub(CUSTOMER_PARSE_PROMPT + ocrText, "客户信息提取助手");
+            fields = objectMapper.readValue(resp, AiParseCustomerResult.CustomerFields.class);
+        } catch (Exception e) {
+            throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+        AiParseCustomerResult r = new AiParseCustomerResult();
+        r.setOcrText(ocrText);
+        r.setFields(fields);
+        return r;
+    }
+
+    // ============ 客户 AI 沟通文案 ============
+
+    /** 客户 AI 沟通文案提示词 */
+    private static final String CUSTOMER_COPY_PROMPT = """
+            你是杭州房产销售界的销冠，拥有丰富的客户沟通经验和出色的销售技巧。
+
+            请根据以下客户信息，为客户制定一段新的沟通文案（用于微信或电话触达客户），要求：
+            1. 结合客户姓名、备注（购房需求）、历史跟进记录，把握客户心理
+            2. 语气亲切自然、专业可信，体现对客户的关注和贴心
+            3. 文案控制在200字以内
+            4. 直接输出文案内容即可，不要任何解释、标题或额外文字
+
+            客户信息：
+            """;
+
+    /**
+     * 根据客户信息生成 AI 沟通文案（销冠身份，100字内）
+     */
+    public String suggestCustomerCopy(String customerName, String remark, List<String> followUpList) {
+        StringBuilder info = new StringBuilder();
+        info.append("客户姓名：").append(customerName != null ? customerName : "未知").append("\n");
+        info.append("客户备注/需求：").append(remark != null && !remark.isBlank() ? remark : "无").append("\n");
+        info.append("历史跟进记录：\n");
+        if (followUpList == null || followUpList.isEmpty()) {
+            info.append("暂无跟进记录\n");
+        } else {
+            for (int i = 0; i < followUpList.size(); i++) {
+                info.append(i + 1).append(". ").append(followUpList.get(i)).append("\n");
+            }
+        }
+
+        String url = tokenHubProperties.getBaseUrl() + "/chat/completions";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + tokenHubProperties.getApiKey());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", tokenHubProperties.getModel());
+        body.put("stream", false);
+        body.put("temperature", 0.7);
+        body.put("messages", List.of(
+            Map.of("role", "system", "content",
+                    "你是杭州房产销售界的销冠，沟通能力强、深谙客户心理。请直接输出给客户的沟通文案，不要任何多余文字。"),
+            Map.of("role", "user", "content", CUSTOMER_COPY_PROMPT + info)
+        ));
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Map.class);
+        @SuppressWarnings("unchecked")
+        String content = (String) ((Map<String, Object>) ((List<Map<String, Object>>) response.getBody().get("choices")).get(0).get("message")).get("content");
+        content = content == null ? "" : content.trim();
+        if (content.startsWith("```")) content = content.replaceAll("```(?:json|text)?", "").replace("```", "").trim();
+        return content;
     }
 
     /** 调用 TokenHub，返回清理后的 content */

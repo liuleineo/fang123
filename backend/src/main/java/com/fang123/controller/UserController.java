@@ -51,6 +51,17 @@ public class UserController {
         return Result.success("上传成功", url);
     }
 
+    /**
+     * 通用图片上传到 COS（压缩后存 followup 目录），用于跟进记录等
+     */
+    @PostMapping("/upload")
+    public Result<String> upload(@RequestHeader("Authorization") String authHeader,
+                                 @RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) return Result.badRequest("文件不能为空");
+        String url = cosService.uploadAndCompress(file, "followup");
+        return Result.success("上传成功", url);
+    }
+
     private Long getUserId(String authHeader) {
         String token = authHeader.replace("Bearer ", "");
         return jwtUtil.getUserIdFromToken(token);

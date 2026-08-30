@@ -31,6 +31,7 @@
         
           <!-- 已登录 -->
           <template v-if="isLoggedIn">
+            <router-link to="/customers" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">客户管理</router-link>
             <router-link to="/tasks" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">任务中心</router-link>
             <router-link to="/my-tasks" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">我的任务</router-link>
             <router-link to="/member" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">会员中心</router-link>
@@ -128,37 +129,25 @@
           <div>
             <h4 class="text-white font-medium mb-4 text-sm">热门区域</h4>
             <ul class="space-y-2">
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">金沙湖</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">运河新城</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">滨江区</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">钱江新城二期</a></li>
+             
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">城东新城</a></li>
+             
               <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">未科</a></li>
               <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">世纪城</a></li>
               
             </ul>
           </div>
+
           <div>
-            <h4 class="text-white font-medium mb-4 text-sm">找房工具</h4>
+            <h4 class="text-white font-medium mb-4 text-sm">热门小区</h4>
             <ul class="space-y-2">
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">楼盘搜索</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">新盘速递</a></li>
+             
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">未科</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">世纪城</a></li>
+              
             </ul>
           </div>
-          <div>
-            <h4 class="text-white font-medium mb-4 text-sm">关于</h4>
-            <ul class="space-y-2">
-              <li><a href="#" class="text-sm text-white/50 hover:text-white transition-colors">关于我们</a></li>
-              <li><a href="#" class="text-sm text-white/50 hover:text-white transition-colors">联系我们</a></li>
-              <li><a href="/admin/" class="text-sm text-white/50 hover:text-white transition-colors">管理后台</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="text-white font-medium mb-4 text-sm">法律</h4>
-            <ul class="space-y-2">
-              <li><a href="#" class="text-sm text-white/50 hover:text-white transition-colors">隐私政策</a></li>
-              <li><a href="#" class="text-sm text-white/50 hover:text-white transition-colors">服务条款</a></li>
-            </ul>
-          </div>
+         
         </div>
         <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
@@ -167,6 +156,8 @@
           </div>
           <span class="text-xs text-white/30">浙ICP备2021037366号-2</span>
            <span class="text-xs text-white/30">powered by 公子鱼</span>
+           <span class="text-xs text-white/30">隐私政策/服务条款</span>
+
         </div>
       </div>
     </footer>
