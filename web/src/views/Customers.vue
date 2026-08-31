@@ -32,9 +32,6 @@
                   <span v-if="c.phone" class="text-xs text-[var(--color-text-tertiary)] flex items-center gap-0.5 flex-shrink-0">
                     <Phone class="w-3 h-3" />{{ c.phone }}
                   </span>
-                  <span v-if="c.shareDesc" class="text-xs text-purple-500 flex items-center gap-0.5 flex-shrink-0" title="分享关系">
-                    <Share2 class="w-3 h-3" />{{ c.shareDesc }}
-                  </span>
                 </div>
                 <p v-if="c.remark" class="text-xs text-[var(--color-text-secondary)] mt-1 truncate">
                   <span class="text-[var(--color-text-tertiary)] flex-shrink-0">需求：</span>{{ c.remark }}
@@ -42,10 +39,14 @@
                 <p v-if="c.lastFollowUpTime" class="text-xs text-[var(--color-text-tertiary)] mt-0.5 truncate">
                   最后跟进 {{ fmtDate(c.lastFollowUpTime) }}{{ c.lastFollowUpContent ? '：' + c.lastFollowUpContent : '' }}
                 </p>
+                <p v-if="c.shareDesc" class="text-xs text-purple-500 flex items-center gap-0.5 mt-0.5" title="分享关系">
+                  <Share2 class="w-3 h-3" />{{ c.shareDesc }}
+                </p>
+
               </div>
               <!-- 右栏：操作按钮（移动端两行显示，PC 一行） -->
               <div class="grid grid-cols-2 gap-1.5 md:gap-2 flex-shrink-0 md:flex md:flex-row">
-                <a v-if="c.phone" :href="`tel:${c.phone}`" title="拨打电话"
+                <a v-if="c.phone" :href="`tel:${c.phone}`" title="拨打电话" @click="recordPhoneCall(c)"
                    class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-blue-50 text-[var(--color-primary)] flex items-center justify-center hover:bg-blue-100 transition-colors">
                   <Phone class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </a>
@@ -263,6 +264,7 @@ import { useRouter } from 'vue-router'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Phone, UsersRound, User as UserIcon, MessageSquare, Share2, Image as ImageIcon, Sparkles, FileSpreadsheet, Camera } from 'lucide-vue-next'
 import request from '@/utils/request'
+import { copyText } from '@/utils/clipboard'
 
 const router = useRouter()
 const isMobile = ref(window.innerWidth < 768)
@@ -474,6 +476,16 @@ async function openFollowUps(c) {
     follows.value = await request.get(`/user/customers/${c.id}/follow-ups`) || []
   } catch { follows.value = [] } finally { followLoading.value = false }
 }
+
+/** 点击拨打电话时，自动添加一条"电话"跟进记录（静默，不阻塞拨号） */
+async function recordPhoneCall(c) {
+  try {
+    await request.post(`/user/customers/${c.id}/follow-ups`, {
+      content: '拨打了客户电话',
+      method: '电话'
+    })
+  } catch { /* 静默失败，不影响拨号 */ }
+}
 async function addFollowUp() {
   if (!followContent.value.trim()) { MessagePlugin.warning('请填写跟进内容'); return }
   followSaving.value = true
@@ -528,9 +540,9 @@ async function openAiSuggest(c) {
 }
 async function copyAiCopy() {
   try {
-    await navigator.clipboard.writeText(aiCopy.value)
+    await copyText(aiCopy.value)
     MessagePlugin.success('已复制')
-  } catch { MessagePlugin.error('复制失败') }
+  } catch { MessagePlugin.error('复制失败，请长按内容手动复制') }
 }
 
 function fmtTime(t) {

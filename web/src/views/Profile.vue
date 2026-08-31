@@ -380,6 +380,7 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import { LogOut, Edit3, Camera, Check, X, Plus, MapPin, Copy } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import request from '@/utils/request'
+import { copyText } from '@/utils/clipboard'
 
 const router = useRouter()
 
@@ -443,7 +444,7 @@ async function fetchInviteInfo() {
 
 async function copyInviteUrl() {
   try {
-    await navigator.clipboard.writeText(inviteUrl.value)
+    await copyText(inviteUrl.value)
     copied.value = true
     MessagePlugin.success('邀请链接已复制')
     setTimeout(() => copied.value = false, 2000)
