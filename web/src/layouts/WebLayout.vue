@@ -88,9 +88,9 @@
               {{ item.label }}
             </a>
             <div class="border-t border-gray-50 pt-2 mt-1">
-              <router-link to="/tasks" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">任务中心</router-link>
               <template v-if="isLoggedIn">
                 <router-link to="/customers" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">客户管理</router-link>
+                <router-link to="/tasks" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">任务中心</router-link>
                 <router-link to="/my-tasks" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">我的任务</router-link>
                 <router-link to="/member" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">会员中心</router-link>
                 <router-link to="/profile" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">
