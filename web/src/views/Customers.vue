@@ -12,15 +12,15 @@
           <UsersRound class="w-14 h-14 text-gray-200 mx-auto mb-4" />
           <p class="text-[var(--color-text-tertiary)]">暂无客户，点击右下角"+"录入客户</p>
         </div>
-        <div v-else class="space-y-3">
-          <div v-for="c in list" :key="c.id" class="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-all">
+        <div v-else class="space-y-2 md:space-y-3">
+          <div v-for="c in list" :key="c.id" class="bg-white rounded-2xl border border-gray-100 p-3 md:p-4 hover:shadow-md transition-all">
             <!-- 三栏：头像 / 信息 / 操作按钮 -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5 md:gap-3">
               <!-- 左栏：头像（点击编辑） -->
-              <div class="w-12 h-12 rounded-full flex-shrink-0 cursor-pointer overflow-hidden" @click="openEdit(c)" title="点击编辑客户">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full flex-shrink-0 cursor-pointer overflow-hidden" @click="openEdit(c)" title="点击编辑客户">
                 <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e=>e.target.style.display='none'" />
                 <div v-else class="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                  <UserIcon class="w-6 h-6 text-[var(--color-primary)]" />
+                  <UserIcon class="w-5 h-5 md:w-6 md:h-6 text-[var(--color-primary)]" />
                 </div>
               </div>
               <!-- 中栏：信息 -->
@@ -40,27 +40,26 @@
                   <span class="text-[var(--color-text-tertiary)] flex-shrink-0">需求：</span>{{ c.remark }}
                 </p>
                 <p v-if="c.lastFollowUpTime" class="text-xs text-[var(--color-text-tertiary)] mt-0.5 truncate">
-                  <MessageSquare class="w-3 h-3 inline -mt-0.5" />
-                  最后跟进 {{ fmtTime(c.lastFollowUpTime) }}{{ c.lastFollowUpContent ? '：' + c.lastFollowUpContent : '' }}
+                  最后跟进 {{ fmtDate(c.lastFollowUpTime) }}{{ c.lastFollowUpContent ? '：' + c.lastFollowUpContent : '' }}
                 </p>
               </div>
-              <!-- 右栏：操作按钮（图标，一行显示） -->
-              <div class="flex gap-2 flex-shrink-0">
+              <!-- 右栏：操作按钮（移动端两行显示，PC 一行） -->
+              <div class="grid grid-cols-2 gap-1.5 md:gap-2 flex-shrink-0 md:flex md:flex-row">
                 <a v-if="c.phone" :href="`tel:${c.phone}`" title="拨打电话"
-                   class="w-9 h-9 rounded-full border-0 outline-none bg-blue-50 text-[var(--color-primary)] flex items-center justify-center hover:bg-blue-100 transition-colors">
-                  <Phone class="w-4 h-4" />
+                   class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-blue-50 text-[var(--color-primary)] flex items-center justify-center hover:bg-blue-100 transition-colors">
+                  <Phone class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </a>
                 <button title="跟进记录" @click="openFollowUps(c)"
-                        class="w-9 h-9 rounded-full border-0 outline-none bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors">
-                  <MessageSquare class="w-4 h-4" />
+                        class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors">
+                  <MessageSquare class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
                 <button title="分享" @click="openShare(c)"
-                        class="w-9 h-9 rounded-full border-0 outline-none bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors">
-                  <Share2 class="w-4 h-4" />
+                        class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors">
+                  <Share2 class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
                 <button title="AI分析" @click="openAiSuggest(c)"
-                        class="w-9 h-9 rounded-full border-0 outline-none bg-orange-50 text-orange-600 flex items-center justify-center hover:bg-orange-100 transition-colors">
-                  <Sparkles class="w-4 h-4" />
+                        class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-orange-50 text-orange-600 flex items-center justify-center hover:bg-orange-100 transition-colors">
+                  <Sparkles class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
               </div>
             </div>
@@ -74,18 +73,18 @@
     </section>
 
     <!-- 右下角操作按钮组 -->
-    <div class="fixed right-6 bottom-24 z-30 flex flex-col items-end gap-2">
+    <div class="fixed right-6 bottom-16 z-30 flex flex-col items-end gap-2">
       <button
         @click="openExcelImport"
-        class="flex items-center gap-1.5 px-4 py-3 rounded-full border-0 outline-none bg-orange-500 text-white text-sm font-medium shadow-lg hover:bg-orange-600 hover:shadow-xl transition-all"
+        class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-orange-500 text-white text-sm font-medium shadow-lg hover:bg-orange-600 hover:shadow-xl transition-all"
       >
-        <FileSpreadsheet class="w-4 h-4" />批量导入
+        <FileSpreadsheet class="w-4 h-4" /><span class="hidden md:inline">批量添加</span>
       </button>
       <button
         @click="openCreate"
-        class="flex items-center gap-1.5 px-4 py-3 rounded-full border-0 outline-none bg-[var(--color-primary)] text-white text-sm font-medium shadow-lg hover:bg-[var(--color-primary-light)] hover:shadow-xl transition-all"
+        class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-[var(--color-primary)] text-white text-sm font-medium shadow-lg hover:bg-[var(--color-primary-light)] hover:shadow-xl transition-all"
       >
-        <Plus class="w-4 h-4" />添加客户
+        <Plus class="w-4 h-4" /><span class="hidden md:inline">添加客户</span>
       </button>
     </div>
 
@@ -535,6 +534,11 @@ function fmtTime(t) {
   if (!t) return ''
   const d = new Date(t)
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+function fmtDate(t) {
+  if (!t) return ''
+  const d = new Date(t)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
 onMounted(() => {
