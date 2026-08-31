@@ -178,12 +178,12 @@
       <div class="mb-3">
         <t-input v-model="followContent" placeholder="填写跟进内容..." class="w-full mb-2" />
         <div class="flex items-center gap-2">
-          <t-select v-model="followMethod" placeholder="方式" class="flex-1" :options="[{label:'电话',value:'电话'},{label:'微信',value:'微信'},{label:'到访',value:'到访'},{label:'其他',value:'其他'}]" />
+          <t-select v-model="followMethod" placeholder="方式" class="w-24 shrink-0" :options="[{label:'电话',value:'电话'},{label:'微信',value:'微信'},{label:'到访',value:'到访'},{label:'其他',value:'其他'}]" />
           <label class="flex items-center gap-1 px-3 py-2 text-xs rounded-lg bg-blue-50 text-[var(--color-primary)] cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap">
             <ImageIcon class="w-3.5 h-3.5" />添加图片
             <input type="file" accept="image/*" class="hidden" @change="onFollowImageUpload" />
           </label>
-          <t-button theme="primary" :loading="followSaving" @click="addFollowUp">添加</t-button>
+          <t-button theme="primary" :loading="followSaving" class="flex-1" @click="addFollowUp">添加</t-button>
         </div>
       </div>
       <!-- 跟进图片上传提示 -->
@@ -210,6 +210,9 @@
             <img v-for="(url,i) in parsePhotos(f.photos)" :key="i" :src="url" class="w-20 h-20 object-cover rounded-lg border border-gray-100 cursor-pointer hover:opacity-90 transition-opacity" @error="e=>e.target.style.display='none'" @click="previewImages(parsePhotos(f.photos), i)" />
           </div>
         </div>
+      </div>
+      <div class="mt-4">
+        <t-button block variant="outline" @click="followVisible = false">关闭</t-button>
       </div>
     </t-drawer>
 
