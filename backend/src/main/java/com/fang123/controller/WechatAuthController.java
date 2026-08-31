@@ -196,6 +196,13 @@ public class WechatAuthController {
         }
     }
 
+    /**
+     * 微信授权码（code）是一次性的，首次 exchangeCode 后即失效。
+     * 前端补充手机号注册时会再次携带同一 code 调用本接口，因此缓存 code → 微信用户信息以便复用。
+     */
+    private static final java.util.concurrent.ConcurrentHashMap<String, WechatOAuthService.WechatUserInfo> WX_CODE_CACHE
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
     /** 微信OAuth回调登录 */
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody Map<String, String> body) {
@@ -203,7 +210,13 @@ public class WechatAuthController {
         if (code == null || code.isBlank()) return Result.badRequest("授权码不能为空");
 
         try {
-            WechatOAuthService.WechatUserInfo wx = oauthService.exchangeCode(code);
+            // 优先从缓存取（补充手机号时复用），避免一次性 code 二次交换失败
+            WechatOAuthService.WechatUserInfo wx = WX_CODE_CACHE.get(code);
+            if (wx == null) {
+                wx = oauthService.exchangeCode(code);
+                WX_CODE_CACHE.put(code, wx);
+                if (WX_CODE_CACHE.size() > 1000) WX_CODE_CACHE.clear(); // 简单防膨胀
+            }
 
             // 查找是否已绑定
             UserWechat uw = userWechatService.getOne(
@@ -230,6 +243,7 @@ public class WechatAuthController {
                 UserInfoVO vo = userService.register(reg);
 
                 saveWechat(vo.getId(), wx);
+                WX_CODE_CACHE.remove(code);
                 String token = jwtUtil.generateToken(vo.getId(), state);
                 return Result.success(Map.of("token", token, "bound", true));
             }

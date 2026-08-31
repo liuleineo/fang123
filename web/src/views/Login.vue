@@ -265,7 +265,9 @@ async function handleWechatCode(code) {
       form.phone = ''
       form.password = ''
     }
-  } catch {}
+  } catch (e) {
+    MessagePlugin.error(e?.response?.data?.msg || e?.message || '微信登录失败，请重试')
+  }
 }
 
 async function completeWxRegister() {
@@ -283,7 +285,9 @@ async function completeWxRegister() {
       MessagePlugin.success('注册成功')
       router.push('/profile')
     }
-  } catch {} finally { loading.value = false }
+  } catch (e) {
+    MessagePlugin.error(e?.response?.data?.msg || e?.message || '注册失败，请重试')
+  } finally { loading.value = false }
 }
 
 onMounted(() => {
