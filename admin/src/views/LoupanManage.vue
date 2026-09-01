@@ -382,6 +382,19 @@ function fillFormFromAi() {
       form[k] = f[k]
     }
   })
+
+  // AI 识别的交房时间可能是 "2026-08" / "2026年8月" 等格式，规范化为 yyyy-MM-dd
+  if (form.deliveryDate) {
+    const d = String(form.deliveryDate).trim()
+    const m = d.match(/^(\d{4})[-年.](\d{1,2})(?:[-月.](\d{1,2}))?/)
+    if (m) {
+      form.deliveryDate = `${m[1]}-${String(+m[2]).padStart(2, '0')}-${m[3] ? String(+m[3]).padStart(2, '0') : '01'}`
+    } else if (/^\d{4}$/.test(d)) {
+      form.deliveryDate = `${d}-01-01`
+    } else {
+      form.deliveryDate = ''
+    }
+  }
   
   // 如果 AI 识别到了图片 URL，自动填入封面图
   if (aiResult.value.imageUrls?.length > 0 && !form.coverImage) {

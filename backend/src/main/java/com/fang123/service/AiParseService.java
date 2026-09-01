@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Slf4j
@@ -349,7 +350,61 @@ public class AiParseService {
         if (content.endsWith("```")) content = content.substring(0, content.length() - 3);
         content = content.trim();
 
-        return objectMapper.readValue(content, ParsedFields.class);
+        // 先读成 Map，对数字字段做宽松清洗（AI 可能返回带单位/文字），再转换，避免反序列化报错
+        @SuppressWarnings("unchecked")
+        Map<String, Object> respMap = objectMapper.readValue(content, Map.class);
+        normalizeLoupanFields(respMap);
+        return objectMapper.convertValue(respMap, ParsedFields.class);
+    }
+
+    // ============ 楼盘字段类型归一化 ============
+
+    private static final List<String> INT_FIELDS = List.of(
+            "avgUnitPrice", "areaMin", "areaMax", "houseTotal", "buildingTotal", "propertyRightYear",
+            "minTotalPrice", "maxTotalPrice", "landUnitPrice", "parkTotal", "parkSellNum",
+            "floorMin", "floorMax", "houseType", "decorateType");
+    private static final List<String> LONG_FIELDS = List.of("buildArea", "landArea", "landPrice");
+    private static final List<String> DECIMAL_FIELDS = List.of(
+            "greenRate", "plotRatio", "propertyFeeHigh", "propertyFeeVilla", "selfHoldRate",
+            "floorHeightMin", "floorHeightMax", "longitude", "latitude");
+
+    /** 归一化 AI 返回的楼盘字段：数字字段去除单位/文字，枚举字段中文映射为数字 */
+    private void normalizeLoupanFields(Map<String, Object> map) {
+        if (map.get("houseType") instanceof String hs) {
+            map.put("houseType", switch (hs) {
+                case "住宅" -> 1; case "公寓" -> 2; case "商铺" -> 3; case "别墅" -> 4; default -> null;
+            });
+        }
+        if (map.get("decorateType") instanceof String ds) {
+            map.put("decorateType", switch (ds) {
+                case "精装" -> 1; case "毛坯" -> 2; case "简装" -> 3; default -> null;
+            });
+        }
+        for (String key : INT_FIELDS) map.put(key, toInteger(map.get(key)));
+        for (String key : LONG_FIELDS) map.put(key, toLong(map.get(key)));
+        for (String key : DECIMAL_FIELDS) map.put(key, toDecimal(map.get(key)));
+    }
+
+    /** 提取纯数字（保留小数点/负号），转 Integer（有小数四舍五入） */
+    private Integer toInteger(Object v) {
+        if (v == null) return null;
+        String s = String.valueOf(v).replaceAll("[^0-9.\\-]", "").trim();
+        if (s.isEmpty() || "-".equals(s) || ".".equals(s)) return null;
+        try { return (int) Math.round(Double.parseDouble(s)); } catch (NumberFormatException e) { return null; }
+    }
+
+    private Long toLong(Object v) {
+        if (v == null) return null;
+        String s = String.valueOf(v).replaceAll("[^0-9.\\-]", "").trim();
+        if (s.isEmpty() || "-".equals(s) || ".".equals(s)) return null;
+        try { return Math.round(Double.parseDouble(s)); } catch (NumberFormatException e) { return null; }
+    }
+
+    private BigDecimal toDecimal(Object v) {
+        if (v == null) return null;
+        String s = String.valueOf(v).replaceAll("[^0-9.\\-]", "").trim();
+        if (s.isEmpty() || "-".equals(s) || ".".equals(s)) return null;
+        try { return new BigDecimal(s); } catch (NumberFormatException e) { return null; }
     }
 
     // ============ 土拍地块 AI 解析 ============

@@ -2,6 +2,8 @@ package com.fang123.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fang123.util.LenientLocalDateDeserializer;
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -38,6 +40,7 @@ public class Loupan implements Serializable {
     private String salesTel;
     private String projectAddress;
     private String showHouseDesc;
+    @JsonDeserialize(using = LenientLocalDateDeserializer.class)
     private LocalDate deliveryDate;
     private BigDecimal floorHeightMin;
     private BigDecimal floorHeightMax;
@@ -68,6 +71,7 @@ public class Loupan implements Serializable {
     private String brandList;
     private Long landPrice;
     private Integer landUnitPrice;
+    @JsonDeserialize(using = LenientLocalDateDeserializer.class)
     private LocalDate landBuyDate;
     private String eduSupport;
     private String trafficSupport;
