@@ -3,6 +3,7 @@
     <div class="mb-6 flex items-center justify-between">
       <div><h1 class="text-2xl font-bold">媒体素材</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘图片/视频/VR素材</p></div>
       <div class="flex gap-2">
+        <t-button theme="primary" variant="outline" @click="openVideoCreate"><Video class="w-4 h-4 mr-1" />新建视频素材</t-button>
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建素材</t-button>
         <t-button theme="primary" variant="outline" @click="openBatch"><Layers class="w-4 h-4 mr-1" />批量新建素材</t-button>
       </div>
@@ -35,12 +36,12 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑素材':'新建素材'" size="450px" :footer="false">
+    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑素材':(isVideoCreate?'新建视频素材':'新建素材')" size="450px" :footer="false">
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="关联户型ID(可选)"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <t-form-item label="素材类型">
-          <t-select v-model="form.mediaType" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
+          <t-select v-model="form.mediaType" :disabled="isVideoCreate" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
         </t-form-item>
         <t-form-item label="素材URL">
           <div class="flex flex-col gap-2 w-full">
@@ -50,7 +51,7 @@
                   v-model="uploadFiles"
                   :request-method="uploadRequest"
                   :max="1"
-                  accept="image/*,video/*"
+                  :accept="isVideoCreate ? 'video/*' : 'image/*,video/*'"
                   theme="file"
                   @success="onUploadSuccess"
                   @fail="onUploadFail"
@@ -111,10 +112,11 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Image, Layers, Upload } from 'lucide-vue-next'
+import { Plus, Search, Image, Layers, Upload, Video } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
+const isVideoCreate = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 const uploadFiles = ref([])
@@ -227,8 +229,9 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;isVideoCreate.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
+function openVideoCreate(){isEdit.value=false;isVideoCreate.value=true;editId.value=null;Object.assign(form,initForm(),{mediaType:5});drawer.value=true}
+function openEdit(row){isEdit.value=true;isVideoCreate.value=false;editId.value=row.id;Object.assign(form,row);drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/medias/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/medias',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
