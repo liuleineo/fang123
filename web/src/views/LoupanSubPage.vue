@@ -222,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins } from 'lucide-vue-next'
 import request from '@/utils/request'
@@ -395,12 +395,27 @@ function previewMedia(items, current) {
   viewerVisible.value = true
 }
 
-onMounted(async () => {
-  fetchDetail()
+/** 按当前子页面类型加载数据（先清空旧数据避免残留） */
+function loadCurrent() {
+  loupan.value = null
+  medias.value = []
+  huxings.value = []
+  yfyjList.value = []
+  dynamics.value = []
+  realDeals.value = []
+  plateDeals.value = []
+  plateName.value = ''
+  yfyjBuilding.value = ''
   if (subType.value === 'media') fetchMedias()
   else if (subType.value === 'huxing') fetchHuxings()
   else if (subType.value === 'yfyj') fetchYfyj()
   else if (subType.value === 'dynamic') fetchDynamics()
   else if (subType.value === 'real-deal') { fetchRealDeals(); fetchPlateDeals() }
-})
+}
+
+// 监听路由变化（首次进入 immediate + 子页面/楼盘切换时重新加载），避免 SPA 内切换组件复用导致空白
+watch([id, subType], () => {
+  fetchDetail()
+  loadCurrent()
+}, { immediate: true })
 </script>
