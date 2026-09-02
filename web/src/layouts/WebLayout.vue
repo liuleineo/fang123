@@ -117,9 +117,9 @@
     <!-- 主内容 -->
     <main class="flex-1 pt-[var(--header-height)]">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </transition>
+        <!-- key=路由全路径：强制重建组件实例，避免复用导致数据不刷新。
+             注意：不用 <transition mode="out-in">——多根组件（如楼盘详情页 v-if/v-else）在过渡卸载时会挂起，导致切换后页面空白 -->
+        <component :is="Component" :key="route.fullPath" />
       </router-view>
     </main>
 
@@ -166,11 +166,12 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { Menu, X, User, LogOut } from 'lucide-vue-next'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const mobileMenuOpen = ref(false)
 const loggedIn = ref(!!localStorage.getItem('token'))
 
