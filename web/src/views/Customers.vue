@@ -76,6 +76,12 @@
     <!-- 右下角操作按钮组 -->
     <div class="fixed right-6 bottom-16 z-30 flex flex-col items-end gap-2">
       <button
+        @click="searchVisible = true"
+        class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-emerald-500 text-white text-sm font-medium shadow-lg hover:bg-emerald-600 hover:shadow-xl transition-all"
+      >
+        <Search class="w-4 h-4" /><span class="hidden md:inline">搜索</span>
+      </button>
+      <button
         @click="openExcelImport"
         class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-orange-500 text-white text-sm font-medium shadow-lg hover:bg-orange-600 hover:shadow-xl transition-all"
       >
@@ -145,6 +151,42 @@
         </t-form-item>
         <t-form-item label="备注"><t-textarea v-model="editForm.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
       </t-form>
+    </t-dialog>
+
+    <!-- 搜索筛选弹窗 -->
+    <t-dialog v-model:visible="searchVisible" header="筛选客户" width="360px" :footer="false">
+      <div class="space-y-4">
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">客户姓名/手机号</p>
+          <t-input v-model="keywordFilter" placeholder="输入姓名或手机号搜索" clearable @enter="applySearch" @clear="applySearch">
+            <template #prefix-icon><Search class="w-4 h-4" /></template>
+          </t-input>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">购房意向</p>
+          <div class="flex gap-2 flex-wrap">
+            <button v-for="opt in intentionOptions" :key="opt.value" type="button" @click="intentionFilter = opt.value"
+              :class="['px-3.5 py-2 rounded-full text-sm font-medium border-0 outline-none transition-colors',
+                intentionFilter === opt.value ? 'bg-[var(--color-primary)] text-white shadow' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">排序方式</p>
+          <div class="flex gap-2 flex-wrap">
+            <button v-for="opt in sortOptions" :key="opt.value" type="button" @click="sortOption = opt.value"
+              :class="['px-3.5 py-2 rounded-full text-sm font-medium border-0 outline-none transition-colors',
+                sortOption === opt.value ? 'bg-[var(--color-primary)] text-white shadow' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <t-button variant="outline" class="flex-1" @click="resetSearch">重置</t-button>
+          <t-button theme="primary" class="flex-1" @click="applySearch">确定</t-button>
+        </div>
+      </div>
     </t-dialog>
 
     <!-- Excel 批量导入客户弹窗 -->
@@ -262,7 +304,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Phone, UsersRound, User as UserIcon, MessageSquare, Share2, Image as ImageIcon, Sparkles, FileSpreadsheet, Camera } from 'lucide-vue-next'
+import { Plus, Phone, UsersRound, User as UserIcon, MessageSquare, Share2, Image as ImageIcon, Sparkles, FileSpreadsheet, Camera, Search } from 'lucide-vue-next'
 import request from '@/utils/request'
 import { copyText } from '@/utils/clipboard'
 
@@ -273,6 +315,23 @@ const list = ref([])
 const loading = ref(false)
 const total = ref(0)
 const pg = reactive({ current: 1, pageSize: 10 })
+
+// ===== 搜索筛选 =====
+const searchVisible = ref(false)
+const keywordFilter = ref('')
+const intentionFilter = ref('')
+const sortOption = ref('default')
+const intentionOptions = [
+  { label: '不限', value: '' },
+  { label: '高', value: '高' },
+  { label: '中', value: '中' },
+  { label: '低', value: '低' }
+]
+const sortOptions = [
+  { label: '最新添加', value: 'default' },
+  { label: '跟进时间新→旧', value: 'follow_desc' },
+  { label: '跟进时间旧→新', value: 'follow_asc' }
+]
 
 const form = reactive({ name: '', phone: '', intention: '', remark: '' })
 const createVisible = ref(false)
@@ -403,10 +462,33 @@ const aiCopy = ref('')
 async function fetchData() {
   loading.value = true
   try {
-    const r = await request.get('/user/customers', { params: { page: pg.current, size: pg.pageSize } })
+    const params = { page: pg.current, size: pg.pageSize }
+    if (keywordFilter.value.trim()) params.keyword = keywordFilter.value.trim()
+    if (intentionFilter.value) params.intention = intentionFilter.value
+    if (sortOption.value !== 'default') {
+      params.sortField = 'lastFollowUpTime'
+      params.sortOrder = sortOption.value === 'follow_asc' ? 'asc' : 'desc'
+    }
+    const r = await request.get('/user/customers', { params })
     list.value = r?.records || []
     total.value = r?.total || 0
   } catch { router.push('/login') } finally { loading.value = false }
+}
+
+/** 应用筛选：回到第 1 页并刷新 */
+function applySearch() {
+  searchVisible.value = false
+  pg.current = 1
+  fetchData()
+}
+/** 重置筛选 */
+function resetSearch() {
+  keywordFilter.value = ''
+  intentionFilter.value = ''
+  sortOption.value = 'default'
+  searchVisible.value = false
+  pg.current = 1
+  fetchData()
 }
 
 /** 切换每页条数：回到第 1 页并刷新 */

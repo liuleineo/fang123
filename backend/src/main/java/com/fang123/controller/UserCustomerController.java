@@ -51,7 +51,11 @@ public class UserCustomerController {
     public Result<Page<Customer>> list(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String intention,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortOrder) {
         Long userId = getUserId(authHeader);
         // 被分享给我的客户 id
         List<Long> sharedIds = customerShareService.list(
@@ -65,7 +69,23 @@ public class UserCustomerController {
             w.and(wr -> wr.eq(Customer::getUserId, userId)
                     .or().in(Customer::getId, sharedIds));
         }
-        w.orderByDesc(Customer::getCreatedAt);
+        // 姓名/手机号关键词
+        if (StringUtils.hasText(keyword)) {
+            w.and(wr -> wr.like(Customer::getName, keyword)
+                    .or().like(Customer::getPhone, keyword));
+        }
+        // 意向筛选
+        if (StringUtils.hasText(intention)) {
+            w.eq(Customer::getIntention, intention);
+        }
+        // 排序：按最后跟进时间（无跟进记录的排最后）或默认按创建时间倒序
+        if ("lastFollowUpTime".equals(sortField)) {
+            String order = "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+            String sub = "(SELECT MAX(fu.follow_up_time) FROM follow_ups fu WHERE fu.customer_id = customers.id)";
+            w.last("ORDER BY (" + sub + " IS NULL) ASC, " + sub + " " + order);
+        } else {
+            w.orderByDesc(Customer::getCreatedAt);
+        }
         Page<Customer> result = customerService.page(new Page<>(page, size), w);
         fillLastFollowUp(result.getRecords());
         fillShareDesc(result.getRecords(), userId);
