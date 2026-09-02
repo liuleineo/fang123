@@ -84,22 +84,37 @@
 
         </div>
 
-        <!-- 快捷入口按钮：图库 / 户型 / 一房一价 -->
+        <!-- 快捷入口按钮：图库 / 户型 / 一房一价（移动端图标文字上下居中，PC 横向） -->
         <div class="flex gap-2 flex-wrap mt-6 pt-5 border-t border-gray-50">
-          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/media`)">
-            <Images class="w-4 h-4 mr-1" />图库
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/media`)">
+            <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
+              <Images class="w-5 h-5 sm:w-4 sm:h-4" />
+              <span class="text-xs leading-none sm:text-sm">图库</span>
+            </span>
           </t-button>
-          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/huxing`)">
-            <LayoutGrid class="w-4 h-4 mr-1" />户型
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/huxing`)">
+            <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
+              <LayoutGrid class="w-5 h-5 sm:w-4 sm:h-4" />
+              <span class="text-xs leading-none sm:text-sm">户型</span>
+            </span>
           </t-button>
-          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/yfyj`)">
-            <BadgeCent class="w-4 h-4 mr-1" />一房一价
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/yfyj`)">
+            <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
+              <BadgeCent class="w-5 h-5 sm:w-4 sm:h-4" />
+              <span class="text-xs leading-none sm:text-sm">一房一价</span>
+            </span>
           </t-button>
-          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/dynamic`)">
-            <Newspaper class="w-4 h-4 mr-1" />楼盘动态
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/dynamic`)">
+            <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
+              <Newspaper class="w-5 h-5 sm:w-4 sm:h-4" />
+              <span class="text-xs leading-none sm:text-sm">楼盘动态</span>
+            </span>
           </t-button>
-          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none" @click="$router.push(`/loupan/${route.params.id}/real-deal`)">
-            <HandCoins class="w-4 h-4 mr-1" />真实成交
+          <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/real-deal`)">
+            <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
+              <HandCoins class="w-5 h-5 sm:w-4 sm:h-4" />
+              <span class="text-xs leading-none sm:text-sm">真实成交</span>
+            </span>
           </t-button>
         </div>
       </div>
