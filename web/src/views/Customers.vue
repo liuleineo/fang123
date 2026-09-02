@@ -68,7 +68,7 @@
         </div>
 
         <div v-if="total > pg.pageSize" class="flex justify-center mt-8">
-          <t-pagination v-model:current="pg.current" :total="total" :page-size="pg.pageSize" size="small" @change="fetchData" />
+          <t-pagination v-model:current="pg.current" v-model:page-size="pg.pageSize" :total="total" size="small" @current-change="fetchData" @page-size-change="onPageSizeChange" />
         </div>
       </div>
     </section>
@@ -407,6 +407,12 @@ async function fetchData() {
     list.value = r?.records || []
     total.value = r?.total || 0
   } catch { router.push('/login') } finally { loading.value = false }
+}
+
+/** 切换每页条数：回到第 1 页并刷新 */
+function onPageSizeChange() {
+  pg.current = 1
+  fetchData()
 }
 
 function openCreate() {

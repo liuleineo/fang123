@@ -128,23 +128,22 @@
       <div class="section-container">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h4 class="text-white font-medium mb-4 text-sm">热门区域</h4>
+            <h4 class="text-white font-medium mb-4 text-sm">找房工具</h4>
             <ul class="space-y-2">
              
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">城东新城</a></li>
-             
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">未科</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">世纪城</a></li>
+              <li><a href="/map" class="text-sm text-white/50 hover:text-white transition-colors">地图找房</a></li>
+              <li><a href="/school-map" class="text-sm text-white/50 hover:text-white transition-colors">学区地图</a></li>
+              <li><a href="/tupai-map" class="text-sm text-white/50 hover:text-white transition-colors">土拍地图</a></li>
               
             </ul>
           </div>
 
           <div>
-            <h4 class="text-white font-medium mb-4 text-sm">热门小区</h4>
+            <h4 class="text-white font-medium mb-4 text-sm">行情信息</h4>
             <ul class="space-y-2">
              
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">未科</a></li>
-              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">世纪城</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">真实成交</a></li>
+              <li><a href="/" class="text-sm text-white/50 hover:text-white transition-colors">成交行情</a></li>
               
             </ul>
           </div>
