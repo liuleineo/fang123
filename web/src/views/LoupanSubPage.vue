@@ -174,6 +174,42 @@
               </tbody>
             </table>
           </div>
+
+          <!-- 同板块真实成交（最近30条） -->
+          <div v-if="plateLoaded" class="mt-8">
+            <div v-if="plateName" class="flex items-center gap-2 mb-3">
+              <h2 class="text-lg font-bold text-[var(--color-text-primary)]">同板块真实成交</h2>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-blue-50 text-[var(--color-primary)]">{{ plateName }}</span>
+              <span v-if="plateDeals.length" class="text-xs text-[var(--color-text-tertiary)]">最近 {{ plateDeals.length }} 条</span>
+            </div>
+            <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块其他楼盘成交信息</div>
+            <div v-else-if="plateDeals.length" class="overflow-x-auto bg-white rounded-xl border border-gray-100">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
+                    <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
+                    <th class="p-3 font-medium whitespace-nowrap">小区</th>
+                    <th class="p-3 font-medium whitespace-nowrap">房号</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right">成交单价</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right">成交总价(万)</th>
+                    <th class="p-3 font-medium whitespace-nowrap">备注</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="r in plateDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
+                    <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
+                    <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
+                    <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
+                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
+                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
+                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
+                    <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </template>
       </div>
     </section>
@@ -201,6 +237,9 @@ const mediaLoading = ref(false)
 const yfyjLoading = ref(false)
 const dynamicLoading = ref(false)
 const realDealLoading = ref(false)
+const plateDeals = ref([])
+const plateName = ref('')
+const plateLoaded = ref(false)
 const yfyjBuilding = ref('')
 
 const typeMap = { 1: '建设动态', 2: '销售动态', 3: '优惠动态' }
@@ -320,6 +359,19 @@ async function fetchRealDeals() {
   } catch {} finally { realDealLoading.value = false }
 }
 
+/** 同板块真实成交（最近30条，不含本楼盘） */
+async function fetchPlateDeals() {
+  plateLoaded.value = false
+  try {
+    const res = await request.get(`/public/loupans/${id.value}/real-deals/plate`) || {}
+    plateName.value = res?.plate || ''
+    plateDeals.value = res?.records || []
+  } catch {
+    plateName.value = ''
+    plateDeals.value = []
+  } finally { plateLoaded.value = true }
+}
+
 function fmt(t) { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 // ===== 图片全屏预览 =====
@@ -347,6 +399,6 @@ onMounted(async () => {
   else if (subType.value === 'huxing') fetchHuxings()
   else if (subType.value === 'yfyj') fetchYfyj()
   else if (subType.value === 'dynamic') fetchDynamics()
-  else if (subType.value === 'real-deal') fetchRealDeals()
+  else if (subType.value === 'real-deal') { fetchRealDeals(); fetchPlateDeals() }
 })
 </script>

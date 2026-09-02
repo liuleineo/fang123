@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -70,6 +71,16 @@ public class GlobalExceptionHandler {
     public Result<Void> handleBusiness(BusinessException e) {
         log.warn("业务异常: code={}, msg={}", e.getCode(), e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
+    }
+
+    /**
+     * 上传文件过大
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("上传文件过大: {}", e.getMessage());
+        return Result.badRequest("上传文件过大，请压缩后重试（单个文件建议不超过 100MB）");
     }
 
     /**

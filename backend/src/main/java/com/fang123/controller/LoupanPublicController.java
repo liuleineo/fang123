@@ -167,6 +167,46 @@ public class LoupanPublicController {
         return Result.success(realDealService.list(w));
     }
 
+    /** 公开-同板块真实成交（最近30条，不含本楼盘） */
+    @GetMapping("/api/public/loupans/{encodedId}/real-deals/plate")
+    public Result<Map<String, Object>> plateRealDeals(@PathVariable String encodedId) {
+        Long id = IdObfuscator.decode(encodedId);
+        // 定位板块：优先取本楼盘成交记录中的板块，其次回退到楼盘表 plate 字段
+        String plate = null;
+        RealDealInfo sample = realDealService.getOne(new LambdaQueryWrapper<RealDealInfo>()
+                .eq(RealDealInfo::getLoupanId, id)
+                .eq(RealDealInfo::getDeleted, 0)
+                .isNotNull(RealDealInfo::getPlate)
+                .ne(RealDealInfo::getPlate, "")
+                .orderByDesc(RealDealInfo::getDealDate)
+                .orderByDesc(RealDealInfo::getId)
+                .last("LIMIT 1"));
+        if (sample != null) plate = sample.getPlate();
+        if (!StringUtils.hasText(plate)) {
+            Loupan lp = loupanService.getById(id);
+            if (lp != null) plate = lp.getPlate();
+        }
+
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("plate", plate == null ? "" : plate);
+        if (!StringUtils.hasText(plate)) {
+            result.put("records", List.of());
+            return Result.success(result);
+        }
+        LambdaQueryWrapper<RealDealInfo> w = new LambdaQueryWrapper<>();
+        w.eq(RealDealInfo::getPlate, plate)
+         .eq(RealDealInfo::getDeleted, 0)
+         // 排除本楼盘成交，保留同板块其他楼盘及未关联楼盘的成交记录
+         .and(q -> q.ne(RealDealInfo::getLoupanId, id).or().isNull(RealDealInfo::getLoupanId))
+         .isNotNull(RealDealInfo::getCommunityName)
+         .ne(RealDealInfo::getCommunityName, "")
+         .orderByDesc(RealDealInfo::getDealDate)
+         .orderByDesc(RealDealInfo::getId)
+         .last("LIMIT 30");
+        result.put("records", realDealService.list(w));
+        return Result.success(result);
+    }
+
     /** 公开-土拍地块列表（精简字段） */
     @GetMapping("/api/public/tupai-lands")
     public Result<List<TupaiLandPublicVO>> tupaiList(
