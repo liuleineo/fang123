@@ -194,6 +194,7 @@
                     <th class="p-3 font-medium whitespace-nowrap text-right">成交单价</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right">成交总价(万)</th>
                     <th class="p-3 font-medium whitespace-nowrap">备注</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,6 +206,7 @@
                     <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
                     <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                    <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
                   </tr>
                 </tbody>
               </table>
