@@ -120,9 +120,26 @@
       </div>
     </section>
 
-    <!-- 内容区：从上到下 位置 / 户型 / 开盘信息 / 楼盘信息 / 周边配套 -->
+    <!-- 内容区：从上到下 相册 / 位置 / 户型 / 开盘信息 / 楼盘信息 / 周边配套 -->
     <section class="py-6 bg-[#F8FAFE] min-h-[60vh]">
       <div class="section-container space-y-6">
+
+        <!-- 0. 楼盘相册（最多6张，点击更多进入图库） -->
+        <div v-if="albumPhotos.length" class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+              <Images class="w-5 h-5 text-[var(--color-primary)]" />楼盘相册
+            </h2>
+            <button @click="$router.push(`/loupan/${route.params.id}/media`)" class="text-sm text-[var(--color-primary)] flex items-center gap-0.5 hover:opacity-80 transition-opacity">
+              更多<ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <img v-for="(u,i) in albumPhotos" :key="i" :src="u" loading="lazy"
+                 class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                 @click="previewAlbum(i)" />
+          </div>
+        </div>
 
         <!-- 1. 楼盘位置 -->
         <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
@@ -317,12 +334,15 @@
   <div v-else class="flex justify-center py-40">
     <t-loading size="large" text="加载中..." />
   </div>
+
+  <!-- 图片全屏预览 -->
+  <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { Info, Building2, Shield, Car, Sparkles, MapPin, Paintbrush, Eye, Images, LayoutGrid, BadgeCent, FileText, Newspaper, HandCoins } from 'lucide-vue-next'
+import { Info, Building2, Shield, Car, Sparkles, MapPin, Paintbrush, Eye, Images, LayoutGrid, BadgeCent, FileText, Newspaper, HandCoins, ChevronRight } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -331,6 +351,10 @@ const huxings = ref([])
 const presaleList = ref([])
 const huxingLoading = ref(false)
 const presaleLoading = ref(false)
+const albumPhotos = ref([])
+const viewerVisible = ref(false)
+const viewerImages = ref([])
+const viewerIndex = ref(0)
 let amapInstance = null
 
 function fmtNum(n) {
@@ -360,6 +384,23 @@ async function fetchPresale() {
   } catch {} finally { presaleLoading.value = false }
 }
 
+/** 楼盘相册：取图片类素材前 6 张（过滤短视频/VR） */
+async function fetchAlbums() {
+  try {
+    const list = await request.get(`/public/loupans/${route.params.id}/medias`) || []
+    const pics = list
+      .filter(m => m.mediaUrl && m.mediaType !== 5 && m.mediaType !== 6)
+      .map(m => m.mediaUrl)
+    albumPhotos.value = pics.slice(0, 6)
+  } catch {}
+}
+
+function previewAlbum(i) {
+  viewerImages.value = albumPhotos.value
+  viewerIndex.value = i
+  viewerVisible.value = true
+}
+
 // 高德地图初始化
 async function initMap() {
   if (amapInstance || !loupan.value?.longitude || !loupan.value?.latitude) return
@@ -386,6 +427,7 @@ onMounted(async () => {
   await fetchDetail()
   fetchHuxings()
   fetchPresale()
+  fetchAlbums()
   initMap()
 })
 
