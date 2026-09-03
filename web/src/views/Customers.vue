@@ -7,18 +7,22 @@
           <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 位</span>
         </div>
 
-        <!-- 筛选栏：搜索名字通栏 / 意向 / 排序（移动端两行，PC 单行） -->
+        <!-- 筛选栏：移动端第一行=搜索+意向，第二行=排序；PC 单行 -->
         <div class="bg-white rounded-[4px] border border-gray-100 px-2.5 py-2 mb-3 md:flex md:items-center md:gap-2">
-          <t-input v-model="keywordFilter" placeholder="搜索名字/需求/跟进" clearable size="small" class="w-full md:w-40 mb-2 md:mb-0 md:flex-shrink-0" @enter="quickReload" @clear="quickReload">
-            <template #prefix-icon><Search class="w-3.5 h-3.5" /></template>
-          </t-input>
-          <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap md:flex-shrink-0">
+          <!-- 第一行（移动端）：搜索框 + 意向 -->
+          <div class="flex items-center gap-2 mb-2 md:mb-0 md:contents">
+            <t-input v-model="keywordFilter" placeholder="搜索名字/需求/跟进" clearable size="small" class="flex-1 min-w-0 md:flex-none md:w-40 md:flex-shrink-0" @enter="quickReload" @clear="quickReload">
+              <template #prefix-icon><Search class="w-3.5 h-3.5" /></template>
+            </t-input>
             <div class="flex items-center gap-1 flex-shrink-0">
               <button v-for="opt in intentionOptions" :key="opt.value" type="button"
                 @click="intentionFilter = opt.value; quickReload()"
                 :class="['px-2.5 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors flex-shrink-0',
                   intentionFilter === opt.value ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">{{ opt.label }}</button>
             </div>
+          </div>
+          <!-- 第二行（移动端）：排序 -->
+          <div class="flex items-center gap-1 overflow-x-auto whitespace-nowrap md:contents">
             <div class="flex items-center gap-1 flex-shrink-0">
               <button v-for="opt in sortOptions" :key="opt.value" type="button"
                 @click="sortOption = opt.value; quickReload()"
