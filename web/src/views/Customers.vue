@@ -1,10 +1,31 @@
 <template>
   <div class="customers-page">
-    <section class="py-6 bg-[#F8FAFE] min-h-[60vh]">
+    <section class="py-3 md:py-6 bg-[#F8FAFE] min-h-[60vh]">
       <div class="section-container">
-        <div class="flex items-center justify-between mb-4">
-          <h1 class="text-xl font-bold text-[var(--color-text-primary)]">我的客户</h1>
+        <div class="flex items-center justify-between mb-3 md:mb-4">
+          <h1 class="text-lg md:text-xl font-bold text-[var(--color-text-primary)]">我的客户</h1>
           <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 位</span>
+        </div>
+
+        <!-- 筛选栏：搜索名字通栏 / 意向 / 排序（移动端两行，PC 单行） -->
+        <div class="bg-white rounded-[4px] border border-gray-100 px-2.5 py-2 mb-3 md:flex md:items-center md:gap-2">
+          <t-input v-model="keywordFilter" placeholder="搜索名字/需求/跟进" clearable size="small" class="w-full md:w-40 mb-2 md:mb-0 md:flex-shrink-0" @enter="quickReload" @clear="quickReload">
+            <template #prefix-icon><Search class="w-3.5 h-3.5" /></template>
+          </t-input>
+          <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap md:flex-shrink-0">
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button v-for="opt in intentionOptions" :key="opt.value" type="button"
+                @click="intentionFilter = opt.value; quickReload()"
+                :class="['px-2.5 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors flex-shrink-0',
+                  intentionFilter === opt.value ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">{{ opt.label }}</button>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button v-for="opt in sortOptions" :key="opt.value" type="button"
+                @click="sortOption = opt.value; quickReload()"
+                :class="['px-2.5 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors flex-shrink-0',
+                  sortOption === opt.value ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">{{ opt.label }}</button>
+            </div>
+          </div>
         </div>
 
         <div v-if="loading" class="flex justify-center py-20"><t-loading size="large" text="加载中..." /></div>
@@ -13,11 +34,11 @@
           <p class="text-[var(--color-text-tertiary)]">暂无客户，点击右下角"+"录入客户</p>
         </div>
         <div v-else class="space-y-2 md:space-y-3">
-          <div v-for="c in list" :key="c.id" class="bg-white rounded-2xl border border-gray-100 p-3 md:p-4 hover:shadow-md transition-all">
+          <div v-for="c in list" :key="c.id" class="bg-white rounded-[4px] border border-gray-100 p-2.5 md:p-4 hover:shadow-md transition-all">
             <!-- 三栏：头像 / 信息 / 操作按钮 -->
             <div class="flex items-center gap-2.5 md:gap-3">
               <!-- 左栏：头像（点击编辑） -->
-              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full flex-shrink-0 cursor-pointer overflow-hidden" @click="openEdit(c)" title="点击编辑客户">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-[4px] flex-shrink-0 cursor-pointer overflow-hidden" @click="openEdit(c)" title="点击编辑客户">
                 <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e=>e.target.style.display='none'" />
                 <div v-else class="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
                   <UserIcon class="w-5 h-5 md:w-6 md:h-6 text-[var(--color-primary)]" />
@@ -76,12 +97,6 @@
     <!-- 右下角操作按钮组 -->
     <div class="fixed right-6 bottom-16 z-30 flex flex-col items-end gap-2">
       <button
-        @click="searchVisible = true"
-        class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-emerald-500 text-white text-sm font-medium shadow-lg hover:bg-emerald-600 hover:shadow-xl transition-all"
-      >
-        <Search class="w-4 h-4" /><span class="hidden md:inline">搜索</span>
-      </button>
-      <button
         @click="openExcelImport"
         class="flex items-center gap-1.5 px-3.5 md:px-4 py-3 rounded-full border-0 outline-none bg-orange-500 text-white text-sm font-medium shadow-lg hover:bg-orange-600 hover:shadow-xl transition-all"
       >
@@ -132,8 +147,8 @@
     <t-dialog v-model:visible="editVisible" header="编辑客户" width="520px" :confirm-btn="{ content: '保存', loading: editSaving }" :cancel-btn="{}" @confirm="saveEditCustomer">
       <div class="flex flex-col items-center mb-4">
         <div class="relative">
-          <img v-if="editForm.photo" :src="editForm.photo" class="w-20 h-20 rounded-full object-cover border border-gray-100" @error="e=>e.target.style.display='none'" />
-          <div v-else class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+          <img v-if="editForm.photo" :src="editForm.photo" class="w-20 h-20 rounded-[4px] object-cover border border-gray-100" @error="e=>e.target.style.display='none'" />
+          <div v-else class="w-20 h-20 rounded-[4px] bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
             <UserIcon class="w-8 h-8 text-[var(--color-primary)]" />
           </div>
           <label class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center cursor-pointer shadow">
@@ -151,42 +166,6 @@
         </t-form-item>
         <t-form-item label="备注"><t-textarea v-model="editForm.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
       </t-form>
-    </t-dialog>
-
-    <!-- 搜索筛选弹窗 -->
-    <t-dialog v-model:visible="searchVisible" header="筛选客户" width="360px" :footer="false">
-      <div class="space-y-4">
-        <div>
-          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">客户姓名/手机号</p>
-          <t-input v-model="keywordFilter" placeholder="输入姓名或手机号搜索" clearable @enter="applySearch" @clear="applySearch">
-            <template #prefix-icon><Search class="w-4 h-4" /></template>
-          </t-input>
-        </div>
-        <div>
-          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">购房意向</p>
-          <div class="flex gap-2 flex-wrap">
-            <button v-for="opt in intentionOptions" :key="opt.value" type="button" @click="intentionFilter = opt.value"
-              :class="['px-3.5 py-2 rounded-full text-sm font-medium border-0 outline-none transition-colors',
-                intentionFilter === opt.value ? 'bg-[var(--color-primary)] text-white shadow' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <div>
-          <p class="text-sm font-medium text-[var(--color-text-primary)] mb-2">排序方式</p>
-          <div class="flex gap-2 flex-wrap">
-            <button v-for="opt in sortOptions" :key="opt.value" type="button" @click="sortOption = opt.value"
-              :class="['px-3.5 py-2 rounded-full text-sm font-medium border-0 outline-none transition-colors',
-                sortOption === opt.value ? 'bg-[var(--color-primary)] text-white shadow' : 'bg-gray-100 text-[var(--color-text-secondary)] hover:bg-gray-200']">
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <div class="flex gap-2 pt-1">
-          <t-button variant="outline" class="flex-1" @click="resetSearch">重置</t-button>
-          <t-button theme="primary" class="flex-1" @click="applySearch">确定</t-button>
-        </div>
-      </div>
     </t-dialog>
 
     <!-- Excel 批量导入客户弹窗 -->
@@ -316,8 +295,7 @@ const loading = ref(false)
 const total = ref(0)
 const pg = reactive({ current: 1, pageSize: 10 })
 
-// ===== 搜索筛选 =====
-const searchVisible = ref(false)
+// ===== 搜索筛选（列表上方单行筛选栏） =====
 const keywordFilter = ref('')
 const intentionFilter = ref('')
 const sortOption = ref('default')
@@ -328,9 +306,9 @@ const intentionOptions = [
   { label: '低', value: '低' }
 ]
 const sortOptions = [
-  { label: '最新添加', value: 'default' },
-  { label: '跟进时间新→旧', value: 'follow_desc' },
-  { label: '跟进时间旧→新', value: 'follow_asc' }
+  { label: '最新', value: 'default' },
+  { label: '跟进新→旧', value: 'follow_desc' },
+  { label: '跟进旧→新', value: 'follow_asc' }
 ]
 
 const form = reactive({ name: '', phone: '', intention: '', remark: '' })
@@ -475,18 +453,8 @@ async function fetchData() {
   } catch { router.push('/login') } finally { loading.value = false }
 }
 
-/** 应用筛选：回到第 1 页并刷新 */
-function applySearch() {
-  searchVisible.value = false
-  pg.current = 1
-  fetchData()
-}
-/** 重置筛选 */
-function resetSearch() {
-  keywordFilter.value = ''
-  intentionFilter.value = ''
-  sortOption.value = 'default'
-  searchVisible.value = false
+/** 筛选条件变化：回到第 1 页并刷新 */
+function quickReload() {
   pg.current = 1
   fetchData()
 }
@@ -650,3 +618,13 @@ onMounted(() => {
 })
 onUnmounted(() => window.removeEventListener('resize', onResize))
 </script>
+
+<style scoped>
+/* 移动端压缩容器水平边距，让客户列表内容显示更多 */
+@media (max-width: 767px) {
+  .section-container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+</style>

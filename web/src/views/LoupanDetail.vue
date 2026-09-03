@@ -121,11 +121,11 @@
     </section>
 
     <!-- 内容区：从上到下 相册 / 位置 / 户型 / 开盘信息 / 楼盘信息 / 周边配套 -->
-    <section class="py-6 bg-[#F8FAFE] min-h-[60vh]">
+    <section class="py-6 bg-[#FFF] min-h-[60vh]">
       <div class="section-container space-y-6">
 
         <!-- 0. 楼盘相册（最多6张，点击更多进入图库） -->
-        <div v-if="albumPhotos.length" class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div v-if="albumPhotos.length" class="">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
               <Images class="w-5 h-5 text-[var(--color-primary)]" />楼盘相册
@@ -142,7 +142,7 @@
         </div>
 
         <!-- 1. 楼盘位置 -->
-        <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div class="">
           <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
             <MapPin class="w-5 h-5 text-[var(--color-primary)]" />楼盘位置
           </h2>
@@ -151,7 +151,7 @@
         </div>
 
         <!-- 2. 户型信息（横滑展示前几个，完整见子页面） -->
-        <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div class="">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
               <Building2 class="w-5 h-5 text-[var(--color-primary)]" />户型信息
@@ -176,7 +176,7 @@
         </div>
 
         <!-- 3. 开盘信息 -->
-        <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div class="">
           <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
             <FileText class="w-5 h-5 text-[var(--color-primary)]" />开盘信息
           </h2>
@@ -205,7 +205,7 @@
         </div>
 
         <!-- 4. 楼盘信息 -->
-        <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div class="">
           <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-5 flex items-center gap-2">
             <Info class="w-5 h-5 text-[var(--color-primary)]" />楼盘信息
           </h2>
@@ -298,7 +298,7 @@
         </div>
 
         <!-- 5. 周边配套 -->
-        <div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+        <div class="">
           <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
             <Sparkles class="w-5 h-5 text-[var(--color-primary)]" />周边配套
           </h2>

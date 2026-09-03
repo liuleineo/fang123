@@ -69,10 +69,19 @@ public class UserCustomerController {
             w.and(wr -> wr.eq(Customer::getUserId, userId)
                     .or().in(Customer::getId, sharedIds));
         }
-        // 姓名/手机号关键词
+        // 关键词：姓名 / 手机号 / 需求备注 / 跟进记录内容
         if (StringUtils.hasText(keyword)) {
-            w.and(wr -> wr.like(Customer::getName, keyword)
-                    .or().like(Customer::getPhone, keyword));
+            List<Long> matchedIds = followUpService.list(
+                            new LambdaQueryWrapper<FollowUp>()
+                                    .like(FollowUp::getContent, keyword)
+                                    .select(FollowUp::getCustomerId))
+                    .stream().map(FollowUp::getCustomerId).distinct().toList();
+            w.and(wr -> {
+                wr.like(Customer::getName, keyword)
+                        .or().like(Customer::getPhone, keyword)
+                        .or().like(Customer::getRemark, keyword);
+                if (!matchedIds.isEmpty()) wr.or().in(Customer::getId, matchedIds);
+            });
         }
         // 意向筛选
         if (StringUtils.hasText(intention)) {
