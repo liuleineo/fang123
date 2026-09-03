@@ -85,7 +85,7 @@
         </div>
 
         <!-- 快捷入口按钮：图库 / 户型 / 一房一价（移动端图标文字上下居中，PC 横向） -->
-        <div class="flex gap-2 flex-wrap mt-6 pt-5 border-t border-gray-50">
+        <div class="flex gap-2 flex-wrap pt-5 pb-5 border-t border-gray-50">
           <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/media`)">
             <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
               <Images class="w-5 h-5 sm:w-4 sm:h-4" />
