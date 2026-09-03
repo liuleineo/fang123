@@ -1,0 +1,2 @@
+# 混淆规则文件（默认不启用混淆）
+-enable-property-obfuscation: false
