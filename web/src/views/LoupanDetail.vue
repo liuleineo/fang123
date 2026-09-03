@@ -336,7 +336,7 @@
   </div>
 
   <!-- 图片全屏预览 -->
-  <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
+  <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" v-model:index="viewerIndex" />
 </template>
 
 <script setup>
