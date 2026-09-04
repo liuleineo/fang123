@@ -124,7 +124,7 @@
             <t-form-item label="意向">
               <t-select v-model="form.intention" placeholder="选择意向" clearable :options="[{label:'高',value:'高'},{label:'中',value:'中'},{label:'低',value:'低'}]" />
             </t-form-item>
-            <t-form-item label="备注"><t-textarea v-model="form.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
+            <t-form-item label="需求备注"><t-textarea v-model="form.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
           </t-form>
         </t-tab-panel>
         <t-tab-panel value="ai" label="AI识别录入">
@@ -168,7 +168,7 @@
         <t-form-item label="意向">
           <t-select v-model="editForm.intention" placeholder="选择意向" clearable :options="[{label:'高',value:'高'},{label:'中',value:'中'},{label:'低',value:'低'}]" />
         </t-form-item>
-        <t-form-item label="备注"><t-textarea v-model="editForm.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
+        <t-form-item label="需求备注"><t-textarea v-model="editForm.remark" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="备注信息" /></t-form-item>
       </t-form>
     </t-dialog>
 
