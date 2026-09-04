@@ -187,11 +187,11 @@
               <span class="text-xs text-[var(--color-text-tertiary)]">按月平均单价（元/㎡）</span>
             </div>
             <!-- 无任何可统计月份 -->
-            <div v-if="!monthAvg.length" class="py-10 text-center text-sm text-[var(--color-text-tertiary)]">暂无足够数据绘制走势图</div>
+            <div v-if="priceTrend.mode === 'none'" class="py-10 text-center text-sm text-[var(--color-text-tertiary)]">暂无足够数据绘制走势图</div>
             <!-- 仅 1 个月数据：展示当月均价统计，不画折线 -->
-            <div v-else-if="monthAvg.length === 1" class="py-5 flex flex-col items-center">
-              <p class="text-xs text-[var(--color-text-tertiary)] mb-2">{{ monthAvg[0].month }} 月成交 {{ monthAvg[0].count }} 套，均价</p>
-              <p class="text-3xl font-bold text-[var(--color-primary)]">{{ monthAvg[0].avg.toLocaleString() }}<span class="text-sm font-normal text-[var(--color-text-tertiary)] ml-1">元/㎡</span></p>
+            <div v-else-if="priceTrend.mode === 'single'" class="py-5 flex flex-col items-center">
+              <p class="text-xs text-[var(--color-text-tertiary)] mb-2">{{ priceTrend.single.month }} 月成交 {{ priceTrend.single.count }} 套，均价</p>
+              <p class="text-3xl font-bold text-[var(--color-primary)]">{{ priceTrend.single.avg.toLocaleString() }}<span class="text-sm font-normal text-[var(--color-text-tertiary)] ml-1">元/㎡</span></p>
               <p class="text-xs text-[var(--color-text-tertiary)] mt-3">当前仅 1 个月成交数据，累计更多月份后自动展示走势曲线</p>
             </div>
             <!-- 2 个月及以上：折线图 -->
@@ -203,7 +203,7 @@
                   <text :x="CHART_PL - 8" :y="g.y + 3.5" text-anchor="end" font-size="11" fill="#9AA0A6">{{ g.val.toLocaleString() }}</text>
                 </g>
                 <!-- 面积填充 + 折线 -->
-                <polygon v-if="priceTrend.hasMulti" :points="priceTrend.areaPoints" fill="#0052D9" opacity="0.05" />
+                <polygon :points="priceTrend.areaPoints" fill="#0052D9" opacity="0.05" />
                 <polyline :points="priceTrend.linePoints" fill="none" stroke="#0052D9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
                 <!-- 数据点（悬浮显示月份与均价） -->
                 <g v-for="d in priceTrend.dots" :key="d.month">
@@ -441,9 +441,10 @@ const monthAvg = computed(() => {
     const key = `${m[1]}-${m[2].padStart(2, '0')}`
     const amount = Number(r.dealPrice) * 10000
     const area = Number(r.houseArea)
-    const e = map.get(key) || { amount: 0, area: 0 }
+    const e = map.get(key) || { amount: 0, area: 0, count: 0 }
     e.amount += amount
     e.area += area
+    e.count++
     map.set(key, e)
   }
   return [...map.entries()]
@@ -452,50 +453,61 @@ const monthAvg = computed(() => {
     .sort((a, b) => (a.month < b.month ? -1 : 1))
 })
 
-/** 生成折线图的坐标点 / 网格 / 刻度 */
+/**
+ * 走势图统一状态源：mode = none(无数据) / single(仅1个月) / multi(≥2个月)
+ * 模板只依据 priceTrend 一个 computed 分支，避免多 computed 状态撕裂导致渲染崩溃
+ */
 const priceTrend = computed(() => {
-  const pts = monthAvg.value
-  if (!pts.length) return null
-  const innerW = CHART_W - CHART_PL - CHART_PR
-  const innerH = CHART_H - CHART_PT - CHART_PB
-  const vs = pts.map(p => p.avg)
-  let minV = Math.min(...vs)
-  let maxV = Math.max(...vs)
-  if (minV === maxV) {
-    const pad = Math.max(Math.round(minV * 0.1), 1000)
-    minV = Math.max(0, minV - pad)
-    maxV += pad
-  } else {
-    const pad = (maxV - minV) * 0.12
-    maxV += pad
-    minV = Math.max(0, minV - pad)
-  }
-  const span = maxV - minV
-  const xAt = i => CHART_PL + (pts.length === 1 ? innerW / 2 : (i / (pts.length - 1)) * innerW)
-  const yAt = v => CHART_PT + ((maxV - v) / span) * innerH
-  const yBase = CHART_PT + innerH
-  const line = pts.map((p, i) => ({ x: xAt(i), y: yAt(p.avg), month: p.month }))
-  const dots = line.map(p => ({
-    ...p,
-    label: `${p.month.slice(2).replace('-', '/')}`,
-    title: `${p.month} 月均价 ${p.avg.toLocaleString()} 元/㎡`
-  }))
-  const grid = Array.from({ length: 5 }, (_, k) => ({
-    y: CHART_PT + innerH - (innerH * k) / 4,
-    val: Math.round(minV + (span * k) / 4)
-  }))
-  const maxTicks = 6
-  const n = pts.length
-  const tickIdxs = n <= maxTicks
-    ? pts.map((_, i) => i)
-    : [...new Set([0, ...[...Array(maxTicks - 2)].map((_, k) => Math.round(((n - 1) * (k + 1)) / (maxTicks - 1))), n - 1])]
-  return {
-    grid,
-    dots,
-    hasMulti: pts.length > 1,
-    linePoints: line.map(p => `${p.x},${p.y}`).join(' '),
-    areaPoints: `${line.map(p => `${p.x},${p.y}`).join(' ')} ${CHART_W - CHART_PR},${yBase} ${CHART_PL},${yBase}`,
-    ticks: tickIdxs.map(i => ({ x: line[i].x, label: dots[i].label }))
+  try {
+    const pts = monthAvg.value
+    if (!pts.length) return { mode: 'none' }
+    if (pts.length === 1) return { mode: 'single', single: pts[0] }
+    const innerW = CHART_W - CHART_PL - CHART_PR
+    const innerH = CHART_H - CHART_PT - CHART_PB
+    const vs = pts.map(p => p.avg)
+    let minV = Math.min(...vs)
+    let maxV = Math.max(...vs)
+    // 数值异常兜底，避免 NaN 污染坐标
+    if (!isFinite(minV) || !isFinite(maxV)) { minV = 0; maxV = 1 }
+    if (minV === maxV) {
+      const pad = Math.max(Math.round(minV * 0.1), 1000)
+      minV = Math.max(0, minV - pad)
+      maxV += pad
+    } else {
+      const pad = (maxV - minV) * 0.12
+      maxV += pad
+      minV = Math.max(0, minV - pad)
+    }
+    const span = maxV - minV || 1
+    const n = pts.length
+    const xAt = i => CHART_PL + (i / (n - 1)) * innerW
+    const yAt = v => CHART_PT + ((maxV - v) / span) * innerH
+    const yBase = CHART_PT + innerH
+    const line = pts.map((p, i) => ({ x: xAt(i), y: yAt(p.avg), month: p.month, avg: p.avg }))
+    const dots = line.map(p => ({
+      ...p,
+      label: p.month.slice(2).replace('-', '/'),
+      title: `${p.month} 月均价 ${p.avg.toLocaleString()} 元/㎡`
+    }))
+    const grid = Array.from({ length: 5 }, (_, k) => ({
+      y: CHART_PT + innerH - (innerH * k) / 4,
+      val: Math.round(minV + (span * k) / 4)
+    }))
+    const maxTicks = 6
+    const tickIdxs = n <= maxTicks
+      ? pts.map((_, i) => i)
+      : [...new Set([0, ...[...Array(maxTicks - 2)].map((_, k) => Math.round(((n - 1) * (k + 1)) / (maxTicks - 1))), n - 1])]
+    return {
+      mode: 'multi',
+      grid,
+      dots,
+      linePoints: line.map(p => `${p.x},${p.y}`).join(' '),
+      areaPoints: `${line.map(p => `${p.x},${p.y}`).join(' ')} ${CHART_W - CHART_PR},${yBase} ${CHART_PL},${yBase}`,
+      ticks: tickIdxs.map(i => ({ x: line[i].x, label: dots[i].label }))
+    }
+  } catch (e) {
+    console.error('成交均价走势计算失败:', e)
+    return { mode: 'none' }
   }
 })
 
