@@ -8,6 +8,11 @@
       </t-breadcrumb>
     </div>
 
+    <!-- 渲染错误提示（便于排查白屏/空页） -->
+    <div v-if="renderErr" class="mx-auto max-w-[1200px] px-4 mb-2 bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded">
+      页面渲染出错：{{ renderErr }}
+    </div>
+
     <!-- 标题 -->
     <section class="bg-white border-b border-gray-50">
       <div class="section-container py-5">
@@ -264,12 +269,19 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onErrorCaptured } from 'vue'
 import { useRoute } from 'vue-router'
 import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
+// 渲染错误捕获：出错时页面显示错误信息而非白屏，便于定位
+const renderErr = ref('')
+onErrorCaptured(e => {
+  renderErr.value = (e && e.message) ? e.message : String(e)
+  console.error('LoupanSubPage 渲染错误:', e)
+  return false
+})
 const loupan = ref(null)
 const huxings = ref([])
 const medias = ref([])
