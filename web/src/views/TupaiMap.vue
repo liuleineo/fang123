@@ -328,7 +328,7 @@ function startAnimation() {
     const m = markers.find(mk => mk._item && mk._item.id === item.id)
     if (m) {
       // 双层图标：红色在下层淡出的同时蓝色上层淡入，实现 红 → 品牌蓝 #0052D9 渐变
-      m.setContent(`<div class="anim-marker-icon"><img class="pin-red" src="${PIN_RED}" /><img class="pin-blue" src="${PIN_ICON}" /></div>`)
+      m.setContent(`<div class="tupai-marker">${m._labelHtml}<div class="anim-marker-icon"><img class="pin-red" src="${PIN_RED}" /><img class="pin-blue" src="${PIN_ICON}" /></div></div>`)
       m.setMap(mapInstance)
       activeId.value = item.id
     }
@@ -367,15 +367,15 @@ function addMarkers() {
   list.forEach(item => {
     if (!item.longitude || !item.latitude) return
     const pos = wgs84ToGcj02(item.longitude, item.latitude)
-    const labelContent = `<div style="background:#1677FF;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);border:none;outline:none">${item.landName||item.landNo}${item.dealDate?'（'+ym(item.dealDate)+'）':''}</div>`
+    const labelText = `${item.landName||item.landNo}${item.dealDate?'（'+ym(item.dealDate)+'）':''}`
+    const labelHtml = `<div class="tupai-label">${labelText}</div>`
     const marker = new window.AMap.Marker({
       position: pos,
       title: item.landName,
       anchor: 'center',
-      content: `<img src="${PIN_ICON}" width="34" height="34" style="display:block" />`,
-      label: { content: labelContent, direction: 'top', offset: new window.AMap.Pixel(4, -24) }
+      content: `<div class="tupai-marker">${labelHtml}<img src="${PIN_ICON}" width="34" height="34" style="display:block" /></div>`
     })
-    marker._labelContent = labelContent
+    marker._labelHtml = labelHtml
     marker._item = item
     marker._pos = pos
 
@@ -407,14 +407,30 @@ onMounted(fetchData)
 </script>
 
 <style>
-/* 缩放级别 <=14 时隐藏地块文字 label（只显示定位图标） */
-#amap-container.hide-label .amap-marker-label {
-  display: none !important;
+/* 地块 marker：定位图标 + 上方居中名称标签 */
+.tupai-marker {
+  position: relative;
+  width: 34px;
+  height: 34px;
 }
-/* 移除高德地图 marker label 外层容器边框 */
-.amap-marker-label {
-  border: none !important;
-  background: transparent !important;
+.tupai-label {
+  position: absolute;
+  
+  left: 35px;
+  
+  margin-bottom: 4px;
+  background: #1677FF;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+/* 缩放级别 <=14 时隐藏地块名称标签（只显示定位图标） */
+#amap-container.hide-label .tupai-label {
+  display: none !important;
 }
 /* 动画演示：定位图标由红色渐变为品牌蓝 #0052D9（红图淡出 + 蓝图淡入） */
 .anim-marker-icon {
