@@ -139,6 +139,21 @@ import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
+// 自定义地块定位图标（SVG data URI：品牌蓝圆点 + 白描边 + 内芯）
+const PIN_ICON = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="16" fill="#0052D9" opacity="0.12"/>
+    <circle cx="17" cy="17" r="11.5" fill="#0052D9" stroke="#FFFFFF" stroke-width="2.5"/>
+    <circle cx="17" cy="17" r="4.5" fill="#0052D9"/>
+  </svg>`)
+// 动画演示起始的红色版定位图标（与 PIN_ICON 同构，仅主色不同）
+const PIN_RED = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="16" fill="#FF4D4F" opacity="0.12"/>
+    <circle cx="17" cy="17" r="11.5" fill="#FF4D4F" stroke="#FFFFFF" stroke-width="2.5"/>
+    <circle cx="17" cy="17" r="4.5" fill="#FF4D4F"/>
+  </svg>`)
+
 const showPanel = ref(false)
 const keyword = ref('')
 const filterDistrict = ref('')
@@ -177,7 +192,6 @@ const animationYear = ref('')
 const animationMonth = ref('')
 const animationDay = ref('')
 let animationTimer = null
-let defaultMarkerIconSrc = ''
 
 // WGS84/CGCS2000 → GCJ-02 坐标转换
 function wgs84ToGcj02(lng, lat) {
@@ -298,11 +312,6 @@ function toggleSatellite() {
 // 动画演示：按成交时间从早到晚依次显示地块（地图中心不变，默认定位图标经 CSS 滤镜橙→蓝渐变）
 function startAnimation() {
   if (!mapInstance || isAnimating.value || !filteredList.value.length) return
-  // 提取高德默认定位图标 URL（保持原图标样式）
-  if (!defaultMarkerIconSrc) {
-    const img = document.querySelector('#amap-container .amap-marker-content img')
-    if (img) defaultMarkerIconSrc = img.src
-  }
   // 按成交时间从早到晚排序
   const sorted = [...filteredList.value].sort((a, b) =>
     String(a.dealDate || '').localeCompare(String(b.dealDate || ''))
@@ -318,10 +327,8 @@ function startAnimation() {
     const item = sorted[idx]
     const m = markers.find(mk => mk._item && mk._item.id === item.id)
     if (m) {
-      // 用默认图标，加橙色滤镜，1秒渐变回原色（地块名称保持默认蓝色，不做颜色变化）
-      if (defaultMarkerIconSrc) {
-        m.setContent(`<div class="anim-marker-icon"><img src="${defaultMarkerIconSrc}" /></div>`)
-      }
+      // 双层图标：红色在下层淡出的同时蓝色上层淡入，实现 红 → 品牌蓝 #0052D9 渐变
+      m.setContent(`<div class="anim-marker-icon"><img class="pin-red" src="${PIN_RED}" /><img class="pin-blue" src="${PIN_ICON}" /></div>`)
       m.setMap(mapInstance)
       activeId.value = item.id
     }
@@ -364,7 +371,9 @@ function addMarkers() {
     const marker = new window.AMap.Marker({
       position: pos,
       title: item.landName,
-      label: { content: labelContent, direction: 'top', offset: new window.AMap.Pixel(8, -2) }
+      anchor: 'center',
+      content: `<img src="${PIN_ICON}" width="34" height="34" style="display:block" />`,
+      label: { content: labelContent, direction: 'top', offset: new window.AMap.Pixel(4, -24) }
     })
     marker._labelContent = labelContent
     marker._item = item
@@ -407,10 +416,27 @@ onMounted(fetchData)
   border: none !important;
   background: transparent !important;
 }
-/* 动画演示：默认定位图标经滤镜由橙色渐变回蓝色，并闪烁突出 */
+/* 动画演示：定位图标由红色渐变为品牌蓝 #0052D9（红图淡出 + 蓝图淡入） */
+.anim-marker-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+}
 .anim-marker-icon img {
-  animation: markerColorPulse 0.5s ease-in-out forwards;
-  transform-origin: center bottom;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+.anim-marker-icon .pin-red {
+  animation: redFadeOut 0.9s ease-out forwards;
+  transform-origin: center;
+}
+.anim-marker-icon .pin-blue {
+  opacity: 0;
+  animation: blueFadeIn 0.9s ease-out forwards;
 }
 /* 动画演示：屏幕中央年份月份（一行） */
 .anim-year {
@@ -426,12 +452,13 @@ onMounted(fetchData)
   0% { transform: scale(1.4); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
-@keyframes markerColorPulse {
-  0% { filter: hue-rotate(168deg) saturate(2.2); transform: scale(1.15); opacity: 0.3; }
-  25% { opacity: 1; }
-  50% { opacity: 0.4; }
-  75% { opacity: 1; }
-  100% { filter: hue-rotate(0deg) saturate(1); transform: scale(1); opacity: 1; }
+@keyframes redFadeOut {
+  0% { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 0; transform: scale(1); }
+}
+@keyframes blueFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 </style>
