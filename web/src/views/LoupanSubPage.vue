@@ -34,8 +34,10 @@
             <div v-for="group in mediaGroups" :key="group.label">
               <h4 class="text-base font-bold text-[var(--color-text-primary)] mb-3">{{ group.label }}（{{ group.items.length }}）</h4>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                <div v-for="m in group.items" :key="m.id" class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden" :class="(m.mediaType!==5&&m.mediaType!==6)?'cursor-pointer hover:opacity-90 transition-opacity':''" @click="previewMedia(group.items, m)">
+                <div v-for="m in group.items" :key="m.id" class="aspect-[4/3] rounded-xl overflow-hidden" :class="m.mediaType===5?'bg-black':(m.mediaType===6?'bg-gray-100':'bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity')" @click="previewMedia(group.items, m)">
                   <t-image v-if="m.mediaType!==5&&m.mediaType!==6" :src="m.mediaUrl" fit="cover" class="w-full h-full" />
+                  <!-- 短视频：直接内嵌播放器 -->
+                  <video v-else-if="m.mediaType===5" :src="m.mediaUrl" controls muted playsinline preload="metadata" class="w-full h-full object-cover" />
                   <div v-else class="w-full h-full flex items-center justify-center bg-gray-200 text-sm text-[var(--color-text-tertiary)]">
                     {{ m.mediaType===6?'VR全景':'短视频' }}
                   </div>
@@ -59,6 +61,19 @@
               </div>
               <div v-if="hx.huxingImage" class="aspect-[4/3] bg-gray-50 cursor-pointer hover:opacity-90 transition-opacity" @click="previewImages(hx.huxingImage, 0)">
                 <t-image :src="hx.huxingImage" fit="cover" class="w-full h-full" />
+              </div>
+              <!-- 标准户型图 + 户型视频（如有） -->
+              <div v-if="hxExtras(hx).length" class="px-5 py-3 flex items-center gap-3 bg-[#FAFBFD] border-t border-gray-100">
+                <div v-for="(ex, i) in hxExtras(hx)" :key="i" class="flex flex-col items-center gap-1 cursor-pointer group" @click="previewHuxingExtra(hx, ex)">
+                  <div class="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 group-hover:opacity-80 transition-opacity">
+                    <img v-if="ex.kind === 'image'" :src="ex.url" alt="" class="w-full h-full object-cover" />
+                    <video v-else :src="ex.url" muted playsinline preload="metadata" class="w-full h-full object-cover" />
+                    <div v-if="ex.kind === 'video'" class="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Play class="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <span class="text-xs text-[var(--color-text-tertiary)]">{{ ex.label }}</span>
+                </div>
               </div>
               <div class="p-5 pt-0">
                 <p class="text-2xl font-bold text-[var(--color-primary)] mb-1">{{ hx.area }}<span class="text-sm font-normal text-[var(--color-text-tertiary)]">㎡</span></p>
@@ -265,13 +280,18 @@
 
     <!-- 图片全屏预览 -->
     <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" v-model:index="viewerIndex" />
+
+    <!-- 户型视频放大播放 -->
+    <t-dialog v-model:visible="huxingVideoVisible" header="户型视频" width="720px" :footer="false" :close-on-overlay-click="true">
+      <video v-if="huxingVideoUrl" :src="huxingVideoUrl" controls autoplay playsinline class="w-full rounded-lg bg-black" style="max-height:70vh" />
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onErrorCaptured } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -526,6 +546,30 @@ async function fetchPlateDeals() {
 
 function fmt(t) { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
+// ===== 户型页：标准户型图 + 关联的视频素材 =====
+/** 汇总单个户型的补充素材：标准户型图 + 素材库中 huxingId 匹配的短视频 */
+function hxExtras(hx) {
+  const list = []
+  if (hx.standardHuxingImage) list.push({ kind: 'image', label: '标准户型图', url: hx.standardHuxingImage })
+  medias.value
+    .filter(m => m.huxingId === hx.id && m.mediaType === 5)
+    .forEach(m => list.push({ kind: 'video', label: '户型视频', url: m.mediaUrl }))
+  return list
+}
+const huxingVideoVisible = ref(false)
+const huxingVideoUrl = ref('')
+/** 点击补充素材：图片走全屏预览，视频走弹窗播放 */
+function previewHuxingExtra(hx, ex) {
+  if (ex.kind === 'video') {
+    huxingVideoUrl.value = ex.url
+    huxingVideoVisible.value = true
+  } else {
+    viewerImages.value = [ex.url]
+    viewerIndex.value = 0
+    viewerVisible.value = true
+  }
+}
+
 // ===== 图片全屏预览 =====
 const viewerVisible = ref(false)
 const viewerImages = ref([])
@@ -556,8 +600,8 @@ function loadCurrent() {
   plateDeals.value = []
   plateName.value = ''
   yfyjBuilding.value = ''
-  if (subType.value === 'media') fetchMedias()
-  else if (subType.value === 'huxing') fetchHuxings()
+  if (subType.value === 'media' || subType.value === 'huxing') fetchMedias()
+  if (subType.value === 'huxing') fetchHuxings()
   else if (subType.value === 'yfyj') fetchYfyj()
   else if (subType.value === 'dynamic') fetchDynamics()
   else if (subType.value === 'real-deal') { fetchRealDeals(); fetchPlateDeals() }

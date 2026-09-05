@@ -106,8 +106,8 @@ public class CosService {
      */
     public String uploadFile(MultipartFile file, String folder) {
         String contentType = file.getContentType();
-        if (file.getSize() > 20 * 1024 * 1024) {
-            throw new IllegalArgumentException("文件大小不能超过 20MB");
+        if (file.getSize() > 100 * 1024 * 1024) {
+            throw new IllegalArgumentException("文件大小不能超过 100MB");
         }
         String ext = getUploadExtension(file.getOriginalFilename(), contentType);
         String key = folder + "/" + UUID.randomUUID().toString().replace("-", "") + "." + ext;

@@ -89,7 +89,7 @@
           <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/media`)">
             <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
               <Images class="w-5 h-5 sm:w-4 sm:h-4" />
-              <span class="text-xs leading-none sm:text-sm">图库</span>
+              <span class="text-xs leading-none sm:text-sm">图库视频</span>
             </span>
           </t-button>
           <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/huxing`)">
@@ -113,7 +113,7 @@
           <t-button theme="primary" variant="outline" class="!rounded-xl flex-1 sm:flex-none !h-auto !py-2.5" @click="$router.push(`/loupan/${route.params.id}/real-deal`)">
             <span class="w-full flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:gap-1.5">
               <HandCoins class="w-5 h-5 sm:w-4 sm:h-4" />
-              <span class="text-xs leading-none sm:text-sm">真实成交</span>
+              <span class="text-xs leading-none sm:text-sm">二手真实成交</span>
             </span>
           </t-button>
         </div>

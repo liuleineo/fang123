@@ -168,16 +168,25 @@ async function compressImage(file) {
 
 async function uploadRequest(file) {
   let blob = file.raw
-  if (blob.type.startsWith('image/') && !blob.type.includes('svg')) {
+  // 保留原始文件名（视频用真实扩展名 .mp4/.mov 等，不再被强行命名为 image.jpg）
+  let filename = (blob && blob.name) || file.name || ''
+  const isVideo = blob.type.startsWith('video/')
+  if (!isVideo && blob.type.startsWith('image/') && !blob.type.includes('svg')) {
     try {
       const origSize = (blob.size / 1024).toFixed(1)
       blob = await compressImage(blob)
       const newSize = (blob.size / 1024).toFixed(1)
       console.log(`图片压缩: ${origSize}KB → ${newSize}KB`)
+      filename = filename.replace(/\.[^./]+$/, '') + '.jpg'
     } catch (e) { console.error('压缩失败:', e) }
   }
+  // 确保文件名带正确扩展名，供后端推断文件类型
+  if (!/\.[^./]+$/.test(filename)) {
+    const extMap = { 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm', 'video/x-msvideo': 'avi', 'video/x-matroska': 'mkv', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+    filename = 'file.' + (extMap[blob.type] || 'bin')
+  }
   const fd = new FormData()
-  fd.append('file', blob, 'image.jpg')
+  fd.append('file', blob, filename)
   const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
   return { status: 'success', response: { url: res.url } }
 }
