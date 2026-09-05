@@ -147,14 +147,14 @@ async function uploadPasted() {
 
 
 
-// 前端图片压缩：宽2000px，JPG格式
+// 前端图片压缩：宽1500px，JPG格式
 async function compressImage(file) {
   return new Promise((resolve, reject) => {
     const img = document.createElement('img')
     img.onload = () => {
       const canvas = document.createElement('canvas')
       let w = img.width, h = img.height
-      if (w > 2000) { h = Math.round(h * 2000 / w); w = 2000 }
+      if (w > 1500) { h = Math.round(h * 1500 / w); w = 1500 }
       canvas.width = w; canvas.height = h
       const ctx = canvas.getContext('2d')
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h)
