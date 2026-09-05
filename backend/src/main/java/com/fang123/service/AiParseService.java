@@ -478,6 +478,15 @@ public class AiParseService {
             OCR文本：
             """;
 
+    private static final List<String> YFYJ_INT_FIELDS = List.of("recordUnitPrice", "recordTotalPrice", "houseStatus");
+
+    /** 归一化 AI 返回的一房一价字段：数字字段去单位/文字并四舍五入取整，避免 Integer 反序列化失败 */
+    private void normalizeYfyjFields(Map<String, Object> row) {
+        if (row == null) return;
+        for (String key : YFYJ_INT_FIELDS) row.put(key, toInteger(row.get(key)));
+        if (row.get("area") != null) row.put("area", toDecimal(row.get("area")));
+    }
+
     public AiParseYfyjResult parseYfyj(MultipartFile[] files) {
         String ocrText = doOcrBatch(files, "ai-yfyj")[0];
         List<YfyjFields> list;
@@ -485,7 +494,17 @@ public class AiParseService {
             String resp = callTokenHub(YFYJ_PARSE_PROMPT + ocrText, "一房一价信息提取助手");
             @SuppressWarnings("unchecked")
             Map<String, Object> respMap = objectMapper.readValue(resp, Map.class);
-            list = objectMapper.convertValue(respMap.get("yfyjList"),
+            Object raw = respMap.get("yfyjList");
+            if (raw instanceof List<?> rows) {
+                for (Object o : rows) {
+                    if (o instanceof Map<?, ?> rowMap) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> row = (Map<String, Object>) rowMap;
+                        normalizeYfyjFields(row);
+                    }
+                }
+            }
+            list = objectMapper.convertValue(raw,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, YfyjFields.class));
         } catch (Exception e) {
             throw new RuntimeException("AI解析失败: " + e.getMessage());
