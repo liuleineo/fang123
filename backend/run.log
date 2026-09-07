@@ -2599,3 +2599,171 @@ This generated password is for development use only. Your security configuration
 2026-09-07T22:46:52.357+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMapper.selectList       : ==>  Preparing: SELECT id,land_id,land_no,cover_image,project_name,short_name,district,plate,avg_unit_price,avg_unit_price_yangfang,avg_unit_price_dieshu,avg_unit_price_paiwu,min_total_price,max_total_price,price_tag,sales_address,sales_status,sales_tel,project_address,show_house_desc,delivery_date,floor_height_min,floor_height_max,building_total,floor_min,floor_max,area_min,area_max,decorate_type,property_right_year,house_type,community_facility,people_car_separate,property_fee_high,property_fee_villa,property_company,park_total,park_sell_num,park_ratio,facade_material,self_hold_rate,build_area,land_area,house_total,plot_ratio,green_rate,project_company,brand_list,land_price,land_unit_price,land_buy_date,edu_support,traffic_support,medical_support,business_support,view_support,longitude,latitude,sort,deleted,create_time,update_time FROM loupan WHERE deleted=0 ORDER BY id DESC LIMIT ?
 2026-09-07T22:46:52.358+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMapper.selectList       : ==> Parameters: 10(Long)
 2026-09-07T22:46:52.376+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMapper.selectList       : <==      Total: 3
+2026-09-07T22:56:12.272+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/loupans?page=1&size=10
+2026-09-07T22:56:12.309+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/loupans?page=1&size=10
+2026-09-07T22:56:12.385+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.LoupanMapper.selectList_mpCount    : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan WHERE deleted = 0
+2026-09-07T22:56:12.386+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.LoupanMapper.selectList_mpCount    : ==> Parameters: 
+2026-09-07T22:56:12.429+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.LoupanMapper.selectList_mpCount    : <==      Total: 1
+2026-09-07T22:56:12.430+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMapper.selectList       : ==>  Preparing: SELECT id,land_id,land_no,cover_image,project_name,short_name,district,plate,avg_unit_price,avg_unit_price_yangfang,avg_unit_price_dieshu,avg_unit_price_paiwu,min_total_price,max_total_price,price_tag,sales_address,sales_status,sales_tel,project_address,show_house_desc,delivery_date,floor_height_min,floor_height_max,building_total,floor_min,floor_max,area_min,area_max,decorate_type,property_right_year,house_type,community_facility,people_car_separate,property_fee_high,property_fee_villa,property_company,park_total,park_sell_num,park_ratio,facade_material,self_hold_rate,build_area,land_area,house_total,plot_ratio,green_rate,project_company,brand_list,land_price,land_unit_price,land_buy_date,edu_support,traffic_support,medical_support,business_support,view_support,longitude,latitude,sort,deleted,create_time,update_time FROM loupan WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T22:56:12.431+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMapper.selectList       : ==> Parameters: 10(Long)
+2026-09-07T22:56:12.441+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMapper.selectList       : <==      Total: 3
+2026-09-07T23:26:08.936+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/tupai-lands?page=1&size=10
+2026-09-07T23:26:08.942+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/tupai-lands?page=1&size=10
+2026-09-07T23:26:08.969+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_tupai_land WHERE deleted = 0
+2026-09-07T23:26:08.970+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:09.019+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:09.019+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.LoupanTupaiLandMapper.selectList   : ==>  Preparing: SELECT id,loupan_id,land_name,land_no,district,plate,land_scope,land_status,winner_company,land_use_type,land_year,land_area,build_area_limit,plot_ratio,start_price,deal_price,floor_unit_price,premium_rate,deal_date,longitude,latitude,resource_id,location_image,sort,deleted,create_time,update_time FROM loupan_tupai_land WHERE deleted=0 ORDER BY sort DESC,create_time DESC LIMIT ?
+2026-09-07T23:26:09.020+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.LoupanTupaiLandMapper.selectList   : ==> Parameters: 10(Long)
+2026-09-07T23:26:09.040+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] c.f.m.LoupanTupaiLandMapper.selectList   : <==      Total: 10
+2026-09-07T23:26:09.255+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/loupans?page=1&size=10
+2026-09-07T23:26:09.258+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/loupans?page=1&size=10
+2026-09-07T23:26:09.267+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.LoupanMapper.selectList_mpCount    : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan WHERE deleted = 0
+2026-09-07T23:26:09.267+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.LoupanMapper.selectList_mpCount    : ==> Parameters: 
+2026-09-07T23:26:09.270+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.LoupanMapper.selectList_mpCount    : <==      Total: 1
+2026-09-07T23:26:09.271+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMapper.selectList       : ==>  Preparing: SELECT id,land_id,land_no,cover_image,project_name,short_name,district,plate,avg_unit_price,avg_unit_price_yangfang,avg_unit_price_dieshu,avg_unit_price_paiwu,min_total_price,max_total_price,price_tag,sales_address,sales_status,sales_tel,project_address,show_house_desc,delivery_date,floor_height_min,floor_height_max,building_total,floor_min,floor_max,area_min,area_max,decorate_type,property_right_year,house_type,community_facility,people_car_separate,property_fee_high,property_fee_villa,property_company,park_total,park_sell_num,park_ratio,facade_material,self_hold_rate,build_area,land_area,house_total,plot_ratio,green_rate,project_company,brand_list,land_price,land_unit_price,land_buy_date,edu_support,traffic_support,medical_support,business_support,view_support,longitude,latitude,sort,deleted,create_time,update_time FROM loupan WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:09.271+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMapper.selectList       : ==> Parameters: 10(Long)
+2026-09-07T23:26:09.276+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMapper.selectList       : <==      Total: 3
+2026-09-07T23:26:10.188+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/loupans?page=1&size=10
+2026-09-07T23:26:10.192+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/loupans?page=1&size=10
+2026-09-07T23:26:10.205+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan WHERE deleted = 0
+2026-09-07T23:26:10.205+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : ==> Parameters: 
+2026-09-07T23:26:10.207+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : <==      Total: 1
+2026-09-07T23:26:10.208+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.mapper.LoupanMapper.selectList       : ==>  Preparing: SELECT id,land_id,land_no,cover_image,project_name,short_name,district,plate,avg_unit_price,avg_unit_price_yangfang,avg_unit_price_dieshu,avg_unit_price_paiwu,min_total_price,max_total_price,price_tag,sales_address,sales_status,sales_tel,project_address,show_house_desc,delivery_date,floor_height_min,floor_height_max,building_total,floor_min,floor_max,area_min,area_max,decorate_type,property_right_year,house_type,community_facility,people_car_separate,property_fee_high,property_fee_villa,property_company,park_total,park_sell_num,park_ratio,facade_material,self_hold_rate,build_area,land_area,house_total,plot_ratio,green_rate,project_company,brand_list,land_price,land_unit_price,land_buy_date,edu_support,traffic_support,medical_support,business_support,view_support,longitude,latitude,sort,deleted,create_time,update_time FROM loupan WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:10.209+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.mapper.LoupanMapper.selectList       : ==> Parameters: 10(Long)
+2026-09-07T23:26:10.210+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.mapper.LoupanMapper.selectList       : <==      Total: 3
+2026-09-07T23:26:11.674+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/tupai-lands?page=1&size=10
+2026-09-07T23:26:11.677+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/tupai-lands?page=1&size=10
+2026-09-07T23:26:11.682+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_tupai_land WHERE deleted = 0
+2026-09-07T23:26:11.683+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:11.684+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:11.684+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.LoupanTupaiLandMapper.selectList   : ==>  Preparing: SELECT id,loupan_id,land_name,land_no,district,plate,land_scope,land_status,winner_company,land_use_type,land_year,land_area,build_area_limit,plot_ratio,start_price,deal_price,floor_unit_price,premium_rate,deal_date,longitude,latitude,resource_id,location_image,sort,deleted,create_time,update_time FROM loupan_tupai_land WHERE deleted=0 ORDER BY sort DESC,create_time DESC LIMIT ?
+2026-09-07T23:26:11.685+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.LoupanTupaiLandMapper.selectList   : ==> Parameters: 10(Long)
+2026-09-07T23:26:11.695+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.m.LoupanTupaiLandMapper.selectList   : <==      Total: 10
+2026-09-07T23:26:13.410+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:13.434+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:13.507+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:26:13.507+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:13.517+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:13.519+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:13.520+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:26:13.530+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:26:16.450+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:16.462+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:16.474+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:26:16.474+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:16.477+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:16.478+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:16.478+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:26:16.480+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:26:18.073+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:18.083+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:18.091+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:26:18.092+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:18.094+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:18.094+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:18.095+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:26:18.096+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:26:31.929+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-9] o.s.security.web.FilterChainProxy        : Securing POST /api/admin/medias/upload
+2026-09-07T23:26:31.937+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-9] o.s.security.web.FilterChainProxy        : Secured POST /api/admin/medias/upload
+2026-09-07T23:26:32.240+08:00  WARN 90233 --- [fang123-backend] [nio-8090-exec-9] c.fang123.common.GlobalExceptionHandler  : 上传文件过大: Maximum upload size exceeded
+2026-09-07T23:26:42.907+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:42.910+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:42.920+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:26:42.922+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:42.928+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:42.930+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:42.930+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:26:42.932+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-6] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:26:46.028+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:46.037+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:26:46.047+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:26:46.048+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:26:46.050+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:26:46.050+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:26:46.051+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:26:46.052+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-1] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:26:55.399+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Securing POST /api/admin/medias/upload
+2026-09-07T23:26:55.404+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Secured POST /api/admin/medias/upload
+2026-09-07T23:26:55.671+08:00  WARN 90233 --- [fang123-backend] [nio-8090-exec-2] c.fang123.common.GlobalExceptionHandler  : 上传文件过大: Maximum upload size exceeded
+2026-09-07T23:27:21.442+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:27:21.451+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:27:21.466+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:27:21.467+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:27:21.469+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:27:21.469+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:27:21.469+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:27:21.471+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-7] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:27:34.546+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /api/public/loupans?page=1&size=12&salesStatus=1
+2026-09-07T23:27:34.546+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/public/loupan-filters
+2026-09-07T23:27:34.560+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-07T23:27:34.561+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-07T23:27:34.561+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/public/loupan-filters
+2026-09-07T23:27:34.561+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /api/public/loupans?page=1&size=12&salesStatus=1
+2026-09-07T23:27:34.570+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.mapper.LoupanMapper.selectList       : ==>  Preparing: SELECT id,land_id,land_no,cover_image,project_name,short_name,district,plate,avg_unit_price,avg_unit_price_yangfang,avg_unit_price_dieshu,avg_unit_price_paiwu,min_total_price,max_total_price,price_tag,sales_address,sales_status,sales_tel,project_address,show_house_desc,delivery_date,floor_height_min,floor_height_max,building_total,floor_min,floor_max,area_min,area_max,decorate_type,property_right_year,house_type,community_facility,people_car_separate,property_fee_high,property_fee_villa,property_company,park_total,park_sell_num,park_ratio,facade_material,self_hold_rate,build_area,land_area,house_total,plot_ratio,green_rate,project_company,brand_list,land_price,land_unit_price,land_buy_date,edu_support,traffic_support,medical_support,business_support,view_support,longitude,latitude,sort,deleted,create_time,update_time FROM loupan WHERE deleted=0
+2026-09-07T23:27:34.571+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.mapper.LoupanMapper.selectList       : ==> Parameters: 
+2026-09-07T23:27:34.588+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-3] c.f.mapper.LoupanMapper.selectList       : <==      Total: 3
+2026-09-07T23:27:34.596+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan WHERE deleted = 0 AND (sales_status IN (?))
+2026-09-07T23:27:34.598+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : ==> Parameters: 1(Integer)
+2026-09-07T23:27:34.601+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-8] c.f.m.LoupanMapper.selectList_mpCount    : <==      Total: 1
+2026-09-07T23:27:44.167+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/dashboard/stats
+2026-09-07T23:27:44.171+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/dashboard/stats
+2026-09-07T23:27:44.185+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : ==>  Preparing: SELECT COUNT( * ) AS total FROM user_info WHERE deleted=0
+2026-09-07T23:27:44.185+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : ==> Parameters: 
+2026-09-07T23:27:44.193+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : <==      Total: 1
+2026-09-07T23:27:44.196+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : ==>  Preparing: SELECT COUNT( * ) AS total FROM user_info WHERE deleted=0 AND (create_time >= ? AND create_time <= ?)
+2026-09-07T23:27:44.201+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : ==> Parameters: 2026-09-07T00:00(LocalDateTime), 2026-09-07T23:59:59.999999999(LocalDateTime)
+2026-09-07T23:27:44.211+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.UserInfoMapper.selectCount    : <==      Total: 1
+2026-09-07T23:27:44.215+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskInfoMapper.selectCount    : ==>  Preparing: SELECT COUNT( * ) AS total FROM task_info WHERE deleted=0 AND (status = ?)
+2026-09-07T23:27:44.216+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskInfoMapper.selectCount    : ==> Parameters: 1(Integer)
+2026-09-07T23:27:44.231+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskInfoMapper.selectCount    : <==      Total: 1
+2026-09-07T23:27:44.236+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : ==>  Preparing: SELECT COUNT( * ) AS total FROM task_user_order WHERE (create_time >= ? AND create_time <= ?)
+2026-09-07T23:27:44.236+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : ==> Parameters: 2026-09-07T00:00(LocalDateTime), 2026-09-07T23:59:59.999999999(LocalDateTime)
+2026-09-07T23:27:44.239+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : <==      Total: 1
+2026-09-07T23:27:44.241+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : ==>  Preparing: SELECT COUNT( * ) AS total FROM task_user_order
+2026-09-07T23:27:44.241+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : ==> Parameters: 
+2026-09-07T23:27:44.242+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.m.TaskUserOrderMapper.selectCount    : <==      Total: 1
+2026-09-07T23:27:44.247+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : ==>  Preparing: SELECT id,order_id,user_id,task_title,trade_no,wechat_pay_no,pay_amount,pay_status,fail_reason,retry_count,apply_time,pay_time,create_time,update_time FROM task_pay_log WHERE (pay_status = ? AND pay_time >= ? AND pay_time <= ?)
+2026-09-07T23:27:44.247+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : ==> Parameters: 2(Integer), 2026-09-07T00:00(LocalDateTime), 2026-09-07T23:59:59.999999999(LocalDateTime)
+2026-09-07T23:27:44.254+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : <==      Total: 0
+2026-09-07T23:27:44.256+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : ==>  Preparing: SELECT id,order_id,user_id,task_title,trade_no,wechat_pay_no,pay_amount,pay_status,fail_reason,retry_count,apply_time,pay_time,create_time,update_time FROM task_pay_log WHERE (pay_status = ?)
+2026-09-07T23:27:44.256+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : ==> Parameters: 2(Integer)
+2026-09-07T23:27:44.256+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-5] c.f.mapper.TaskPayLogMapper.selectList   : <==      Total: 0
+2026-09-07T23:27:45.725+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/medias?page=1&size=10
+2026-09-07T23:27:45.728+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/medias?page=1&size=10
+2026-09-07T23:27:45.736+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : ==>  Preparing: SELECT COUNT(*) AS total FROM loupan_media WHERE deleted = 0
+2026-09-07T23:27:45.737+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : ==> Parameters: 
+2026-09-07T23:27:45.740+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.m.L.selectList_mpCount               : <==      Total: 1
+2026-09-07T23:27:45.742+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : ==>  Preparing: SELECT id,loupan_id,huxing_id,media_type,media_url,media_title,sort,deleted,create_time FROM loupan_media WHERE deleted=0 ORDER BY id DESC LIMIT ?
+2026-09-07T23:27:45.742+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : ==> Parameters: 10(Long)
+2026-09-07T23:27:45.748+08:00 DEBUG 90233 --- [fang123-backend] [nio-8090-exec-4] c.f.mapper.LoupanMediaMapper.selectList  : <==      Total: 10
+2026-09-07T23:27:55.830+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Securing POST /api/admin/medias/upload
+2026-09-07T23:27:55.838+08:00 DEBUG 90233 --- [fang123-backend] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Secured POST /api/admin/medias/upload
+2026-09-07T23:27:56.129+08:00  WARN 90233 --- [fang123-backend] [io-8090-exec-10] c.fang123.common.GlobalExceptionHandler  : 上传文件过大: Maximum upload size exceeded
+2026-09-07T23:29:08.195+08:00  INFO 90233 --- [fang123-backend] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-09-07T23:29:08.218+08:00  INFO 90233 --- [fang123-backend] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-09-07T23:29:08.271+08:00  INFO 90233 --- [fang123-backend] [ionShutdownHook] c.qcloud.cos.http.DefaultCosHttpClient   : shutdown stackTrace:
+Class: com.qcloud.cos.http.DefaultCosHttpClient, Method: shutdown, Line: 147
+Class: com.qcloud.cos.COSClient, Method: shutdown, Line: 183
+Class: com.fang123.service.CosService, Method: destroy, Line: 46
+Class: jdk.internal.reflect.DirectMethodHandleAccessor, Method: invoke, Line: 103
+Class: java.lang.reflect.Method, Method: invoke, Line: 580
+Class: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod, Method: invoke, Line: 457
+Class: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata, Method: invokeDestroyMethods, Line: 415
+Class: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor, Method: postProcessBeforeDestruction, Line: 239
+Class: org.springframework.beans.factory.support.DisposableBeanAdapter, Method: destroy, Line: 202
+Class: org.springframework.beans.factory.support.DefaultSingletonBeanRegistry, Method: destroyBean, Line: 668
+Class: org.springframework.beans.factory.support.DefaultSingletonBeanRegistry, Method: destroySingleton, Line: 625
+Class: org.springframework.beans.factory.support.DefaultListableBeanFactory, Method: destroySingleton, Line: 1368
+Class: org.springframework.beans.factory.support.DefaultSingletonBeanRegistry, Method: destroySingletons, Line: 584
+Class: org.springframework.beans.factory.support.DefaultListableBeanFactory, Method: destroySingletons, Line: 1361
+Class: org.springframework.context.support.AbstractApplicationContext, Method: destroyBeans, Line: 1219
+Class: org.springframework.context.support.AbstractApplicationContext, Method: doClose, Line: 1180
+Class: org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext, Method: doClose, Line: 174
+Class: org.springframework.context.support.AbstractApplicationContext, Method: close, Line: 1126
+Class: org.springframework.boot.SpringApplicationShutdownHook, Method: closeAndWait, Line: 147
+Class: java.lang.Iterable, Method: forEach, Line: 75
+Class: org.springframework.boot.SpringApplicationShutdownHook, Method: run, Line: 116
+Class: java.lang.Thread, Method: run, Line: 1583
+2026-09-07T23:29:08.271+08:00 DEBUG 90233 --- [fang123-backend] [ionShutdownHook] com.fang123.service.CosService           : COS client shutdown
+2026-09-07T23:29:08.281+08:00  INFO 90233 --- [fang123-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-07T23:29:08.287+08:00  INFO 90233 --- [fang123-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

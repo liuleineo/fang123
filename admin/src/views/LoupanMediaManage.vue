@@ -38,7 +38,9 @@
 
     <t-drawer v-model:visible="drawer" :header="isEdit?'编辑素材':(isVideoCreate?'新建视频素材':'新建素材')" size="450px" :footer="false">
       <t-form :data="form" label-align="top">
-        <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="关联户型ID(可选)"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <t-form-item label="素材类型">
           <t-select v-model="form.mediaType" :disabled="isVideoCreate" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
@@ -86,7 +88,9 @@
     <!-- 批量新建素材 -->
     <t-dialog v-model:visible="batchVisible" header="批量新建素材" width="520px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
-        <t-form-item label="楼盘ID"><t-input-number v-model="batchForm.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="batchForm.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="素材类型">
           <t-select v-model="batchForm.mediaType" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
         </t-form-item>
@@ -126,6 +130,15 @@ const uploadRef = ref()
 const uploadTab = ref('upload')
 const pasteFiles = ref([])
 const pasteUploading = ref(false)
+
+// ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
+const loupanOpts = ref([])
+async function fetchLoupanOpts() {
+  try {
+    const list = await request.get('/admin/loupans/options', { params: {} })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
 
 /** 同步上传进度到 t-upload 文件（自定义 request-method 不会自动推进 percent，需手动更新） */
 function updateUploadPercent(f, pct) {
@@ -270,9 +283,9 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;isVideoCreate.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openVideoCreate(){isEdit.value=false;isVideoCreate.value=true;editId.value=null;Object.assign(form,initForm(),{mediaType:5});drawer.value=true}
-function openEdit(row){isEdit.value=true;isVideoCreate.value=false;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;isVideoCreate.value=false;editId.value=null;Object.assign(form,initForm());fetchLoupanOpts();drawer.value=true}
+function openVideoCreate(){isEdit.value=false;isVideoCreate.value=true;editId.value=null;Object.assign(form,initForm(),{mediaType:5});fetchLoupanOpts();drawer.value=true}
+function openEdit(row){isEdit.value=true;isVideoCreate.value=false;editId.value=row.id;Object.assign(form,row);fetchLoupanOpts();drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/medias/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/medias',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
@@ -327,5 +340,5 @@ async function doBatchUpload() {
   if (created > 0) fetchData()
 }
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>
