@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">楼盘户型</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘下的户型信息</p></div>
       <div class="flex gap-2">
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建户型</t-button>
@@ -9,7 +9,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
+      <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
         <t-input v-model="keyword" placeholder="搜索户型名称" clearable class="w-[200px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
@@ -93,7 +93,7 @@
           <t-form-item label="套内面积(㎡)"><t-input-number v-model="form.insideArea" :min="0" /></t-form-item>
           <t-form-item label="套内面积含赠送(㎡)"><t-input-number v-model="form.insideAreaWithGift" :min="0" /></t-form-item>
         </div>
-        <div class="grid grid-cols-4 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <t-form-item label="卧室"><t-input-number v-model="form.roomNum" :min="0" /></t-form-item>
           <t-form-item label="厅"><t-input-number v-model="form.hallNum" :min="0" /></t-form-item>
           <t-form-item label="卫生间"><t-input-number v-model="form.toiletNum" :min="0" /></t-form-item>
@@ -105,7 +105,7 @@
             <t-select v-model="form.floorType" :options="[{label:'高层',value:0},{label:'小高层',value:1},{label:'洋房',value:2},{label:'叠墅',value:3},{label:'排屋',value:4}]" />
           </t-form-item>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <t-form-item label="单价(元/㎡)"><t-input-number v-model="form.unitPrice" :min="0" /></t-form-item>
           <t-form-item label="总价起(万)"><t-input-number v-model="form.totalPriceStart" :min="0" /></t-form-item>
           <t-form-item label="总价止(万)"><t-input-number v-model="form.totalPriceEnd" :min="0" /></t-form-item>

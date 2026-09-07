@@ -4,7 +4,7 @@
     <p class="text-sm text-[var(--color-text-tertiary)] mb-6">查看用户会员状态与到期时间</p>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden p-6">
-      <div class="flex gap-3 items-center mb-3">
+      <div class="flex flex-wrap gap-3 items-center mb-3">
         <t-input v-model="keyword" placeholder="搜索昵称/手机号" clearable class="w-[220px]" @enter="fetchData" @clear="fetchData">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">真实成交</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理小区真实成交记录</p></div>
       <div class="flex gap-2">
         <t-button theme="warning" variant="outline" @click="openAiCreate"><Sparkles class="w-4 h-4 mr-1" />AI新建成交</t-button>

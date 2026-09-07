@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">楼盘动态管理</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘建设/销售/优惠动态信息</p></div>
       <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建动态</t-button>
     </div>

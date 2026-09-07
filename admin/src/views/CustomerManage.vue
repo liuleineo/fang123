@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">客户管理</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理客户信息及所属用户</p></div>
       <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建客户</t-button>
     </div>

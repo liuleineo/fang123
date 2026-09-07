@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">楼盘管理</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘主信息</p></div>
       <div class="flex gap-2">
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建楼盘</t-button>
@@ -9,7 +9,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
+      <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
         <t-input v-model="keyword" placeholder="搜索楼盘名称/行政区/板块/开发商/宗地编号" clearable class="w-[280px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
@@ -97,7 +97,7 @@
         </t-tab-panel>
         <t-tab-panel value="sales" label="价格/销售">
           <t-form :data="form" label-align="top">
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <t-form-item label="高层均价(元/㎡)"><t-input-number v-model="form.avgUnitPrice" :min="0" /></t-form-item>
               <t-form-item label="洋房均价(元/㎡)"><t-input-number v-model="form.avgUnitPriceYangfang" :min="0" /></t-form-item>
               <t-form-item label="叠墅均价(元/㎡)"><t-input-number v-model="form.avgUnitPriceDieshu" :min="0" /></t-form-item>
@@ -131,7 +131,7 @@
               <t-form-item label="最低层高(m)"><t-input-number v-model="form.floorHeightMin" :min="0" :decimalPlaces="1" /></t-form-item>
               <t-form-item label="最高层高(m)"><t-input-number v-model="form.floorHeightMax" :min="0" :decimalPlaces="1" /></t-form-item>
             </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <t-form-item label="总建面(㎡)"><t-input-number v-model="form.buildArea" :min="0" /></t-form-item>
               <t-form-item label="占地面积(㎡)"><t-input-number v-model="form.landArea" :min="0" /></t-form-item>
               <t-form-item label="容积率"><t-input-number v-model="form.plotRatio" :min="0" :decimalPlaces="2" /></t-form-item>
@@ -148,7 +148,7 @@
           <t-form :data="form" label-align="top">
             <t-form-item label="开发公司"><t-input v-model="form.projectCompany" /></t-form-item>
             <t-form-item label="开发品牌"><t-input v-model="form.brandList" /></t-form-item>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <t-form-item label="拿地总价(万)"><t-input-number v-model="form.landPrice" :min="0" /></t-form-item>
               <t-form-item label="楼面价(元/㎡)"><t-input-number v-model="form.landUnitPrice" :min="0" /></t-form-item>
               <t-form-item label="拿地日期"><t-date-picker v-model="form.landBuyDate" /></t-form-item>
@@ -162,7 +162,7 @@
               <t-form-item label="小高/洋房物业费"><t-input-number v-model="form.propertyFeeHigh" :min="0" :decimalPlaces="2" /></t-form-item>
               <t-form-item label="排屋别墅物业费"><t-input-number v-model="form.propertyFeeVilla" :min="0" :decimalPlaces="2" /></t-form-item>
             </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <t-form-item label="总车位"><t-input-number v-model="form.parkTotal" :min="0" /></t-form-item>
               <t-form-item label="可售车位"><t-input-number v-model="form.parkSellNum" :min="0" /></t-form-item>
               <t-form-item label="车位配比"><t-input v-model="form.parkRatio" /></t-form-item>

@@ -131,3 +131,63 @@ a {
   transform: translateX(-20px);
   opacity: 0;
 }
+
+/* ============================================
+   移动端组件适配（< 768px）
+   ============================================ */
+@media (max-width: 767px) {
+  /* 抽屉：窄屏占满可用宽度，避免内容被截断 */
+  .t-drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .t-drawer__header {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .t-drawer__body {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* 弹窗：适配小屏，避免横向溢出 */
+  .t-dialog {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    min-width: 0 !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+  }
+  .t-dialog__header,
+  .t-dialog__body,
+  .t-dialog__footer {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* 日期区间等大控件不撑破容器 */
+  .t-date-range-picker,
+  .t-date-picker,
+  .t-range-input {
+    max-width: 100% !important;
+  }
+  .t-range-input {
+    width: 100% !important;
+  }
+
+  /* 固定宽度筛选控件（w-[xxx px]）在窄屏收缩到容器宽度 */
+  .t-input,
+  .t-input-number,
+  .t-select,
+  .t-textarea,
+  .t-cascader,
+  .t-time-picker,
+  .t-tree-select {
+    max-width: 100% !important;
+  }
+
+  /* 页脚操作按钮可换行 */
+  .t-dialog__footer .t-button + .t-button {
+    margin-left: 8px;
+  }
+}

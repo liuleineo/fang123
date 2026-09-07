@@ -1,12 +1,12 @@
 <template>
   <div class="task-page">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">任务管理</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">发布与管理任务</p></div>
       <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />发布任务</t-button>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
+      <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
         <t-input v-model="keyword" placeholder="搜索任务标题" clearable class="w-[260px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
@@ -67,7 +67,7 @@
           <t-form-item label="有效时长(分钟)"><t-input-number v-model="form.expireMinute" :min="1" /></t-form-item>
         </div>
         <t-form-item label="24小时任务数量">
-          <div class="grid grid-cols-6 gap-2">
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
             <div v-for="(v, i) in hourValues" :key="i" class="flex items-center gap-1">
               <span class="text-xs text-[var(--color-text-tertiary)] w-5 text-right">{{ i }}</span>
               <t-input-number v-model="hourValues[i]" :min="0" size="small" class="flex-1" @change="onHourChange" />

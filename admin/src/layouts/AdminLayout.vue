@@ -12,7 +12,7 @@
       :class="[
         'sidebar flex-shrink-0 flex flex-col bg-white border-r border-gray-100 z-50 transition-all duration-300',
         isMobile
-          ? 'fixed left-0 top-0 bottom-0 w-[240px]'
+          ? ['fixed left-0 top-0 bottom-0 w-[240px] shadow-xl', sidebarOpen ? 'translate-x-0' : '-translate-x-full']
           : sidebarCollapsed
             ? 'w-[64px]'
             : 'w-[240px]'
@@ -102,7 +102,7 @@
       </header>
 
       <!-- 内容区 -->
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 overflow-y-auto p-3 md:p-6">
         <router-view v-slot="{ Component }">
           <transition name="slide-left" mode="out-in">
             <component :is="Component" />

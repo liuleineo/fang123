@@ -7,7 +7,7 @@
 
     <t-tabs v-model="tab" class="bg-white rounded-xl border border-gray-100 px-6 pt-4">
       <t-tab-panel value="relation" label="邀请关系">
-        <div class="flex gap-3 items-center py-3">
+        <div class="flex flex-wrap gap-3 items-center py-3">
           <t-input v-model="keyword" placeholder="搜索昵称/手机号" clearable class="w-[220px]" @enter="fetchRelations" @clear="fetchRelations">
             <template #prefix-icon><Search class="w-4 h-4" /></template>
           </t-input>
@@ -21,7 +21,7 @@
         </t-table>
       </t-tab-panel>
       <t-tab-pane value="rewards" label="奖励记录">
-        <div class="flex gap-3 items-center py-3">
+        <div class="flex flex-wrap gap-3 items-center py-3">
           <t-input v-model="rUserId" placeholder="用户ID" clearable class="w-[140px]" @enter="fetchRewards" @clear="fetchRewards" />
           <t-button theme="primary" @click="fetchRewards"><Search class="w-4 h-4 mr-1" />搜索</t-button>
         </div>

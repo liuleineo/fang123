@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">一房一价</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理每套房源的备案价和销售价</p></div>
       <div class="flex gap-2">
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建房源</t-button>
@@ -63,7 +63,7 @@
         <t-form-item label="户型ID"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <t-form-item label="预售证号"><t-input v-model="form.permitNo" placeholder="预售许可证编号" /></t-form-item>
         <t-form-item label="房屋编码"><t-input v-model="form.fwcode" placeholder="房屋编码" /></t-form-item>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <t-form-item label="楼栋号"><t-input v-model="form.buildingNo" /></t-form-item>
           <t-form-item label="单元号"><t-input v-model="form.unitNo" /></t-form-item>
           <t-form-item label="房号"><t-input v-model="form.roomNo" /></t-form-item>

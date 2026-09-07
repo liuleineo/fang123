@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">学校</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理学校校区信息</p></div>
       <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建学校</t-button>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
+      <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
         <t-input v-model="keyword" placeholder="搜索学校名称/校区名称/校区码/小区" clearable class="w-[280px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>

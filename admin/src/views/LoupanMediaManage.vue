@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">媒体素材</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理楼盘图片/视频/VR素材</p></div>
       <div class="flex gap-2">
         <t-button theme="primary" variant="outline" @click="openVideoCreate"><Video class="w-4 h-4 mr-1" />新建视频素材</t-button>
@@ -10,7 +10,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div class="flex gap-3 items-center p-4 border-b border-gray-50">
+      <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
         <t-input v-model="keyword" placeholder="搜索素材标题" clearable class="w-[200px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>

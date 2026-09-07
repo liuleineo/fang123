@@ -1,6 +1,6 @@
 <template>
   <div class="member-page">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div><h1 class="text-2xl font-bold">套餐管理</h1><p class="text-sm text-[var(--color-text-tertiary)] mt-1">管理会员充值套餐</p></div>
       <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新增套餐</t-button>
     </div>
