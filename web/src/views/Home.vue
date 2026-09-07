@@ -80,7 +80,7 @@
           <p class="text-[var(--color-text-tertiary)]">暂无符合条件的楼盘</p>
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-else class="grid grid-cols-2 gap-3 lg:grid-cols-3 sm:gap-6">
           <router-link
             v-for="lp in loupanList"
             :key="lp.id"
@@ -88,7 +88,7 @@
             class="bg-white rounded-2xl border border-gray-100 overflow-hidden card-hover group block"
           >
             <!-- 封面图 -->
-            <div class="h-48 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
+            <div class="h-36 sm:h-48 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
               <t-image v-if="lp.coverImage" :src="lp.coverImage" fit="cover" class="w-full h-full absolute inset-0" />
               <Building2 v-else class="w-16 h-16 text-blue-300" />
               <!-- 状态标签 -->
@@ -106,13 +106,13 @@
                 {{ ['','精装','毛坯','简装'][lp.decorateType] || '' }}
               </span>
             </div>
-            <div class="p-5">
-              <div class="flex items-start justify-between mb-2">
-                <h3 class="text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1 flex items-center gap-1.5">
+            <div class="p-3 sm:p-5">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="min-w-0 text-sm sm:text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1 flex items-center gap-1.5">
                   {{ lp.projectName }}
                   <span v-if="lp.brandList" class="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium text-white bg-orange-500">{{ lp.brandList }}</span>
                 </h3>
-                <span v-if="lp.avgUnitPrice" class="text-sm font-bold text-[var(--color-danger)] whitespace-nowrap ml-2">
+                <span v-if="lp.avgUnitPrice" class="shrink-0 text-xs sm:text-sm font-bold text-[var(--color-danger)] whitespace-nowrap">
                   {{ lp.avgUnitPrice }}元/㎡
                 </span>
               </div>
