@@ -48,11 +48,13 @@
             <t-tabs>
               <t-tab-panel value="upload" label="上传文件">
                 <t-upload
+                  ref="uploadRef"
                   v-model="uploadFiles"
                   :request-method="uploadRequest"
                   :max="1"
                   :accept="isVideoCreate ? 'video/*' : 'image/*,video/*'"
                   theme="file"
+                  tips="视频最大 500MB，文件较大时上传较慢，请耐心等待完成"
                   @success="onUploadSuccess"
                   @fail="onUploadFail"
                   @remove="onUploadRemove"
@@ -120,9 +122,21 @@ const isVideoCreate = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 const uploadFiles = ref([])
+const uploadRef = ref()
 const uploadTab = ref('upload')
 const pasteFiles = ref([])
 const pasteUploading = ref(false)
+
+/** 同步上传进度到 t-upload 文件（自定义 request-method 不会自动推进 percent，需手动更新） */
+function updateUploadPercent(f, pct) {
+  if (!f || pct == null) return
+  f.percent = pct
+  // 兼容不同版本：优先走组件官方实例方法，确保进度条响应式刷新
+  const inst = uploadRef.value
+  if (inst && typeof inst.uploadFilePercent === 'function') {
+    try { inst.uploadFilePercent({ file: f, percent: pct }) } catch {}
+  }
+}
 
 function onPaste(e) {
   const items = e.clipboardData?.items; if (!items) return
@@ -185,9 +199,27 @@ async function uploadRequest(file) {
     const extMap = { 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm', 'video/x-msvideo': 'avi', 'video/x-matroska': 'mkv', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
     filename = 'file.' + (extMap[blob.type] || 'bin')
   }
+  // 视频上限 500MB，超限直接拦截并提示（与后端 max-file-size / Nginx 一致）
+  const MAX_VIDEO_MB = 500
+  if (isVideo && blob.size > MAX_VIDEO_MB * 1024 * 1024) {
+    MessagePlugin.error(`视频不能超过 ${MAX_VIDEO_MB}MB，当前 ${(blob.size / 1024 / 1024).toFixed(1)}MB`)
+    uploadFiles.value = []
+    return { status: 'fail', error: `视频不能超过 ${MAX_VIDEO_MB}MB` }
+  }
   const fd = new FormData()
   fd.append('file', blob, filename)
-  const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  // 视频文件通常较大，远超 axios 全局 15s 默认超时，按上传入口单独放宽
+  // 视频预留 20 分钟（500MB 即使上行 ~0.5MB/s 也能传完），图片预留 2 分钟
+  const res = await request.post('/admin/medias/upload', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: isVideo ? 1200000 : 120000,
+    onUploadProgress: (e) => {
+      if (!e.total) return
+      const pct = Math.min(99, Math.round((e.loaded / e.total) * 100))
+      updateUploadPercent(file, pct)
+    }
+  })
+  // 标记完成，t-upload 收到 resolve 后会自动置为 100%/成功
   return { status: 'success', response: { url: res.url } }
 }
 

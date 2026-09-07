@@ -411,7 +411,7 @@ async function initMap() {
     return
   }
   amapInstance = new AMap.Map('amap-container', {
-    zoom: 15,
+    zoom: 12,
     center: [loupan.value.longitude, loupan.value.latitude],
     viewMode: '2D',
     resizeEnable: true

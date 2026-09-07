@@ -331,9 +331,10 @@ server {
     listen 80;
     server_name your-domain.com;
 
-    # 上传素材可达 100MB（与后端 max-file-size 保持一致），需提高 body 上限并延长超时
-    client_max_body_size 200m;
-    proxy_read_timeout 300s;
+    # 上传素材可达 500MB（与后端 max-file-size 保持一致），需提高 body 上限并延长超时
+    client_max_body_size 600m;
+    client_body_timeout 600s;
+    proxy_read_timeout 600s;
 
     # API 代理到后端
     location /api/ {

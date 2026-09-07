@@ -106,8 +106,9 @@ public class CosService {
      */
     public String uploadFile(MultipartFile file, String folder) {
         String contentType = file.getContentType();
-        if (file.getSize() > 100 * 1024 * 1024) {
-            throw new IllegalArgumentException("文件大小不能超过 100MB");
+        // 素材上限 500MB（与 multipart max-file-size、Nginx client_max_body_size 保持一致）
+        if (file.getSize() > 500L * 1024 * 1024) {
+            throw new IllegalArgumentException("文件大小不能超过 500MB");
         }
         String ext = getUploadExtension(file.getOriginalFilename(), contentType);
         String key = folder + "/" + UUID.randomUUID().toString().replace("-", "") + "." + ext;

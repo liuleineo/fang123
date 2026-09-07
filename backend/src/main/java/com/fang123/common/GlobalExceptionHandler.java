@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
         log.warn("上传文件过大: {}", e.getMessage());
-        return Result.badRequest("上传文件过大，请压缩后重试（单个文件建议不超过 100MB）");
+        return Result.badRequest("上传文件过大，请压缩后重试（单个文件建议不超过 500MB）");
     }
 
     /**

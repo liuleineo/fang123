@@ -5,6 +5,7 @@
       <div class="flex gap-2">
         <t-button theme="warning" variant="outline" @click="openAiCreate"><Sparkles class="w-4 h-4 mr-1" />AI新建成交</t-button>
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建成交</t-button>
+        <t-button theme="primary" variant="outline" @click="openExcelImport"><FileSpreadsheet class="w-4 h-4 mr-1" />批量导入</t-button>
       </div>
     </div>
 
@@ -140,13 +141,40 @@
         </div>
       </div>
     </t-dialog>
+
+    <!-- Excel 批量导入真实成交 -->
+    <t-dialog v-model:visible="excelVisible" header="Excel 批量导入真实成交" width="560px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-3">
+        <t-alert theme="info" message="上传 Excel 文件（.xlsx/.xls），第一行为表头。必填列：『小区名称』『成交日期』；其余选填：行政区、板块、房号、面积、成交价、一手买入价、楼盘ID、备注。成交日期支持 2026-08-06 等格式。" />
+        <div class="text-xs text-[var(--color-text-tertiary)]">模板表头示例：成交日期 | 行政区 | 板块 | 小区名称 | 房号 | 面积 | 成交价 | 一手买入价 | 楼盘ID | 备注</div>
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg py-8 cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+          <input type="file" accept=".xlsx,.xls" class="hidden" @change="onExcelFileChange" />
+          <FileSpreadsheet class="w-10 h-10 text-gray-300 mb-2" />
+          <p class="text-sm text-[var(--color-text-secondary)]">{{ excelFile ? excelFile.name : '点击选择 Excel 文件' }}</p>
+        </label>
+        <div class="flex justify-end gap-2">
+          <t-button variant="outline" :disabled="excelImporting" @click="closeExcelImport">取消</t-button>
+          <t-button theme="primary" :loading="excelImporting" :disabled="!excelFile" @click="startExcelImport">开始导入</t-button>
+        </div>
+        <div v-if="excelResult" class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+          <div class="flex items-center gap-4 text-sm">
+            <span>共 <b class="text-[var(--color-text-primary)]">{{ excelResult.total }}</b> 条</span>
+            <span class="text-green-600">成功 <b>{{ excelResult.success }}</b></span>
+            <span class="text-red-500">失败 <b>{{ excelResult.failed }}</b></span>
+          </div>
+          <div v-if="excelResult.errors?.length" class="mt-2 max-h-40 overflow-y-auto">
+            <div v-for="(e,i) in excelResult.errors" :key="i" class="text-xs text-red-500 py-0.5">第 {{ e.row }} 行：{{ e.msg }}</div>
+          </div>
+        </div>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Sparkles } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, FileSpreadsheet } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -217,6 +245,44 @@ function confirmAiFill() {
 function cancelAi() {
   aiVisible.value = false
   aiFields.value = null
+}
+
+// ===== Excel 批量导入 =====
+const excelVisible = ref(false)
+const excelFile = ref(null)
+const excelImporting = ref(false)
+const excelResult = ref(null)
+function openExcelImport() {
+  excelFile.value = null
+  excelResult.value = null
+  excelVisible.value = true
+}
+function closeExcelImport() {
+  if (excelImporting.value) return
+  excelVisible.value = false
+  excelFile.value = null
+  excelResult.value = null
+}
+function onExcelFileChange(e) {
+  excelFile.value = e.target.files?.[0] || null
+  excelResult.value = null
+}
+async function startExcelImport() {
+  if (!excelFile.value) { MessagePlugin.warning('请先选择 Excel 文件'); return }
+  excelImporting.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', excelFile.value)
+    const res = await request.post('/admin/real-deals/excel-import', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000
+    })
+    excelResult.value = res
+    MessagePlugin.success(`导入完成：成功 ${res?.success || 0} 条，失败 ${res?.failed || 0} 条`)
+    if (res?.success > 0) fetchData()
+  } catch (e) {
+    MessagePlugin.error(e?.response?.data?.msg || e?.message || '导入失败')
+  } finally { excelImporting.value = false }
 }
 
 const initForm = () => ({

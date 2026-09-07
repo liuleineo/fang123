@@ -5,8 +5,8 @@ spring:
     active: dev
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 200MB
+      max-file-size: 500MB
+      max-request-size: 600MB
   jackson:
     deserialization:
       accept-empty-string-as-null-object: true  # 空字符串按 null 处理，避免 LocalDate/BigDecimal 反序列化报错

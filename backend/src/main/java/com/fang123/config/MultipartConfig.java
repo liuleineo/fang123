@@ -12,8 +12,9 @@ public class MultipartConfig {
     @Bean
     public MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setMaxFileSize(DataSize.ofMegabytes(50));
-        factory.setMaxRequestSize(DataSize.ofMegabytes(200));
+        // 视频素材上限 500MB，请求体预留余量 600MB（与各 application-*.yml 保持一致）
+        factory.setMaxFileSize(DataSize.ofMegabytes(500));
+        factory.setMaxRequestSize(DataSize.ofMegabytes(600));
         return factory.createMultipartConfig();
     }
 }
