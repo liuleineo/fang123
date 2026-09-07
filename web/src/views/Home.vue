@@ -107,13 +107,16 @@
               </span>
             </div>
             <div class="p-3 sm:p-5">
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="min-w-0 text-sm sm:text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1 flex items-center gap-1.5">
-                  {{ lp.projectName }}
-                  <span v-if="lp.brandList" class="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium text-white bg-orange-500">{{ lp.brandList }}</span>
-                </h3>
-                <span v-if="lp.avgUnitPrice" class="shrink-0 text-xs sm:text-sm font-bold text-[var(--color-danger)] whitespace-nowrap">
-                  {{ lp.avgUnitPrice }}元/㎡
+              <!-- 标题行：楼盘名 + 开发商品牌占满整行，避免手机双列时互相挤压截断 -->
+              <h3 class="mb-1 text-sm sm:text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors leading-snug flex items-center gap-1.5">
+                <span class="min-w-0 truncate">{{ lp.projectName }}</span>
+                <span v-if="lp.brandList" class="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium text-white bg-orange-500 whitespace-nowrap">{{ lp.brandList }}</span>
+              </h3>
+              <!-- 价格 + 位置行：手机双列时各自完整显示 -->
+              <div v-if="lp.avgUnitPrice || lp.district" class="mb-2 flex items-center justify-between gap-2">
+                <span v-if="lp.avgUnitPrice" class="shrink-0 text-xs sm:text-sm font-bold text-[var(--color-danger)] whitespace-nowrap">{{ lp.avgUnitPrice }}元/㎡</span>
+                <span v-if="lp.district" class="min-w-0 flex items-center gap-0.5 text-xs text-[var(--color-text-tertiary)] truncate">
+                  <MapPin class="w-3 h-3 shrink-0 -mt-px" />{{ lp.district }}{{ lp.plate ? '·' + lp.plate : '' }}
                 </span>
               </div>
               <div v-if="lp.avgUnitPriceYangfang||lp.avgUnitPriceDieshu||lp.avgUnitPricePaiwu" class="flex flex-wrap gap-1.5 mb-3">
@@ -121,9 +124,6 @@
                 <span v-if="lp.avgUnitPriceDieshu" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">叠墅 {{ lp.avgUnitPriceDieshu }}元/㎡</span>
                 <span v-if="lp.avgUnitPricePaiwu" class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">排屋 {{ lp.avgUnitPricePaiwu }}元/㎡</span>
               </div>
-              <p class="text-xs text-[var(--color-text-tertiary)] mb-3">
-                <MapPin class="w-3 h-3 inline -mt-0.5 mr-0.5" />{{ lp.district }}{{ lp.plate ? '·'+lp.plate : '' }}
-              </p>
               <div class="flex flex-wrap gap-1.5 mb-3">
                 <span class="px-2 py-0.5 text-xs rounded bg-gray-50 text-[var(--color-text-secondary)]">
                   建面{{ lp.areaMin }}-{{ lp.areaMax }}㎡
