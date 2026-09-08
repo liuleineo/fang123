@@ -5,6 +5,7 @@
       <div class="flex gap-2">
         <t-button theme="primary" @click="openCreate"><Plus class="w-4 h-4 mr-1" />新建房源</t-button>
         <t-button theme="warning" variant="outline" @click="openAiDialog"><Sparkles class="w-4 h-4 mr-1" />AI新建房源</t-button>
+        <t-button theme="primary" variant="outline" @click="openExcelImport"><FileSpreadsheet class="w-4 h-4 mr-1" />Excel导入</t-button>
       </div>
     </div>
 
@@ -81,6 +82,33 @@
       </t-form>
     </t-dialog>
 
+    <!-- Excel 批量导入一房一价 -->
+    <t-dialog v-model:visible="excelVisible" header="Excel 批量导入一房一价" width="560px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-3">
+        <t-alert theme="info" message="上传 Excel 文件（.xlsx/.xls），第一行为表头。必填列：『楼盘』『房号』；其余选填：户型、预售证号、房屋编码、楼栋、单元、面积、备案单价、备案总价、状态（未售/认购/已售/抵押/保留）、备注。" />
+        <div class="text-xs text-[var(--color-text-tertiary)]">模板表头示例：楼盘 | 户型 | 预售证号 | 楼栋 | 单元 | 房号 | 面积 | 备案单价 | 备案总价 | 状态 | 备注</div>
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg py-8 cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+          <input type="file" accept=".xlsx,.xls" class="hidden" @change="onExcelFileChange" />
+          <FileSpreadsheet class="w-10 h-10 text-gray-300 mb-2" />
+          <p class="text-sm text-[var(--color-text-secondary)]">{{ excelFile ? excelFile.name : '点击选择 Excel 文件' }}</p>
+        </label>
+        <div class="flex justify-end gap-2">
+          <t-button variant="outline" :disabled="excelImporting" @click="closeExcelImport">取消</t-button>
+          <t-button theme="primary" :loading="excelImporting" :disabled="!excelFile" @click="startExcelImport">开始导入</t-button>
+        </div>
+        <div v-if="excelResult" class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+          <div class="flex items-center gap-4 text-sm">
+            <span>共 <b class="text-[var(--color-text-primary)]">{{ excelResult.total }}</b> 条</span>
+            <span class="text-green-600">成功 <b>{{ excelResult.success }}</b></span>
+            <span class="text-red-500">失败 <b>{{ excelResult.failed }}</b></span>
+          </div>
+          <div v-if="excelResult.errors?.length" class="mt-2 max-h-40 overflow-y-auto">
+            <div v-for="(e,i) in excelResult.errors" :key="i" class="text-xs text-red-500 py-0.5">第 {{ e.row }} 行：{{ e.msg }}</div>
+          </div>
+        </div>
+      </div>
+    </t-dialog>
+
     <t-dialog v-model:visible="aiVisible" header="AI 新建房源" width="680px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
         <t-alert theme="info" message="上传一房一价表图片，AI 自动识别多套房源信息并批量创建。" />
@@ -129,7 +157,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Search, Sparkles, Check, Image, Tag } from 'lucide-vue-next'
+import { Plus, Search, Sparkles, Check, Image, Tag, FileSpreadsheet } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -230,6 +258,44 @@ const aiVisible = ref(false); const aiTab = ref('upload')
 const aiFiles = ref([]); const aiPasteFiles = ref([]); const aiLoupanId = ref(null)
 const aiParsing = ref(false); const aiSaving = ref(false); const aiResult = ref(null); const aiSelected = ref([])
 function openAiDialog(){ aiFiles.value=[]; aiPasteFiles.value=[]; aiResult.value=null; aiSelected.value=[]; aiTab.value='upload'; aiVisible.value=true }
+
+// ===== Excel 批量导入 =====
+const excelVisible = ref(false)
+const excelFile = ref(null)
+const excelImporting = ref(false)
+const excelResult = ref(null)
+function openExcelImport() {
+  excelFile.value = null
+  excelResult.value = null
+  excelVisible.value = true
+}
+function closeExcelImport() {
+  if (excelImporting.value) return
+  excelVisible.value = false
+  excelFile.value = null
+  excelResult.value = null
+}
+function onExcelFileChange(e) {
+  excelFile.value = e.target.files?.[0] || null
+  excelResult.value = null
+}
+async function startExcelImport() {
+  if (!excelFile.value) { MessagePlugin.warning('请先选择 Excel 文件'); return }
+  excelImporting.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', excelFile.value)
+    const res = await request.post('/admin/yfyj/excel-import', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000
+    })
+    excelResult.value = res
+    MessagePlugin.success(`导入完成：成功 ${res?.success || 0} 条，失败 ${res?.failed || 0} 条`)
+    if (res?.success > 0) fetchData()
+  } catch (e) {
+    MessagePlugin.error(e?.response?.data?.msg || e?.message || '导入失败')
+  } finally { excelImporting.value = false }
+}
 function aiUploadDummy(){ return Promise.resolve({status:'success',response:{}}) }
 function onPaste(e) {
   const items = e.clipboardData?.items; if (!items) return
