@@ -38,7 +38,7 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑楼盘':'新建楼盘'" size="600px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑楼盘':'新建楼盘'" width="720px" :footer="false" :close-on-overlay-click="false">
       <t-tabs v-model="activeTab" defaultValue="basic">
         <t-tab-panel value="basic" label="基本信息">
           <t-form :data="form" label-align="top">
@@ -187,7 +187,7 @@
         </t-tab-panel>
       </t-tabs>
       <t-button block theme="primary" :loading="saving" @click="save" class="mt-4">保存</t-button>
-    </t-drawer>
+    </t-dialog>
 
     <!-- AI 新增楼盘对话框 -->
     <t-dialog v-model:visible="aiVisible" header="AI 新增楼盘" width="640px" :footer="false" :close-on-overlay-click="false">

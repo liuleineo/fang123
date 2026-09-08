@@ -57,7 +57,7 @@
       </div>
     </t-dialog>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑房源':'新建房源'" size="450px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑房源':'新建房源'" width="560px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="户型ID"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
@@ -79,7 +79,7 @@
         <t-form-item label="备注"><t-textarea v-model="form.remark" :maxlength="500" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
-    </t-drawer>
+    </t-dialog>
 
     <t-dialog v-model:visible="aiVisible" header="AI 新建房源" width="680px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">

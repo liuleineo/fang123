@@ -36,7 +36,7 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑素材':(isVideoCreate?'新建视频素材':'新建素材')" size="450px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑素材':(isVideoCreate?'新建视频素材':'新建素材')" width="640px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID">
           <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
@@ -83,7 +83,7 @@
         <t-form-item label="排序"><t-input-number v-model="form.sort" :min="0" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
-    </t-drawer>
+    </t-dialog>
 
     <!-- 批量新建素材 -->
     <t-dialog v-model:visible="batchVisible" header="批量新建素材" width="520px" :footer="false" :close-on-overlay-click="false">

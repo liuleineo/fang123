@@ -40,7 +40,7 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑成交记录':'新建成交记录'" size="560px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑成交记录':'新建成交记录'" width="560px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="成交日期"><t-date-picker v-model="form.dealDate" class="w-full" format="YYYY-MM-DD" value-type="YYYY-MM-DD" /></t-form-item>
@@ -66,7 +66,7 @@
         <t-form-item label="备注（是否带车位等）"><t-input v-model="form.remark" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
-    </t-drawer>
+    </t-dialog>
 
     <!-- AI 解析成交播报 -->
     <t-dialog v-model:visible="aiVisible" header="AI新建成交" width="620px" :footer="false">

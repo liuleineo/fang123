@@ -33,7 +33,7 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑动态':'新建动态'" size="560px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑动态':'新建动态'" width="640px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="动态标题"><t-input v-model="form.title" :maxlength="200" /></t-form-item>
@@ -83,7 +83,7 @@
         </t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
-    </t-drawer>
+    </t-dialog>
   </div>
 </template>
 
