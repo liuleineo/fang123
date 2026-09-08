@@ -41,7 +41,9 @@
         <t-form-item label="楼盘ID">
           <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
         </t-form-item>
-        <t-form-item label="关联户型ID(可选)"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
+        <t-form-item label="关联户型(可选)">
+          <t-select v-model="form.huxingId" filterable clearable :options="huxingOpts" :disabled="!form.loupanId" placeholder="先选择楼盘，再选择该楼盘户型" class="w-full" />
+        </t-form-item>
         <t-form-item label="素材类型">
           <t-select v-model="form.mediaType" :disabled="isVideoCreate" :options="[{label:'实景图',value:1},{label:'样板间',value:2},{label:'户型图',value:3},{label:'航拍',value:4},{label:'短视频',value:5},{label:'VR',value:6},{label:'设计图',value:7},{label:'区位图',value:8},{label:'效果图',value:9},{label:'施工进度',value:10},{label:'周边配套',value:11}]" />
         </t-form-item>
@@ -116,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Search, Image, Layers, Upload, Video } from 'lucide-vue-next'
 import request from '@/utils/request'
@@ -130,6 +132,7 @@ const uploadRef = ref()
 const uploadTab = ref('upload')
 const pasteFiles = ref([])
 const pasteUploading = ref(false)
+const uploadFailShown = ref(false) // 是否已在上传方法内提示错误（避免与 onUploadFail 重复提示）
 
 // ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
 const loupanOpts = ref([])
@@ -137,6 +140,17 @@ async function fetchLoupanOpts() {
   try {
     const list = await request.get('/admin/loupans/options', { params: {} })
     loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
+
+// ===== 户型下拉选项（按所选楼盘联动）=====
+const huxingOpts = ref([])
+async function fetchHuxingOpts(loupanId) {
+  huxingOpts.value = []
+  if (!loupanId) return
+  try {
+    const list = await request.get('/admin/huxings/options', { params: { loupanId } })
+    huxingOpts.value = (list || []).map(h => ({ label: `${h.id} · ${h.huxingName}${h.area ? '（' + h.area + '㎡）' : ''}`, value: h.id }))
   } catch {}
 }
 
@@ -216,6 +230,7 @@ async function uploadRequest(file) {
   const MAX_VIDEO_MB = 500
   if (isVideo && blob.size > MAX_VIDEO_MB * 1024 * 1024) {
     MessagePlugin.error(`视频不能超过 ${MAX_VIDEO_MB}MB，当前 ${(blob.size / 1024 / 1024).toFixed(1)}MB`)
+    uploadFailShown.value = true
     uploadFiles.value = []
     return { status: 'fail', error: `视频不能超过 ${MAX_VIDEO_MB}MB` }
   }
@@ -223,25 +238,41 @@ async function uploadRequest(file) {
   fd.append('file', blob, filename)
   // 视频文件通常较大，远超 axios 全局 15s 默认超时，按上传入口单独放宽
   // 视频预留 20 分钟（500MB 即使上行 ~0.5MB/s 也能传完），图片预留 2 分钟
-  const res = await request.post('/admin/medias/upload', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: isVideo ? 1200000 : 120000,
-    onUploadProgress: (e) => {
-      if (!e.total) return
-      const pct = Math.min(99, Math.round((e.loaded / e.total) * 100))
-      updateUploadPercent(file, pct)
-    }
-  })
-  // 标记完成，t-upload 收到 resolve 后会自动置为 100%/成功
+  let res
+  try {
+    res = await request.post('/admin/medias/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: isVideo ? 1200000 : 120000,
+      onUploadProgress: (e) => {
+        if (!e.total) return
+        // 上传进行中封顶 99%，服务端确认返回后才由 t-upload 置为 100%/成功
+        const pct = Math.min(99, Math.round((e.loaded / e.total) * 100))
+        updateUploadPercent(file, pct)
+      }
+    })
+  } catch (e) {
+    // 请求异常（后端报错/超时等）必须显式返回 fail，否则 promise reject 会让
+    // t-upload 一直停留在上传进度状态（如 99%）而无法结束
+    const msg = e?.response?.data?.msg || e?.message || '上传失败'
+    MessagePlugin.error(msg)
+    uploadFailShown.value = true
+    return { status: 'fail', error: msg }
+  }
   return { status: 'success', response: { url: res.url } }
 }
 
-function onUploadSuccess({ file }) { form.mediaUrl = file.response?.url || ''; MessagePlugin.success('上传成功'); uploadFiles.value = [] }
-function onUploadFail() { MessagePlugin.error('上传失败'); uploadFiles.value = [] }
+function onUploadSuccess({ file }) { uploadFailShown.value = false; form.mediaUrl = file.response?.url || ''; MessagePlugin.success('上传成功'); uploadFiles.value = [] }
+function onUploadFail() { if (!uploadFailShown.value) MessagePlugin.error('上传失败'); uploadFailShown.value = false; uploadFiles.value = [] }
 function onUploadRemove() { uploadFiles.value = [] }
 
 const initForm = () => ({ loupanId:null,huxingId:null,mediaType:1,mediaUrl:'',mediaTitle:'',sort:0 })
 const form = reactive(initForm())
+
+// 楼盘切换时清空已选户型，并按楼盘加载户型选项
+watch(() => form.loupanId, (val) => {
+  form.huxingId = null
+  fetchHuxingOpts(val)
+})
 
 async function uploadAllFiles() {
   if (!form.loupanId) { MessagePlugin.warning('请先选择楼盘ID'); return }
@@ -283,9 +314,9 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;isVideoCreate.value=false;editId.value=null;Object.assign(form,initForm());fetchLoupanOpts();drawer.value=true}
-function openVideoCreate(){isEdit.value=false;isVideoCreate.value=true;editId.value=null;Object.assign(form,initForm(),{mediaType:5});fetchLoupanOpts();drawer.value=true}
-function openEdit(row){isEdit.value=true;isVideoCreate.value=false;editId.value=row.id;Object.assign(form,row);fetchLoupanOpts();drawer.value=true}
+function openCreate(){isEdit.value=false;isVideoCreate.value=false;editId.value=null;Object.assign(form,initForm());fetchLoupanOpts();huxingOpts.value=[];drawer.value=true}
+function openVideoCreate(){isEdit.value=false;isVideoCreate.value=true;editId.value=null;Object.assign(form,initForm(),{mediaType:5});fetchLoupanOpts();huxingOpts.value=[];drawer.value=true}
+function openEdit(row){isEdit.value=true;isVideoCreate.value=false;editId.value=row.id;Object.assign(form,row);fetchLoupanOpts();fetchHuxingOpts(row.loupanId);drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/medias/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/medias',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}

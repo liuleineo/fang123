@@ -167,7 +167,7 @@ public class LoupanPublicController {
         return Result.success(realDealService.list(w));
     }
 
-    /** 公开-同板块真实成交（最近30条，不含本楼盘） */
+    /** 公开-同板块真实成交（最近30条，含本小区） */
     @GetMapping("/api/public/loupans/{encodedId}/real-deals/plate")
     public Result<Map<String, Object>> plateRealDeals(@PathVariable String encodedId) {
         Long id = IdObfuscator.decode(encodedId);
@@ -196,8 +196,7 @@ public class LoupanPublicController {
         LambdaQueryWrapper<RealDealInfo> w = new LambdaQueryWrapper<>();
         w.eq(RealDealInfo::getPlate, plate)
          .eq(RealDealInfo::getDeleted, 0)
-         // 排除本楼盘成交，保留同板块其他楼盘及未关联楼盘的成交记录
-         .and(q -> q.ne(RealDealInfo::getLoupanId, id).or().isNull(RealDealInfo::getLoupanId))
+         // 同板块成交（含本小区）
          .isNotNull(RealDealInfo::getCommunityName)
          .ne(RealDealInfo::getCommunityName, "")
          .orderByDesc(RealDealInfo::getDealDate)

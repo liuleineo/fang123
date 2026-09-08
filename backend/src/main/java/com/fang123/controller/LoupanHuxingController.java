@@ -12,6 +12,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class LoupanHuxingController {
@@ -30,6 +35,24 @@ public class LoupanHuxingController {
         if (StringUtils.hasText(keyword)) w.like(LoupanHuxing::getHuxingName, keyword);
         w.orderByDesc(LoupanHuxing::getId);
         return Result.success(huxingService.page(new Page<>(page, size), w));
+    }
+
+    /** 户型下拉选项（按楼盘过滤），供媒体素材等模块选择关联户型 */
+    @GetMapping("/api/admin/huxings/options")
+    public Result<List<Map<String, Object>>> options(@RequestParam(required = false) Long loupanId) {
+        if (loupanId == null) return Result.success(List.of());
+        LambdaQueryWrapper<LoupanHuxing> w = new LambdaQueryWrapper<>();
+        w.eq(LoupanHuxing::getLoupanId, loupanId);
+        w.orderByAsc(LoupanHuxing::getSort).orderByAsc(LoupanHuxing::getId);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (LoupanHuxing h : huxingService.list(w)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", h.getId());
+            m.put("huxingName", h.getHuxingName());
+            m.put("area", h.getArea());
+            list.add(m);
+        }
+        return Result.success(list);
     }
 
     @GetMapping("/api/admin/huxings/{id}")

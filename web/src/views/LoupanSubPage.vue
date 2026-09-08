@@ -244,7 +244,7 @@
               <span class="px-1.5 py-0.5 rounded text-xs bg-blue-50 text-[var(--color-primary)]">{{ plateName }}</span>
               <span v-if="plateDeals.length" class="text-xs text-[var(--color-text-tertiary)]">最近 {{ plateDeals.length }} 条</span>
             </div>
-            <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块其他楼盘成交信息</div>
+            <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块楼盘成交信息</div>
             <div v-else-if="plateDeals.length" class="overflow-x-auto bg-white rounded-xl border border-gray-100">
               <table class="w-full text-sm border-collapse">
                 <thead>
@@ -531,7 +531,7 @@ const priceTrend = computed(() => {
   }
 })
 
-/** 同板块真实成交（最近30条，不含本楼盘） */
+/** 同板块真实成交（最近30条，含本小区） */
 async function fetchPlateDeals() {
   plateLoaded.value = false
   try {
