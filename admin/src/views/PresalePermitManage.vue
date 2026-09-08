@@ -28,7 +28,7 @@
       </t-table>
     </div>
 
-    <t-drawer v-model:visible="drawer" :header="isEdit?'编辑预售证':'新建预售证'" size="500px" :footer="false">
+    <t-dialog v-model:visible="drawer" :header="isEdit?'编辑预售证':'新建预售证'" width="600px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
         <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
         <t-form-item label="项目名称"><t-input v-model="form.projectName" /></t-form-item>
@@ -47,7 +47,7 @@
         <t-form-item label="网上预(销)售总面积(㎡)"><t-input-number v-model="form.onlineSaleArea" :min="0" :decimalPlaces="2" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
-    </t-drawer>
+    </t-dialog>
 
     <!-- AI 新建预售证 -->
     <t-dialog v-model:visible="aiVisible" header="AI 新建预售证" width="640px" :footer="false" :close-on-overlay-click="false">
