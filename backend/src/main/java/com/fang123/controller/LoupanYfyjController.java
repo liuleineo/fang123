@@ -78,7 +78,7 @@ public class LoupanYfyjController {
         return Result.success();
     }
 
-    /** 批量设置：按筛选条件对符合条件的房源批量设置 loupan_id / huxing_id */
+    /** 批量设置：按筛选条件对符合条件的房源批量设置 loupan_id / huxing_id / permit_no / unit_no / house_status */
     @PostMapping("/api/admin/yfyj/batch-update")
     public Result<Integer> batchUpdate(@RequestBody java.util.Map<String, Object> body) {
         // 筛选条件（where）
@@ -94,10 +94,16 @@ public class LoupanYfyjController {
         boolean hasLoupan = body.containsKey("setLoupanId");
         boolean hasHuxing = body.containsKey("setHuxingId");
         boolean hasPermit = body.containsKey("setPermitNo");
-        if (!hasLoupan && !hasHuxing && !hasPermit) return Result.badRequest("请指定要批量设置的字段（setLoupanId / setHuxingId / setPermitNo）");
+        boolean hasUnit = body.containsKey("setUnitNo");
+        boolean hasStatus = body.containsKey("setHouseStatus");
+        if (!hasLoupan && !hasHuxing && !hasPermit && !hasUnit && !hasStatus) {
+            return Result.badRequest("请指定要批量设置的字段（setLoupanId / setHuxingId / setPermitNo / setUnitNo / setHouseStatus）");
+        }
         if (hasLoupan) uw.set(LoupanYfyj::getLoupanId, toLongOrNull(body.get("setLoupanId")));
         if (hasHuxing) uw.set(LoupanYfyj::getHuxingId, toLongOrNull(body.get("setHuxingId")));
         if (hasPermit) uw.set(LoupanYfyj::getPermitNo, asStr(body.get("setPermitNo")));
+        if (hasUnit) uw.set(LoupanYfyj::getUnitNo, asStr(body.get("setUnitNo")));
+        if (hasStatus) uw.set(LoupanYfyj::getHouseStatus, toIntOrNull(body.get("setHouseStatus")));
 
         int affected = yfyjService.getBaseMapper().update(null, uw);
         return Result.success("批量设置成功", affected);
@@ -305,5 +311,12 @@ public class LoupanYfyjController {
         String s = String.valueOf(v).trim();
         if (s.isEmpty()) return null;
         try { return Long.valueOf(s); } catch (NumberFormatException e) { return null; }
+    }
+
+    private static Integer toIntOrNull(Object v) {
+        if (v == null) return null;
+        String s = String.valueOf(v).trim();
+        if (s.isEmpty()) return null;
+        try { return Integer.valueOf(s); } catch (NumberFormatException e) { return null; }
     }
 }

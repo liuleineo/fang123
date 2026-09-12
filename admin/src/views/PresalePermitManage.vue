@@ -10,7 +10,7 @@
 
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div class="flex flex-wrap gap-3 items-center p-4 border-b border-gray-50">
-        <t-input v-model="keyword" placeholder="搜索项目名称/预售证编号/开发公司" clearable class="w-[280px]" @enter="search" @clear="search">
+        <t-input v-model="keyword" placeholder="搜索项目名称/预售证编号/开发公司/坐落位置" clearable class="w-[320px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
         <t-input-number v-model="filterLoupanId" placeholder="楼盘ID" :min="0" class="w-[140px]" @enter="search" />
@@ -30,7 +30,9 @@
 
     <t-dialog v-model:visible="drawer" :header="isEdit?'编辑预售证':'新建预售证'" width="600px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
-        <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="项目名称"><t-input v-model="form.projectName" /></t-form-item>
         <t-form-item label="预售许可证编号"><t-input v-model="form.permitNo" /></t-form-item>
         <t-form-item label="预售证编号STR"><t-input v-model="form.permitNoStr" /></t-form-item>
@@ -107,6 +109,15 @@ const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); 
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
+// ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
+const loupanOpts = ref([])
+async function fetchLoupanOpts() {
+  try {
+    const list = await request.get('/admin/loupans/options', { params: {} })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
+
 const initForm = () => ({ loupanId:null,projectName:'',publicityDate:'',issueDate:'',developCompany:'',location:'',saleAddress:'',salePhone:'',onlineSaleArea:0,permitNo:'',permitNoStr:'' })
 const form = reactive(initForm())
 
@@ -135,8 +146,8 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());fetchLoupanOpts();drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);fetchLoupanOpts();drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/presale-permits/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/presale-permits',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
@@ -195,8 +206,9 @@ function fillFormFromAi() {
     if (y && n) form.permitNo = y[1] + n[1]
   }
   aiVisible.value = false; drawer.value = true; isEdit.value = false
+  fetchLoupanOpts()
   MessagePlugin.success('已填入AI识别字段，请核对后保存')
 }
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>

@@ -21,6 +21,8 @@
         <t-button variant="outline" @click="openBatch('loupanId')"><Tag class="w-4 h-4 mr-1" />批量设楼盘ID</t-button>
         <t-button variant="outline" @click="openBatch('huxingId')"><Tag class="w-4 h-4 mr-1" />批量设户型ID</t-button>
         <t-button variant="outline" @click="openBatch('permitNo')"><Tag class="w-4 h-4 mr-1" />批量设预售证号</t-button>
+        <t-button variant="outline" @click="openBatch('unitNo')"><Tag class="w-4 h-4 mr-1" />批量设置单元</t-button>
+        <t-button variant="outline" @click="openBatch('houseStatus')"><Tag class="w-4 h-4 mr-1" />批量设置状态</t-button>
         <div class="ml-auto">
           <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
           <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
@@ -44,7 +46,7 @@
       </t-table>
     </div>
 
-    <!-- 批量设置楼盘ID / 户型ID / 预售证号 -->
+    <!-- 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态 -->
     <t-dialog v-model:visible="batchVisible" :header="batchTitle" width="420px" :confirm-btn="{ content: '确认设置', loading: batchSaving }" :cancel-btn="{}" @confirm="doBatchUpdate">
       <div class="space-y-3">
         <p class="text-sm text-[var(--color-text-tertiary)]">
@@ -52,7 +54,8 @@
           <b class="text-[var(--color-text-primary)]">{{ batchLabel }}</b>
         </p>
         <t-form-item :label="batchLabel" label-align="top">
-          <t-input v-if="batchType==='permitNo'" v-model="batchValue" style="width:100%" placeholder="输入预售证号，如 202600001" />
+          <t-select v-if="batchType==='houseStatus'" v-model="batchValue" style="width:100%" placeholder="请选择房源状态" :options="houseStatusOptions" />
+          <t-input v-else-if="batchType==='permitNo' || batchType==='unitNo'" v-model="batchValue" style="width:100%" :placeholder="batchType==='permitNo' ? '输入预售证号，如 202600001' : '输入单元号，如 1'" />
           <t-input-number v-else v-model="batchValue" :min="0" :max="999999999" style="width:100%" :placeholder="`输入${batchType==='loupanId'?'楼盘':'户型'}ID`" />
         </t-form-item>
       </div>
@@ -60,7 +63,9 @@
 
     <t-dialog v-model:visible="drawer" :header="isEdit?'编辑房源':'新建房源'" width="560px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
-        <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="户型ID"><t-input-number v-model="form.huxingId" :min="0" /></t-form-item>
         <t-form-item label="预售证号"><t-input v-model="form.permitNo" placeholder="预售许可证编号" /></t-form-item>
         <t-form-item label="房屋编码"><t-input v-model="form.fwcode" placeholder="房屋编码" /></t-form-item>
@@ -112,7 +117,7 @@
     <t-dialog v-model:visible="aiVisible" header="AI 新建房源" width="680px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
         <t-alert theme="info" message="上传一房一价表图片，AI 自动识别多套房源信息并批量创建。" />
-        <t-form label-align="top"><t-form-item label="关联楼盘ID"><t-input-number v-model="aiLoupanId" :min="1" placeholder="所有识别的房源将关联到此楼盘" /></t-form-item></t-form>
+        <t-form label-align="top"><t-form-item label="关联楼盘ID"><t-select v-model="aiLoupanId" filterable clearable class="w-full" :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择，所有识别的房源将关联到此楼盘" /></t-form-item></t-form>
         <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
             <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
@@ -165,12 +170,30 @@ const data = ref([]); const loading = ref(false)
 const filterLoupanId = ref(null); const filterBuildingNo = ref(null); const filterUnitNo = ref(null); const filterRoomNo = ref(null); const filterPermitNo = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0,pageSizeOptions:[10,20,50,100,200]})
 
-// 批量设置楼盘ID / 户型ID
+// ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
+const loupanOpts = ref([])
+async function fetchLoupanOpts() {
+  try {
+    const list = await request.get('/admin/loupans/options', { params: {} })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
+
+// 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态
 const batchVisible = ref(false); const batchType = ref('loupanId'); const batchValue = ref(null); const batchSaving = ref(false)
+const houseStatusOptions = [
+  { label: '未售', value: 0 },
+  { label: '认购', value: 1 },
+  { label: '已售', value: 2 },
+  { label: '抵押', value: 3 },
+  { label: '保留', value: 4 }
+]
 const batchMeta = {
   loupanId: { label: '楼盘ID', title: '批量设置楼盘ID' },
   huxingId: { label: '户型ID', title: '批量设置户型ID' },
-  permitNo: { label: '预售证号', title: '批量设置预售证号' }
+  permitNo: { label: '预售证号', title: '批量设置预售证号' },
+  unitNo: { label: '单元号', title: '批量设置单元' },
+  houseStatus: { label: '房源状态', title: '批量设置状态' }
 }
 const batchTitle = computed(() => batchMeta[batchType.value]?.title || '批量设置')
 const batchLabel = computed(() => batchMeta[batchType.value]?.label || '')
@@ -189,8 +212,9 @@ async function doBatchUpdate() {
   batchSaving.value = true
   try {
     const payload = { loupanId: filterLoupanId.value, buildingNo: filterBuildingNo.value, unitNo: filterUnitNo.value, roomNo: filterRoomNo.value, permitNo: filterPermitNo.value }
-    const keyMap = { loupanId: 'setLoupanId', huxingId: 'setHuxingId', permitNo: 'setPermitNo' }
-    payload[keyMap[batchType.value]] = batchType.value === 'permitNo' ? String(batchValue.value).trim() : batchValue.value
+    const keyMap = { loupanId: 'setLoupanId', huxingId: 'setHuxingId', permitNo: 'setPermitNo', unitNo: 'setUnitNo', houseStatus: 'setHouseStatus' }
+    const textTypes = ['permitNo', 'unitNo']
+    payload[keyMap[batchType.value]] = textTypes.includes(batchType.value) ? String(batchValue.value).trim() : batchValue.value
     const r = await request.post('/admin/yfyj/batch-update', payload)
     MessagePlugin.success(`批量设置成功，共更新 ${r ?? 0} 条`)
     batchVisible.value = false
@@ -227,8 +251,8 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;editId.value=null;Object.assign(form,initForm());fetchLoupanOpts();drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;Object.assign(form,row);fetchLoupanOpts();drawer.value=true}
 async function save(){
   saving.value=true
   try{if(isEdit.value){await request.put(`/admin/yfyj/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/yfyj',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
@@ -257,7 +281,7 @@ async function batchDelete() {
 const aiVisible = ref(false); const aiTab = ref('upload')
 const aiFiles = ref([]); const aiPasteFiles = ref([]); const aiLoupanId = ref(null)
 const aiParsing = ref(false); const aiSaving = ref(false); const aiResult = ref(null); const aiSelected = ref([])
-function openAiDialog(){ aiFiles.value=[]; aiPasteFiles.value=[]; aiResult.value=null; aiSelected.value=[]; aiTab.value='upload'; aiVisible.value=true }
+function openAiDialog(){ aiFiles.value=[]; aiPasteFiles.value=[]; aiResult.value=null; aiSelected.value=[]; aiTab.value='upload'; fetchLoupanOpts(); aiVisible.value=true }
 
 // ===== Excel 批量导入 =====
 const excelVisible = ref(false)
@@ -340,5 +364,5 @@ async function batchCreateYfyj(){
   if(created>0){ aiVisible.value=false; fetchData() }
 }
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>

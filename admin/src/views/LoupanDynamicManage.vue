@@ -35,7 +35,9 @@
 
     <t-dialog v-model:visible="drawer" :header="isEdit?'编辑动态':'新建动态'" width="640px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
-        <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="动态标题"><t-input v-model="form.title" :maxlength="200" /></t-form-item>
         <t-form-item label="动态类型">
           <t-select v-model="form.type" :options="typeOpts" />
@@ -104,6 +106,15 @@ const typeTheme = { 1: 'primary', 2: 'success', 3: 'warning' }
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null); const filterType = ref(null)
 const pg = reactive({ current: 1, pageSize: 10, total: 0 })
+
+// ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
+const loupanOpts = ref([])
+async function fetchLoupanOpts() {
+  try {
+    const list = await request.get('/admin/loupans/options', { params: {} })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
 
 const initForm = () => ({ loupanId: null, title: '', content: '', type: 1, images: '' })
 const form = reactive(initForm())
@@ -228,6 +239,7 @@ function openCreate() {
   isEdit.value = false; editId.value = null
   Object.assign(form, initForm())
   imgUrls.value = []; uploadFiles.value = []; pasteFiles.value = []
+  fetchLoupanOpts()
   drawer.value = true
 }
 function openEdit(row) {
@@ -235,6 +247,7 @@ function openEdit(row) {
   Object.assign(form, row)
   imgUrls.value = (row.images || '').split(',').filter(Boolean)
   uploadFiles.value = []; pasteFiles.value = []
+  fetchLoupanOpts()
   drawer.value = true
 }
 function removeImg(i) { imgUrls.value.splice(i, 1) }
@@ -249,5 +262,5 @@ async function save() {
 }
 async function del(id) { await request.delete(`/admin/dynamics/${id}`); MessagePlugin.success('已删除'); fetchData() }
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>

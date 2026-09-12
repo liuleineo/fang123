@@ -28,10 +28,12 @@ public class LoupanPresalePermitController {
         LambdaQueryWrapper<LoupanPresalePermit> w = new LambdaQueryWrapper<>();
         if (loupanId != null) w.eq(LoupanPresalePermit::getLoupanId, loupanId);
         if (StringUtils.hasText(keyword)) {
-            w.like(LoupanPresalePermit::getProjectName, keyword)
-             .or().like(LoupanPresalePermit::getPermitNo, keyword)
-             .or().like(LoupanPresalePermit::getPermitNoStr, keyword)
-             .or().like(LoupanPresalePermit::getDevelopCompany, keyword);
+            // 关键字模糊匹配：项目名称 / 预售许可证编号 / 预售证编号STR / 开发公司 / 坐落位置
+            w.and(q -> q.like(LoupanPresalePermit::getProjectName, keyword)
+                    .or().like(LoupanPresalePermit::getPermitNo, keyword)
+                    .or().like(LoupanPresalePermit::getPermitNoStr, keyword)
+                    .or().like(LoupanPresalePermit::getDevelopCompany, keyword)
+                    .or().like(LoupanPresalePermit::getLocation, keyword));
         }
         w.orderByDesc(LoupanPresalePermit::getCreateTime);
         return Result.success(permitService.page(new Page<>(page, size), w));

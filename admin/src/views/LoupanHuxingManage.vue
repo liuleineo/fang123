@@ -40,7 +40,9 @@
 
     <t-dialog v-model:visible="drawer" :header="isEdit?'编辑户型':'新建户型'" width="720px" :footer="false" :close-on-overlay-click="false">
       <t-form :data="form" label-align="top">
-        <t-form-item label="楼盘ID"><t-input-number v-model="form.loupanId" :min="1" /></t-form-item>
+        <t-form-item label="楼盘ID">
+          <t-select v-model="form.loupanId" filterable clearable :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择" class="w-full" />
+        </t-form-item>
         <t-form-item label="户型名称"><t-input v-model="form.huxingName" /></t-form-item>
         <t-form-item label="户型图">
           <div class="flex flex-col gap-2 w-full">
@@ -124,7 +126,7 @@
         
         <t-form label-align="top">
           <t-form-item label="关联楼盘ID">
-            <t-input-number v-model="aiLoupanId" :min="1" placeholder="所有识别到的户型将关联到此楼盘" />
+            <t-select v-model="aiLoupanId" filterable clearable class="w-full" :options="loupanOpts" placeholder="输入楼盘名称或ID搜索选择，所有识别到的户型将关联到此楼盘" />
           </t-form-item>
         </t-form>
 
@@ -200,6 +202,15 @@ const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); 
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const filterLoupanId = ref(null)
 const pg = reactive({current:1,pageSize:10,total:0})
 
+// ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
+const loupanOpts = ref([])
+async function fetchLoupanOpts() {
+  try {
+    const list = await request.get('/admin/loupans/options', { params: {} })
+    loupanOpts.value = (list || []).map(l => ({ label: `${l.id} · ${l.projectName}${l.district ? '（' + l.district + '）' : ''}`, value: l.id }))
+  } catch {}
+}
+
 const initForm = () => ({ loupanId:null,huxingName:'',area:0,insideArea:0,insideAreaWithGift:null,roomNum:0,hallNum:0,toiletNum:0,balconyNum:0,orientation:'',floorType:1,unitPrice:null,totalPriceStart:null,totalPriceEnd:null,isShowHouse:0,tag:'',sort:0,huxingImage:'',standardHuxingImage:'' })
 const form = reactive(initForm())
 const huxingFiles = ref([])
@@ -235,8 +246,8 @@ async function fetchData() {
 }
 function search(){pg.current=1;fetchData()}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
-function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,initForm());drawer.value=true}
-function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,row);drawer.value=true}
+function openCreate(){isEdit.value=false;editId.value=null;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,initForm());fetchLoupanOpts();drawer.value=true}
+function openEdit(row){isEdit.value=true;editId.value=row.id;huxingFiles.value=[];standardFiles.value=[];standardPasteFiles.value=[];Object.assign(form,row);fetchLoupanOpts();drawer.value=true}
 
 async function uploadHuxingImage(file) {
   const fd = new FormData()
@@ -305,7 +316,7 @@ const aiSaving = ref(false)
 const aiResult = ref(null)
 const aiSelected = ref([])
 
-function openAiDialog() { aiFiles.value = []; aiPasteFiles.value = []; aiResult.value = null; aiSelected.value = []; aiTab.value = 'upload'; aiVisible.value = true }
+function openAiDialog() { aiFiles.value = []; aiPasteFiles.value = []; aiResult.value = null; aiSelected.value = []; aiTab.value = 'upload'; fetchLoupanOpts(); aiVisible.value = true }
 function aiUploadDummy() { return Promise.resolve({ status: 'success', response: {} }) }
 
 function onPaste(e) {
@@ -368,5 +379,5 @@ async function save(){
 }
 async function del(id){await request.delete(`/admin/huxings/${id}`);MessagePlugin.success('已删除');fetchData()}
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); fetchLoupanOpts() })
 </script>
