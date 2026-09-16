@@ -243,8 +243,7 @@
               <h2 class="text-lg font-bold text-[var(--color-text-primary)]">同板块真实成交</h2>
               <span class="px-1.5 py-0.5 rounded text-xs bg-blue-50 text-[var(--color-primary)]">{{ plateName }}</span>
               <span v-if="plateDeals.length" class="text-xs text-[var(--color-text-tertiary)]">最近 {{ plateDeals.length }} 条</span>
-              <t-button v-if="plateDeals.length" class="ml-auto" size="small"
-                        :variant="maskDealPrice ? 'base' : 'outline'"
+              <t-button v-if="plateDeals.length" class="ml-auto" size="small" variant="outline"
                         :theme="maskDealPrice ? 'primary' : 'default'"
                         @click="maskDealPrice = !maskDealPrice">
                 <EyeOff v-if="!maskDealPrice" class="w-4 h-4 mr-1" />
@@ -261,8 +260,8 @@
                     <th class="p-3 font-medium whitespace-nowrap">小区</th>
                     <th class="p-3 font-medium whitespace-nowrap">房号</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right">成交单价</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right">成交总价(万)</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
+                    <th class="p-3 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
                     <th class="p-3 font-medium whitespace-nowrap">备注</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
                   </tr>
@@ -273,8 +272,8 @@
                     <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ plateUnitPrice(r) }}</td>
-                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ plateTotalPrice(r) }}</td>
+                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
+                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
                   </tr>
