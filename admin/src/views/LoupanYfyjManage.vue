@@ -23,6 +23,7 @@
         <t-button variant="outline" @click="openBatch('permitNo')"><Tag class="w-4 h-4 mr-1" />批量设预售证号</t-button>
         <t-button variant="outline" @click="openBatch('unitNo')"><Tag class="w-4 h-4 mr-1" />批量设置单元</t-button>
         <t-button variant="outline" @click="openBatch('houseStatus')"><Tag class="w-4 h-4 mr-1" />批量设置状态</t-button>
+        <t-button variant="outline" @click="openBatch('area')"><Tag class="w-4 h-4 mr-1" />批量设置面积</t-button>
         <div class="ml-auto">
           <t-checkbox v-model="selectAll" :indeterminate="selectIndeterminate" @change="onSelectAll">全选</t-checkbox>
           <t-popconfirm v-if="selectedIds.length" :content="`确定删除 ${selectedIds.length} 条数据？`" @confirm="batchDelete">
@@ -46,7 +47,7 @@
       </t-table>
     </div>
 
-    <!-- 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态 -->
+    <!-- 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态 / 面积 -->
     <t-dialog v-model:visible="batchVisible" :header="batchTitle" width="420px" :confirm-btn="{ content: '确认设置', loading: batchSaving }" :cancel-btn="{}" @confirm="doBatchUpdate">
       <div class="space-y-3">
         <p class="text-sm text-[var(--color-text-tertiary)]">
@@ -56,8 +57,10 @@
         <t-form-item :label="batchLabel" label-align="top">
           <t-select v-if="batchType==='houseStatus'" v-model="batchValue" style="width:100%" placeholder="请选择房源状态" :options="houseStatusOptions" />
           <t-input v-else-if="batchType==='permitNo' || batchType==='unitNo'" v-model="batchValue" style="width:100%" :placeholder="batchType==='permitNo' ? '输入预售证号，如 202600001' : '输入单元号，如 1'" />
+          <t-input-number v-else-if="batchType==='area'" v-model="batchValue" :min="0" :decimalPlaces="2" style="width:100%" placeholder="输入建筑面积，如 89.5" />
           <t-input-number v-else v-model="batchValue" :min="0" :max="999999999" style="width:100%" :placeholder="`输入${batchType==='loupanId'?'楼盘':'户型'}ID`" />
         </t-form-item>
+        <p v-if="batchType==='area'" class="text-xs text-[var(--color-text-tertiary)]">单位：㎡，支持两位小数</p>
       </div>
     </t-dialog>
 
@@ -179,7 +182,7 @@ async function fetchLoupanOpts() {
   } catch {}
 }
 
-// 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态
+// 批量设置楼盘ID / 户型ID / 预售证号 / 单元 / 状态 / 面积
 const batchVisible = ref(false); const batchType = ref('loupanId'); const batchValue = ref(null); const batchSaving = ref(false)
 const houseStatusOptions = [
   { label: '未售', value: 0 },
@@ -193,7 +196,8 @@ const batchMeta = {
   huxingId: { label: '户型ID', title: '批量设置户型ID' },
   permitNo: { label: '预售证号', title: '批量设置预售证号' },
   unitNo: { label: '单元号', title: '批量设置单元' },
-  houseStatus: { label: '房源状态', title: '批量设置状态' }
+  houseStatus: { label: '房源状态', title: '批量设置状态' },
+  area: { label: '建筑面积(㎡)', title: '批量设置面积' }
 }
 const batchTitle = computed(() => batchMeta[batchType.value]?.title || '批量设置')
 const batchLabel = computed(() => batchMeta[batchType.value]?.label || '')
@@ -212,7 +216,7 @@ async function doBatchUpdate() {
   batchSaving.value = true
   try {
     const payload = { loupanId: filterLoupanId.value, buildingNo: filterBuildingNo.value, unitNo: filterUnitNo.value, roomNo: filterRoomNo.value, permitNo: filterPermitNo.value }
-    const keyMap = { loupanId: 'setLoupanId', huxingId: 'setHuxingId', permitNo: 'setPermitNo', unitNo: 'setUnitNo', houseStatus: 'setHouseStatus' }
+    const keyMap = { loupanId: 'setLoupanId', huxingId: 'setHuxingId', permitNo: 'setPermitNo', unitNo: 'setUnitNo', houseStatus: 'setHouseStatus', area: 'setArea' }
     const textTypes = ['permitNo', 'unitNo']
     payload[keyMap[batchType.value]] = textTypes.includes(batchType.value) ? String(batchValue.value).trim() : batchValue.value
     const r = await request.post('/admin/yfyj/batch-update', payload)

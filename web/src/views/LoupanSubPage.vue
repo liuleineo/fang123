@@ -239,10 +239,18 @@
 
           <!-- 同板块真实成交（最近30条） -->
           <div v-if="plateLoaded" class="mt-8">
-            <div v-if="plateName" class="flex items-center gap-2 mb-3">
+            <div v-if="plateName" class="flex items-center gap-2 mb-3 flex-wrap">
               <h2 class="text-lg font-bold text-[var(--color-text-primary)]">同板块真实成交</h2>
               <span class="px-1.5 py-0.5 rounded text-xs bg-blue-50 text-[var(--color-primary)]">{{ plateName }}</span>
               <span v-if="plateDeals.length" class="text-xs text-[var(--color-text-tertiary)]">最近 {{ plateDeals.length }} 条</span>
+              <t-button v-if="plateDeals.length" class="ml-auto" size="small"
+                        :variant="maskDealPrice ? 'base' : 'outline'"
+                        :theme="maskDealPrice ? 'primary' : 'default'"
+                        @click="maskDealPrice = !maskDealPrice">
+                <EyeOff v-if="!maskDealPrice" class="w-4 h-4 mr-1" />
+                <Eye v-else class="w-4 h-4 mr-1" />
+                {{ maskDealPrice ? '显示成交价' : '掩码成交价' }}
+              </t-button>
             </div>
             <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块楼盘成交信息</div>
             <div v-else-if="plateDeals.length" class="overflow-x-auto bg-white rounded-xl border border-gray-100">
@@ -265,8 +273,8 @@
                     <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
-                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
+                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ plateUnitPrice(r) }}</td>
+                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ plateTotalPrice(r) }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
                   </tr>
@@ -291,7 +299,7 @@
 <script setup>
 import { ref, computed, watch, onErrorCaptured } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play, Eye, EyeOff } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -322,6 +330,20 @@ watch(realDealLoading, v => {
 const plateDeals = ref([])
 const plateName = ref('')
 const plateLoaded = ref(false)
+// 掩码成交价：开启后隐藏成交单价，成交总价后两位以 xx 代替
+const maskDealPrice = ref(false)
+/** 同板块成交单价（掩码时隐藏数值） */
+function plateUnitPrice(r) {
+  if (maskDealPrice.value) return r.dealPrice != null ? '****' : '-'
+  return (r.dealPrice != null && r.houseArea) ? (Number(r.dealPrice) * 10000 / Number(r.houseArea)).toFixed(0) + '元/㎡' : '-'
+}
+/** 同板块成交总价(万)（掩码时后两位以 xx 代替） */
+function plateTotalPrice(r) {
+  if (r.dealPrice == null) return '-'
+  if (!maskDealPrice.value) return Number(r.dealPrice)
+  const s = String(Math.round(Number(r.dealPrice)))
+  return s.length <= 2 ? 'xx' : s.slice(0, -2) + 'xx'
+}
 const yfyjBuilding = ref('')
 
 const typeMap = { 1: '建设动态', 2: '销售动态', 3: '优惠动态' }
