@@ -61,8 +61,25 @@
         </div>
       </div>
 
-      <!-- 地图 -->
-      <div id="amap-container" class="w-full h-full" />
+      <!-- 地图（禁用浏览器默认右键菜单，改用自定义菜单） -->
+      <div id="amap-container" class="w-full h-full" @contextmenu.prevent />
+
+      <!-- 地图右键菜单：复制所点击位置的坐标 -->
+      <div
+        v-if="ctxMenu.visible"
+        class="map-ctx-menu"
+        :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }"
+        @click.stop
+        @contextmenu.prevent.stop
+      >
+        <div class="map-ctx-menu__coord">{{ fmtCoord(ctxMenu.lng, ctxMenu.lat) }}</div>
+        <div class="map-ctx-menu__item" @click="copyCoord('gcj')">
+          <Copy class="w-3.5 h-3.5" />复制当前坐标
+        </div>
+        <div class="map-ctx-menu__item" @click="copyCoord('wgs')">
+          <Copy class="w-3.5 h-3.5" />复制原始坐标（WGS84）
+        </div>
+      </div>
 
       <!-- 动画演示年份月份（屏幕底部居中，动画结束隐藏） -->
       <div v-if="isAnimating && animationYear" class="absolute inset-x-0 bottom-12 z-10 flex justify-center pointer-events-none">
@@ -133,9 +150,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Map as MapIcon, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon, Play } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Search, Map as MapIcon, MapPin, AlertCircle, SlidersHorizontal, Satellite as SatelliteIcon, Play, Copy } from 'lucide-vue-next'
+import { MessagePlugin } from 'tdesign-vue-next'
 import request from '@/utils/request'
+import { copyText } from '@/utils/clipboard'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
 
@@ -221,6 +240,82 @@ function wgs84ToGcj02(lng, lat) {
   return [Number(lng) + dlng, Number(lat) + dlat]
 }
 
+// GCJ-02（高德） → WGS84（原始/国际坐标）：以 wgs84ToGcj02 为正向做迭代逼近
+function gcj02ToWgs84(lng, lat) {
+  let wLng = Number(lng)
+  let wLat = Number(lat)
+  for (let i = 0; i < 6; i++) {
+    const [gLng, gLat] = wgs84ToGcj02(wLng, wLat)
+    const dLng = Number(lng) - gLng
+    const dLat = Number(lat) - gLat
+    wLng += dLng
+    wLat += dLat
+    if (Math.abs(dLng) < 1e-9 && Math.abs(dLat) < 1e-9) break
+  }
+  return [wLng, wLat]
+}
+
+// 「经度, 纬度」，6 位小数约 0.1 米精度，便于直接粘贴到其他地图/数据库
+function fmtCoord(lng, lat) {
+  const n = (v) => Number(v).toFixed(6)
+  return `${n(lng)}, ${n(lat)}`
+}
+
+/* ---------------- 地图右键菜单（复制坐标） ---------------- */
+const ctxMenu = ref({ visible: false, x: 0, y: 0, lng: 0, lat: 0 })
+const CTX_MENU_W = 200
+const CTX_MENU_H = 116
+
+function showContextMenu(x, y, lng, lat) {
+  // 防止菜单溢出视口右侧/底部
+  const px = Math.max(8, Math.min(x, window.innerWidth - CTX_MENU_W - 8))
+  const py = Math.max(8, Math.min(y, window.innerHeight - CTX_MENU_H - 8))
+  ctxMenu.value = { visible: true, x: px, y: py, lng, lat }
+}
+
+function closeContextMenu() {
+  if (ctxMenu.value.visible) ctxMenu.value.visible = false
+}
+
+function onMapRightClick(e) {
+  const oe = e && e.originEvent
+  if (oe) {
+    oe.preventDefault?.()
+    oe.stopPropagation?.()
+  }
+  const lnglat = e && e.lnglat
+  if (!lnglat) return
+  const x = oe && typeof oe.clientX === 'number' ? oe.clientX : window.innerWidth / 2
+  const y = oe && typeof oe.clientY === 'number' ? oe.clientY : window.innerHeight / 2
+  showContextMenu(x, y, lnglat.getLng(), lnglat.getLat())
+}
+
+async function copyCoord(type) {
+  const { lng, lat } = ctxMenu.value
+  let text = ''
+  let label = ''
+  if (type === 'wgs') {
+    const [wLng, wLat] = gcj02ToWgs84(lng, lat)
+    text = fmtCoord(wLng, wLat)
+    label = '原始坐标（WGS84）'
+  } else {
+    text = fmtCoord(lng, lat)
+    label = '当前坐标'
+  }
+  try {
+    await copyText(text)
+    MessagePlugin.success(`已复制${label}：${text}`)
+  } catch {
+    MessagePlugin.error('复制失败，请手动复制')
+  } finally {
+    closeContextMenu()
+  }
+}
+
+function onGlobalKeydown(e) {
+  if (e.key === 'Escape') closeContextMenu()
+}
+
 const filteredList = computed(() => {
   let list = tupaiList.value.filter(item => item.longitude && item.latitude)
   if (keyword.value) {
@@ -278,6 +373,11 @@ async function initMap() {
   // 缩放级别变化时，按需显示/隐藏地块 label（zoomend 更可靠，缩放结束后触发）
   mapInstance.on('zoomend', syncLabelVisibility)
   mapInstance.on('zoomchange', syncLabelVisibility)
+  // 右键弹出坐标菜单；地图交互（点击/拖拽/缩放）时收起菜单
+  mapInstance.on('rightclick', onMapRightClick)
+  mapInstance.on('click', closeContextMenu)
+  mapInstance.on('movestart', closeContextMenu)
+  mapInstance.on('zoomstart', closeContextMenu)
   mapReady.value = true
   addMarkers()
 }
@@ -403,7 +503,21 @@ function addMarkers() {
 }
 
 watch(filteredList, addMarkers, { deep: true })
-onMounted(fetchData)
+
+onMounted(() => {
+  window.addEventListener('click', closeContextMenu)
+  window.addEventListener('resize', closeContextMenu)
+  window.addEventListener('keydown', onGlobalKeydown)
+  fetchData()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
+  window.removeEventListener('resize', closeContextMenu)
+  window.removeEventListener('keydown', onGlobalKeydown)
+  if (animationTimer) { clearInterval(animationTimer); animationTimer = null }
+  if (mapInstance) { mapInstance.destroy(); mapInstance = null }
+})
 </script>
 
 <style>
@@ -427,6 +541,43 @@ onMounted(fetchData)
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   pointer-events: none;
+}
+/* 地图右键菜单：复制坐标 */
+.map-ctx-menu {
+  position: fixed;
+  z-index: 999;
+  min-width: 180px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  user-select: none;
+}
+.map-ctx-menu__coord {
+  padding: 6px 10px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 12px;
+  color: #86909c;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.map-ctx-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1d2129;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+}
+.map-ctx-menu__item:hover {
+  background: #f2f3f5;
+  color: var(--color-primary);
 }
 /* 缩放级别 <=14 时隐藏地块名称标签（只显示定位图标） */
 #amap-container.hide-label .tupai-label {
