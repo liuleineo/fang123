@@ -253,14 +253,14 @@
             </div>
             <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块楼盘成交信息</div>
             <div v-else-if="plateDeals.length" class="overflow-x-auto bg-white rounded-xl border border-gray-100">
-              <table class="w-full text-sm border-collapse">
+              <table class="w-full text-sm border-collapse" :class="{ 'plate-grid': maskDealPrice }">
                 <thead>
                   <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
                     <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
                     <th class="p-3 font-medium whitespace-nowrap">小区</th>
                     <th class="p-3 font-medium whitespace-nowrap">房号</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
+                    <th v-if="!maskDealPrice" class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
                     <th class="p-3 font-medium whitespace-nowrap">备注</th>
                     <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
@@ -272,7 +272,7 @@
                     <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
+                    <td v-if="!maskDealPrice" class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
                     <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
                     <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
                     <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
@@ -329,19 +329,18 @@ watch(realDealLoading, v => {
 const plateDeals = ref([])
 const plateName = ref('')
 const plateLoaded = ref(false)
-// 掩码成交价：开启后隐藏成交单价，成交总价后两位以 xx 代替
+// 掩码成交价：开启后整列隐藏成交单价，成交总价后两位以 ** 代替
 const maskDealPrice = ref(false)
-/** 同板块成交单价（掩码时隐藏数值） */
+/** 同板块成交单价（仅未掩码时渲染该列） */
 function plateUnitPrice(r) {
-  if (maskDealPrice.value) return r.dealPrice != null ? '****' : '-'
   return (r.dealPrice != null && r.houseArea) ? (Number(r.dealPrice) * 10000 / Number(r.houseArea)).toFixed(0) + '元/㎡' : '-'
 }
-/** 同板块成交总价(万)（掩码时后两位以 xx 代替） */
+/** 同板块成交总价(万)（掩码时后两位以 ** 代替） */
 function plateTotalPrice(r) {
   if (r.dealPrice == null) return '-'
   if (!maskDealPrice.value) return Number(r.dealPrice)
   const s = String(Math.round(Number(r.dealPrice)))
-  return s.length <= 2 ? 'xx' : s.slice(0, -2) + 'xx'
+  return s.length <= 2 ? '**' : s.slice(0, -2) + '**'
 }
 const yfyjBuilding = ref('')
 
@@ -634,3 +633,17 @@ watch([id, subType], () => {
   loadCurrent()
 }, { immediate: true })
 </script>
+
+<style scoped>
+/* 掩码模式：真实成交表格切换为 Excel 风格网格线
+   注意：项目关闭了 Tailwind preflight，border-style 初始值为 none，
+   因此这里必须使用 border 简写显式声明 line-style，仅靠 border-width 不会显示边框。 */
+.plate-grid th,
+.plate-grid td {
+  border: 1px solid #dcdcdc;
+  vertical-align: middle;
+}
+.plate-grid th {
+  background-color: #f5f5f5;
+}
+</style>
