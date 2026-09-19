@@ -51,7 +51,9 @@
               <h4 class="text-sm font-bold text-[var(--color-text-primary)] line-clamp-1">{{ lp.projectName }}</h4>
               <p class="text-xs text-[var(--color-text-tertiary)] mt-0.5"><MapPin class="w-2.5 h-2.5 inline -mt-0.5" />{{ lp.district }}{{ lp.plate ? '·'+lp.plate : '' }}</p>
               <div class="flex items-center gap-2 mt-1">
-                <span v-if="lp.avgUnitPrice" class="text-xs font-bold text-[var(--color-danger)]">{{ lp.avgUnitPrice }}元/㎡</span>
+                <span v-if="lp._price" class="text-xs font-bold text-[var(--color-danger)]">
+                  <span v-if="lp._priceLabel" class="text-[10px] font-normal text-[var(--color-text-secondary)] mr-0.5">{{ lp._priceLabel }}</span>{{ lp._price }}元/㎡
+                </span>
                 <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-[var(--color-text-secondary)]">{{ ['','住宅','公寓','商铺','别墅'][lp.houseType]||'' }}</span>
               </div>
             </div>
@@ -114,6 +116,23 @@ let satelliteLayer = null
 let roadNetLayer = null
 const showSatellite = ref(false)
 
+// 楼盘价格候选顺序：高层 → 洋房 → 叠墅 → 排屋。
+// 楼盘类型不同价格不同，高层均价为空时回退展示其他产品均价（标签用于区分来源）
+const PRICE_KEYS = [
+  { key: 'avgUnitPrice', label: '' },
+  { key: 'avgUnitPriceYangfang', label: '洋房' },
+  { key: 'avgUnitPriceDieshu', label: '叠墅' },
+  { key: 'avgUnitPricePaiwu', label: '排屋' }
+]
+
+function pickPrice(lp) {
+  for (const { key, label } of PRICE_KEYS) {
+    const v = Number(lp?.[key])
+    if (v > 0) return { value: v, label }
+  }
+  return null
+}
+
 const filteredList = computed(() => {
   let list = loupanList.value.filter(lp => lp.longitude && lp.latitude)
   if (keyword.value) {
@@ -129,7 +148,11 @@ async function fetchData() {
   loading.value = true
   try {
     const r = await request.get('/public/loupans', { params: { page: 1, size: 200, salesStatus: '0,1', light: true } })
-    loupanList.value = r?.records || []
+    // 预计算展示价格（_price/_priceLabel），避免模板与 marker 中重复取数
+    loupanList.value = (r?.records || []).map(lp => {
+      const p = pickPrice(lp)
+      return { ...lp, _price: p ? p.value : null, _priceLabel: p ? p.label : '' }
+    })
     const districts = [...new Set(loupanList.value.map(l => l.district).filter(Boolean))].sort()
     districtOpts.value = districts.map(d => ({ label: d, value: d }))
     await initMap()
@@ -199,8 +222,10 @@ function addMarkers() {
 
   list.forEach(lp => {
     if (!lp.longitude || !lp.latitude) return
-    // 只显示均价（万/㎡）
-    const priceStr = lp.avgUnitPrice ? `${Number((Number(lp.avgUnitPrice) / 10000).toFixed(1))}万/㎡` : '价格待定'
+    // 只显示均价（万/㎡）；高层价为空时用洋房/叠墅/排屋均价回退，并带类型前缀
+    const priceStr = lp._price
+      ? `${lp._priceLabel}${Number((Number(lp._price) / 10000).toFixed(1))}万/㎡`
+      : '价格待定'
     const marker = new window.AMap.Marker({
       position: [lp.longitude, lp.latitude],
       title: lp.projectName,

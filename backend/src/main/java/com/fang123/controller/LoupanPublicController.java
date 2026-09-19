@@ -60,6 +60,8 @@ public class LoupanPublicController {
             w.select(Loupan::getId, Loupan::getProjectName, Loupan::getCoverImage,
                     Loupan::getLongitude, Loupan::getLatitude, Loupan::getDistrict, Loupan::getPlate,
                     Loupan::getHouseType, Loupan::getDecorateType, Loupan::getAvgUnitPrice,
+                    // 各类产品均价：高层为空时前端回退展示洋房/叠墅/排屋均价
+                    Loupan::getAvgUnitPriceYangfang, Loupan::getAvgUnitPriceDieshu, Loupan::getAvgUnitPricePaiwu,
                     Loupan::getAreaMin, Loupan::getAreaMax, Loupan::getSalesStatus,
                     Loupan::getMinTotalPrice, Loupan::getMaxTotalPrice);
         }
