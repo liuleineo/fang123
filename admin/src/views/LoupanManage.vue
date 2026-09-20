@@ -141,7 +141,10 @@
               <t-form-item label="自持率(%)"><t-input-number v-model="form.selfHoldRate" :min="0" :decimalPlaces="2" /></t-form-item>
             </div>
             <t-form-item label="外立面材料"><t-textarea v-model="form.facadeMaterial" /></t-form-item>
-            <t-form-item label="交房时间"><t-date-picker v-model="form.deliveryDate" /></t-form-item>
+            <div class="grid grid-cols-2 gap-3">
+              <t-form-item label="开盘时间"><t-date-picker v-model="form.openingDate" /></t-form-item>
+              <t-form-item label="交房时间"><t-date-picker v-model="form.deliveryDate" /></t-form-item>
+            </div>
           </t-form>
         </t-tab-panel>
         <t-tab-panel value="dev" label="开发信息">
@@ -291,7 +294,7 @@ const fieldLabels = {
   brandList:'开发品牌', projectAddress:'楼盘地址', salesAddress:'售楼部位置',
   houseType:'楼盘类型', decorateType:'装修类型', buildingTotal:'楼栋总数',
   houseTotal:'总户数', greenRate:'绿地率(%)', plotRatio:'容积率',
-  propertyCompany:'物业公司', deliveryDate:'交房时间', salesTel:'售楼电话',
+  propertyCompany:'物业公司', openingDate:'开盘时间', deliveryDate:'交房时间', salesTel:'售楼电话',
   propertyRightYear:'产权年限', minTotalPrice:'最低总价(万)', maxTotalPrice:'最高总价(万)',
   priceTag:'价格标签', landNo:'宗地编号', landPrice:'拿地总价(万)', landUnitPrice:'楼面价(元/㎡)',
   propertyFeeHigh:'小高/洋房物业费', propertyFeeVilla:'别墅物业费',
@@ -368,6 +371,16 @@ async function startAiParse() {
   }
 }
 
+// 将 "2026-08" / "2026年8月" / "2026" 等格式规范化为 yyyy-MM-dd
+function normalizeDateStr(val) {
+  if (!val) return ''
+  const d = String(val).trim()
+  const m = d.match(/^(\d{4})[-年.](\d{1,2})(?:[-月.](\d{1,2}))?/)
+  if (m) return `${m[1]}-${String(+m[2]).padStart(2, '0')}-${m[3] ? String(+m[3]).padStart(2, '0') : '01'}`
+  if (/^\d{4}$/.test(d)) return `${d}-01-01`
+  return ''
+}
+
 function fillFormFromAi() {
   if (!aiResult.value?.fields) return
   const f = aiResult.value.fields
@@ -383,18 +396,9 @@ function fillFormFromAi() {
     }
   })
 
-  // AI 识别的交房时间可能是 "2026-08" / "2026年8月" 等格式，规范化为 yyyy-MM-dd
-  if (form.deliveryDate) {
-    const d = String(form.deliveryDate).trim()
-    const m = d.match(/^(\d{4})[-年.](\d{1,2})(?:[-月.](\d{1,2}))?/)
-    if (m) {
-      form.deliveryDate = `${m[1]}-${String(+m[2]).padStart(2, '0')}-${m[3] ? String(+m[3]).padStart(2, '0') : '01'}`
-    } else if (/^\d{4}$/.test(d)) {
-      form.deliveryDate = `${d}-01-01`
-    } else {
-      form.deliveryDate = ''
-    }
-  }
+  // AI 识别的开盘/交房时间可能是 "2026-08" / "2026年8月" 等格式，规范化为 yyyy-MM-dd
+  form.openingDate = normalizeDateStr(form.openingDate)
+  form.deliveryDate = normalizeDateStr(form.deliveryDate)
   
   // 如果 AI 识别到了图片 URL，自动填入封面图
   if (aiResult.value.imageUrls?.length > 0 && !form.coverImage) {
@@ -412,7 +416,7 @@ const initForm = () => ({
   avgUnitPrice:null,avgUnitPriceYangfang:null,avgUnitPriceDieshu:null,avgUnitPricePaiwu:null,
   minTotalPrice:null,maxTotalPrice:null,priceTag:'',
   salesAddress:'',salesStatus:0,salesTel:'',projectAddress:'',showHouseDesc:'',
-  deliveryDate:'',floorHeightMin:null,floorHeightMax:null,buildingTotal:0,floorMin:0,floorMax:0,
+  openingDate:'',deliveryDate:'',floorHeightMin:null,floorHeightMax:null,buildingTotal:0,floorMin:0,floorMax:0,
   areaMin:0,areaMax:0,decorateType:1,propertyRightYear:70,houseType:1,
   communityFacility:'',peopleCarSeparate:1,propertyFeeHigh:null,propertyFeeVilla:null,
   propertyCompany:'',parkTotal:0,parkSellNum:0,parkRatio:'',facadeMaterial:'',selfHoldRate:0,

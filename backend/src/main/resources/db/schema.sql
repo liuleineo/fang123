@@ -378,6 +378,8 @@ CREATE TABLE IF NOT EXISTS `loupan` (
   `sales_tel` varchar(50) DEFAULT '' COMMENT '售楼电话',
   `project_address` varchar(200) NOT NULL COMMENT '楼盘地址',
   `show_house_desc` text COMMENT '样板房位置说明',
+  
+  `opening_date` date DEFAULT NULL COMMENT '开盘时间',
   `delivery_date` date DEFAULT NULL COMMENT '交房时间',
   `floor_height_min` decimal(3,1) DEFAULT NULL COMMENT '最低层高(m)',
   `floor_height_max` decimal(3,1) DEFAULT NULL COMMENT '最高层高(m)',
@@ -550,7 +552,9 @@ CREATE TABLE `loupan_presale_permit` (
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_permit_no_str` (`permit_no_str`) COMMENT '预售证编号STR唯一索引'
+  UNIQUE KEY `uk_permit_no_str` (`permit_no_str`) COMMENT '预售证编号STR唯一索引',
+  KEY `idx_publicity_date` (`publicity_date`) COMMENT '公示日期（首页-预售公示筛选）',
+  KEY `idx_issue_date` (`issue_date`) COMMENT '核发日期（首页-最新开盘筛选）'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='楼盘预售许可证信息表';
 
 --楼盘动态信息表：建设动态，销售动态，优惠动态（动态标题，动态内容，动态类型，动态多张图）

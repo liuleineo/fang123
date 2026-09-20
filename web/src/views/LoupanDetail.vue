@@ -217,6 +217,7 @@
             </h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               <div v-if="['','精装','毛坯','简装'][loupan.decorateType]" class="text-sm"><span class="text-[var(--color-text-tertiary)] block mb-0.5">装修情况</span><span class="text-[var(--color-text-primary)] font-medium">{{ ['','精装','毛坯','简装'][loupan.decorateType] }}</span></div>
+              <div v-if="loupan.openingDate" class="text-sm"><span class="text-[var(--color-text-tertiary)] block mb-0.5">开盘时间</span><span class="text-[var(--color-text-primary)] font-medium">{{ loupan.openingDate }}</span></div>
               <div v-if="loupan.deliveryDate" class="text-sm"><span class="text-[var(--color-text-tertiary)] block mb-0.5">交房时间</span><span class="text-[var(--color-text-primary)] font-medium">{{ loupan.deliveryDate }}</span></div>
               <div v-if="loupan.areaMin||loupan.areaMax" class="text-sm"><span class="text-[var(--color-text-tertiary)] block mb-0.5">户型面积</span><span class="text-[var(--color-text-primary)] font-medium">{{ loupan.areaMin }}-{{ loupan.areaMax }}㎡</span></div>
               <div v-if="['','住宅','公寓','商铺','别墅'][loupan.houseType]" class="text-sm"><span class="text-[var(--color-text-tertiary)] block mb-0.5">楼盘类型</span><span class="text-[var(--color-text-primary)] font-medium">{{ ['','住宅','公寓','商铺','别墅'][loupan.houseType] }}</span></div>

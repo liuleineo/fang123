@@ -40,6 +40,9 @@ public class Loupan implements Serializable {
     private String salesTel;
     private String projectAddress;
     private String showHouseDesc;
+    /** 开盘时间 */
+    @JsonDeserialize(using = LenientLocalDateDeserializer.class)
+    private LocalDate openingDate;
     @JsonDeserialize(using = LenientLocalDateDeserializer.class)
     private LocalDate deliveryDate;
     private BigDecimal floorHeightMin;
@@ -132,6 +135,7 @@ public class Loupan implements Serializable {
         filled += isFilled(minTotalPrice); total++;
         filled += isFilled(maxTotalPrice); total++;
         filled += isFilled(salesStatus); total++;
+        filled += isFilled(openingDate); total++;
         filled += isFilled(deliveryDate); total++;
         filled += isFilled(floorHeightMin); total++;
         filled += isFilled(floorHeightMax); total++;

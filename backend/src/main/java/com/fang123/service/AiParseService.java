@@ -70,6 +70,7 @@ public class AiParseService {
               "greenRate": "绿地率，%，纯数字",
               "plotRatio": "容积率，纯数字",
               "propertyCompany": "物业公司",
+              "openingDate": "开盘时间，格式YYYY-MM-DD",
               "deliveryDate": "交房时间，格式YYYY-MM-DD",
               "salesTel": "售楼电话",
               "propertyRightYear": "产权年限，纯数字",

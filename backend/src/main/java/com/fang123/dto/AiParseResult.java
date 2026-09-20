@@ -41,6 +41,7 @@ public class AiParseResult {
         private BigDecimal greenRate;
         private BigDecimal plotRatio;
         private String propertyCompany;
+        private String openingDate;
         private String deliveryDate;
         private String salesTel;
         private Integer propertyRightYear;

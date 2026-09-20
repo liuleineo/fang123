@@ -35,6 +35,29 @@
           </t-button>
         </div>
 
+        <!-- 预售公示 / 最新开盘 -->
+        <div class="max-w-md mx-auto mt-4 flex flex-wrap items-center justify-center gap-3">
+          <button
+            v-for="item in spotlightButtons"
+            :key="item.type"
+            class="relative inline-flex items-center gap-2 bg-white rounded-full border px-5 py-2.5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            :class="spotlightType === item.type
+              ? 'border-[var(--color-primary)] ring-2 ring-[#0052D9]/15'
+              : 'border-gray-100'"
+            @click="toggleSpotlight(item.type)"
+          >
+            <span class="w-6 h-6 rounded-md flex items-center justify-center" :class="item.iconCls">
+              <component :is="item.icon" class="w-4 h-4" />
+            </span>
+            <span class="text-sm font-medium text-[var(--color-text-primary)]">{{ item.label }}</span>
+            <!-- 右上角数量角标 -->
+            <span
+              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[11px] font-bold leading-none text-white shadow"
+              :class="item.badgeCls"
+            >{{ spotlightCounts[item.type] ?? 0 }}</span>
+          </button>
+        </div>
+
         <!-- 热门标签 -->
         <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
           <span class="text-xs text-[var(--color-text-tertiary)]">热门：</span>
@@ -71,13 +94,29 @@
     <!-- 楼盘列表 -->
     <section id="list" class="py-10 bg-[#F8FAFE] min-h-[50vh]">
       <div class="section-container">
+        <!-- 板块模式提示条 -->
+        <div v-if="spotlightType" class="flex flex-wrap items-center gap-2 mb-4">
+          <span
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+            :class="spotlightType === 'presale' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-[var(--color-primary)]'"
+          >
+            <component :is="spotlightType === 'presale' ? Megaphone : Rocket" class="w-3.5 h-3.5" />
+            {{ spotlightType === 'presale' ? '预售公示' : '最新开盘' }}
+          </span>
+          <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 个楼盘</span>
+          <button
+            class="ml-auto text-xs text-[var(--color-primary)] hover:underline"
+            @click="clearSpotlight"
+          >返回全部楼盘</button>
+        </div>
+
         <div v-if="loading" class="flex justify-center py-20">
           <t-loading size="large" text="加载中..." />
         </div>
 
         <div v-else-if="!loupanList.length" class="text-center py-20">
           <Building2 class="w-16 h-16 text-gray-200 mx-auto mb-4" />
-          <p class="text-[var(--color-text-tertiary)]">暂无符合条件的楼盘</p>
+          <p class="text-[var(--color-text-tertiary)]">{{ emptyText }}</p>
         </div>
 
         <div v-else class="grid grid-cols-2 gap-3 lg:grid-cols-3 sm:gap-6">
@@ -135,6 +174,15 @@
                   {{ lp.buildingTotal }}栋
                 </span>
               </div>
+              <!-- 板块模式：展示预售证关键日期 -->
+              <div v-if="spotlightType && (lp.publicityDate || lp.issueDate)" class="flex flex-wrap gap-1.5">
+                <span v-if="spotlightType === 'presale' && lp.publicityDate" class="px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-600">
+                  公示 {{ lp.publicityDate }}
+                </span>
+                <span v-if="lp.issueDate" class="px-2 py-0.5 text-xs rounded bg-blue-50 text-[var(--color-primary)]">
+                  核发 {{ lp.issueDate }}
+                </span>
+              </div>
             </div>
           </router-link>
         </div>
@@ -168,8 +216,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { Search, Building2, MapPin } from 'lucide-vue-next'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { Search, Building2, MapPin, Megaphone, Rocket } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const loupanList = ref([])
@@ -186,11 +234,26 @@ const pg = reactive({ current: 1, pageSize: 12 })
 
 const hotTags = ['钱江新城', '金沙湖', '绿城', '滨江']
 
+/** 预售公示 / 最新开盘 板块（数据源：预售证信息表） */
+const spotlightType = ref('')
+const spotlightCounts = ref({ presale: 0, opening: 0 })
+const spotlightButtons = [
+  { type: 'presale', label: '预售公示', icon: Megaphone, iconCls: 'bg-amber-50 text-amber-600', badgeCls: 'bg-amber-500' },
+  { type: 'opening', label: '最新开盘', icon: Rocket, iconCls: 'bg-blue-50 text-[var(--color-primary)]', badgeCls: 'bg-[#0052D9]' }
+]
+const emptyText = computed(() => {
+  if (spotlightType.value === 'presale') return '暂无公示中的楼盘'
+  if (spotlightType.value === 'opening') return '近 7 天暂无新取证楼盘'
+  return '暂无符合条件的楼盘'
+})
+
 const houseTypeOpts = [
   { label: '住宅', value: 1 }, { label: '公寓', value: 2 }, { label: '商铺', value: 3 }, { label: '别墅', value: 4 }
 ]
 
 async function fetchData(showAll = false) {
+  // 板块模式下刷新/分页走板块接口
+  if (spotlightType.value) return fetchSpotlight()
   loading.value = true
   try {
     const p = { page: pg.current, size: pg.pageSize }
@@ -214,10 +277,46 @@ async function fetchFilters() {
   } catch {}
 }
 
-function doSearch() {
+/** 预售公示 / 最新开盘 楼盘列表 */
+async function fetchSpotlight() {
+  loading.value = true
+  try {
+    const r = await request.get('/public/loupan-spotlight', {
+      params: { type: spotlightType.value, page: pg.current, size: pg.pageSize }
+    })
+    loupanList.value = r?.records || []
+    total.value = r?.total || 0
+  } catch {} finally { loading.value = false }
+}
+
+/** 两个板块的楼盘数量（按钮右上角角标） */
+async function fetchSpotlightCounts() {
+  try {
+    const r = await request.get('/public/loupan-spotlight/counts')
+    spotlightCounts.value = { presale: r?.presale || 0, opening: r?.opening || 0 }
+  } catch {}
+}
+
+function toggleSpotlight(type) {
+  if (spotlightType.value === type) return clearSpotlight()
+  spotlightType.value = type
+  pg.current = 1
+  fetchSpotlight()
+  document.getElementById('list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function clearSpotlight() {
+  spotlightType.value = ''
   pg.current = 1
   fetchData()
 }
 
-onMounted(() => { fetchData(); fetchFilters() })
+function doSearch() {
+  // 手动搜索/筛选时退出板块模式
+  spotlightType.value = ''
+  pg.current = 1
+  fetchData()
+}
+
+onMounted(() => { fetchData(); fetchFilters(); fetchSpotlightCounts() })
 </script>
