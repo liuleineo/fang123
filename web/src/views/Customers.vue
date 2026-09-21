@@ -616,11 +616,48 @@ function fmtDate(t) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
+// ---------- 页面级 favicon：进入客户页用客服图标，离开恢复站点默认图标 ----------
+const CUSTOMER_FAVICON = '/assets/callicon.png'
+let faviconSnapshot = null
+
+function applyFavicon(href, type) {
+  let link = document.querySelector('link[rel="icon"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.setAttribute('rel', 'icon')
+    document.head.appendChild(link)
+  }
+  link.setAttribute('type', type)
+  link.setAttribute('href', href)
+}
+
+function setCustomerFavicon() {
+  const link = document.querySelector('link[rel="icon"]')
+  faviconSnapshot = {
+    href: link?.getAttribute('href') || '/favicon.svg',
+    type: link?.getAttribute('type') || 'image/svg+xml'
+  }
+  const probe = new Image()
+  probe.onload = () => applyFavicon(CUSTOMER_FAVICON, 'image/png')
+  probe.onerror = () => console.warn('[Customers] 客服图标加载失败：', CUSTOMER_FAVICON)
+  probe.src = CUSTOMER_FAVICON
+}
+
+function restoreFavicon() {
+  if (!faviconSnapshot) return
+  applyFavicon(faviconSnapshot.href, faviconSnapshot.type)
+  faviconSnapshot = null
+}
+
 onMounted(() => {
   fetchData()
   window.addEventListener('resize', onResize)
+  setCustomerFavicon()
 })
-onUnmounted(() => window.removeEventListener('resize', onResize))
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
+  restoreFavicon()
+})
 </script>
 
 <style scoped>
