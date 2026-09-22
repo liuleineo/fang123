@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  *
  * <p>数据源：预售证信息表 {@code loupan_presale_permit}
  * <ul>
- *   <li>预售公示：公示日期 &gt;= 今天 且 公示日期 &lt; 核发日期</li>
+ *   <li>预售公示：正在公示期内（公示日期 &lt;= 今天 &lt; 核发日期）</li>
  *   <li>最新开盘：核发日期在最近 7 天内（今天 - 7 天 &lt;= 核发日期 &lt;= 今天）</li>
  * </ul>
  * 同一楼盘存在多张预售证时只保留最靠前的一张，并过滤已删除/不存在的楼盘。
@@ -98,15 +98,16 @@ public class LoupanSpotlightController {
         return Result.success(data);
     }
 
-    /** 预售公示：公示日期 >= 今天 且 公示日期 < 核发日期 */
+    /** 预售公示：正在公示期内（公示日期已开始 且 核发日期尚未到） */
     private List<LoupanPresalePermit> presalePermits(LocalDate today) {
         return permitService.list(new LambdaQueryWrapper<LoupanPresalePermit>()
                 .isNotNull(LoupanPresalePermit::getLoupanId)
                 .isNotNull(LoupanPresalePermit::getPublicityDate)
-                .ge(LoupanPresalePermit::getPublicityDate, today)
+                .le(LoupanPresalePermit::getPublicityDate, today)
                 .isNotNull(LoupanPresalePermit::getIssueDate)
+                .gt(LoupanPresalePermit::getIssueDate, today)
                 .apply("publicity_date < issue_date")
-                .orderByAsc(LoupanPresalePermit::getPublicityDate)
+                .orderByDesc(LoupanPresalePermit::getPublicityDate)
                 .orderByDesc(LoupanPresalePermit::getId));
     }
 
