@@ -38,9 +38,17 @@
         <t-form-item label="预售证编号STR"><t-input v-model="form.permitNoStr" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="开发公司"><t-input v-model="form.developCompany" /></t-form-item>
-          <t-form-item label="公示日期"><t-date-picker v-model="form.publicityDate" /></t-form-item>
+          <t-form-item label="公示日期">
+            <div class="w-full" @paste="onDatePaste($event, 'publicityDate')">
+              <t-date-picker v-model="form.publicityDate" class="w-full" clearable placeholder="选择或粘贴日期" />
+            </div>
+          </t-form-item>
         </div>
-        <t-form-item label="核发日期"><t-date-picker v-model="form.issueDate" /></t-form-item>
+        <t-form-item label="核发日期">
+          <div class="w-full" @paste="onDatePaste($event, 'issueDate')">
+            <t-date-picker v-model="form.issueDate" class="w-full" clearable placeholder="选择或粘贴日期" />
+          </div>
+        </t-form-item>
         <t-form-item label="坐落位置"><t-input v-model="form.location" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="销售部地址"><t-input v-model="form.saleAddress" /></t-form-item>
@@ -153,6 +161,31 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/presale-permits/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/presale-permits',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/presale-permits/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+// ===== 日期粘贴：支持 2026-09-23 / 2026/9/23 / 2026.9.23 / 2026年9月23日 / 20260923 等格式 =====
+function parseDateText(raw) {
+  const s = String(raw ?? '').trim()
+  if (!s) return ''
+  // 含分隔符（含从表格整行复制的文本，如"公示日期：2026-09-23 00:00:00"）
+  let m = s.match(/(\d{4})\s*[年\-/.]\s*(\d{1,2})\s*[月\-/.]\s*(\d{1,2})\s*[日号]?/)
+  // 纯 8 位数字，如 20260923
+  if (!m) m = s.match(/^(\d{4})(\d{2})(\d{2})$/)
+  if (!m) return ''
+  const y = Number(m[1]); const mo = Number(m[2]); const d = Number(m[3])
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return ''
+  const dt = new Date(y, mo - 1, d)
+  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return ''
+  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+function onDatePaste(e, field) {
+  const text = e.clipboardData?.getData('text') ?? ''
+  const parsed = parseDateText(text)
+  if (!parsed) return // 非日期文本交给组件默认行为
+  e.preventDefault()
+  form[field] = parsed
+  MessagePlugin.success(`已粘贴日期 ${parsed}`)
+}
 
 // ===== AI 新建预售证 =====
 const aiVisible = ref(false)
