@@ -169,27 +169,27 @@
           <div v-if="realDealLoading" class="text-center py-16"><t-loading /></div>
           <div v-else-if="!realDeals.length" class="text-center py-16 text-[var(--color-text-tertiary)]">暂无真实成交信息</div>
           <div v-else class="overflow-x-auto bg-white rounded-xl border border-gray-100">
-            <table class="w-full text-sm border-collapse">
+            <table class="w-full text-[13px] border-collapse deal-grid">
               <thead>
                 <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
-                  <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
-                  <th class="p-3 font-medium whitespace-nowrap">房号</th>
-                  <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
-                  <th class="p-3 font-medium whitespace-nowrap text-right">成交单价</th>
-                  <th class="p-3 font-medium whitespace-nowrap text-right">成交总价(万)</th>
-                  <th class="p-3 font-medium whitespace-nowrap">备注</th>
-                  <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">成交时间</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">房号</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">面积(㎡)</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">成交单价</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">成交总价(万)</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">备注</th>
+                  <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in realDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
-                  <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
-                  <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
-                  <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                  <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
-                  <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
-                  <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
-                  <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
+                <tr v-for="r in realDeals" :key="r.id" class="hover:bg-gray-50">
+                  <td class="px-2.5 py-1.5 text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">{{ r.dealDate||'-' }}</td>
+                  <td class="px-2.5 py-1.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
+                  <td class="px-2.5 py-1.5 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
+                  <td class="px-2.5 py-1.5 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">{{ (r.dealPrice!=null&&r.houseArea) ? (Number(r.dealPrice)*10000/Number(r.houseArea)).toFixed(0)+'元/㎡' : '-' }}</td>
+                  <td class="px-2.5 py-1.5 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums">{{ r.dealPrice!=null?Number(r.dealPrice):'-' }}</td>
+                  <td class="px-2.5 py-1.5 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                  <td class="px-2.5 py-1.5 text-right text-[var(--color-primary)] whitespace-nowrap tabular-nums">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -260,29 +260,29 @@
             <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块楼盘成交信息</div>
             <div v-else-if="plateDeals.length" class="relative">
               <div class="overflow-x-auto bg-white rounded-xl border border-gray-100">
-                <table class="w-full text-sm border-collapse" :class="{ 'plate-grid': maskDealPrice }">
+                <table class="w-full text-[13px] border-collapse plate-grid">
                   <thead>
                     <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
-                      <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
-                      <th class="p-3 font-medium whitespace-nowrap">小区</th>
-                      <th class="p-3 font-medium whitespace-nowrap">房号</th>
-                      <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
-                      <th v-if="!maskDealPrice" class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
-                      <th class="p-3 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
-                      <th class="p-3 font-medium whitespace-nowrap">备注</th>
-                      <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">成交时间</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">小区</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">房号</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">面积(㎡)</th>
+                      <th v-if="!maskDealPrice" class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap">备注</th>
+                      <th class="px-2.5 py-1.5 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="r in plateDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
-                      <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
-                      <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
-                      <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
-                      <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                      <td v-if="!maskDealPrice" class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
-                      <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
-                      <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
-                      <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
+                    <tr v-for="r in plateDeals" :key="r.id" class="hover:bg-gray-50">
+                      <td class="px-2.5 py-1.5 text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">{{ r.dealDate||'-' }}</td>
+                      <td class="px-2.5 py-1.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
+                      <td class="px-2.5 py-1.5 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
+                      <td class="px-2.5 py-1.5 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
+                      <td v-if="!maskDealPrice" class="px-2.5 py-1.5 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
+                      <td class="px-2.5 py-1.5 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
+                      <td class="px-2.5 py-1.5 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                      <td class="px-2.5 py-1.5 text-right text-[var(--color-primary)] whitespace-nowrap tabular-nums">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -713,15 +713,20 @@ watch([id, subType], () => {
 </script>
 
 <style scoped>
-/* 掩码模式：真实成交表格切换为 Excel 风格网格线
+/* Excel 风格网格线（两张成交表样式统一，常驻显示）：
+   .deal-grid  真实成交表格
+   .plate-grid 同板块真实成交表格（掩码成交价仅隐藏单价列，不影响网格线）
    注意：项目关闭了 Tailwind preflight，border-style 初始值为 none，
    因此这里必须使用 border 简写显式声明 line-style，仅靠 border-width 不会显示边框。 */
 .plate-grid th,
-.plate-grid td {
+.plate-grid td,
+.deal-grid th,
+.deal-grid td {
   border: 1px solid #dcdcdc;
   vertical-align: middle;
 }
-.plate-grid th {
+.plate-grid th,
+.deal-grid th {
   background-color: #f5f5f5;
 }
 </style>
