@@ -287,7 +287,7 @@
                   </tbody>
                 </table>
               </div>
-              <!-- 水印层：45° 斜向平铺，红色，透明度 35%；不拦截鼠标事件，避免影响表格交互 -->
+              <!-- 水印层：45° 斜向平铺，红色，透明度 30%；不拦截鼠标事件，避免影响表格交互 -->
               <div v-if="watermarkText" class="pointer-events-none absolute inset-0 z-20 rounded-xl" :style="watermarkStyle"></div>
             </div>
           </div>
@@ -303,7 +303,7 @@
         <t-input v-model="watermarkInput" placeholder="请输入水印文字，如：仅供内部参考 请勿外传"
                  :maxlength="30" clearable @enter="applyWatermark" />
         <p class="text-xs text-[var(--color-text-tertiary)]">
-          水印将以 45° 斜向平铺在成交数据上，红色，透明度 35%。留空并确认可移除水印。
+          水印将以 45° 斜向平铺在成交数据上，红色，透明度 30%。留空并确认可移除水印。
         </p>
       </div>
     </t-dialog>
@@ -367,8 +367,8 @@ function plateTotalPrice(r) {
   return s.length <= 2 ? '**' : s.slice(0, -2) + '**'
 }
 
-// ===== 同板块成交数据水印（弹窗输入文字，45° 斜向平铺、红色、透明度 35%）=====
-const WATERMARK_COLOR = 'rgba(255, 0, 0, 0.35)'
+// ===== 同板块成交数据水印（弹窗输入文字，45° 斜向平铺、红色、透明度 30%）=====
+const WATERMARK_COLOR = 'rgba(255, 0, 0, 0.30)'
 const watermarkText = ref('')
 const watermarkInput = ref('')
 const watermarkVisible = ref(false)
