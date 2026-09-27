@@ -250,40 +250,63 @@
                 <Eye v-else class="w-4 h-4 mr-1" />
                 {{ maskDealPrice ? '显示成交价' : '掩码成交价' }}
               </t-button>
+              <t-button v-if="plateDeals.length" size="small" variant="outline"
+                        :theme="watermarkText ? 'primary' : 'default'"
+                        @click="openWatermark">
+                <Droplet class="w-4 h-4 mr-1" />
+                {{ watermarkText ? '修改水印' : '添加水印' }}
+              </t-button>
             </div>
             <div v-if="plateName && !plateDeals.length" class="bg-white rounded-xl border border-gray-100 py-10 text-center text-[var(--color-text-tertiary)] text-sm">暂无同板块楼盘成交信息</div>
-            <div v-else-if="plateDeals.length" class="overflow-x-auto bg-white rounded-xl border border-gray-100">
-              <table class="w-full text-sm border-collapse" :class="{ 'plate-grid': maskDealPrice }">
-                <thead>
-                  <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
-                    <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
-                    <th class="p-3 font-medium whitespace-nowrap">小区</th>
-                    <th class="p-3 font-medium whitespace-nowrap">房号</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
-                    <th v-if="!maskDealPrice" class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
-                    <th class="p-3 font-medium whitespace-nowrap">备注</th>
-                    <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="r in plateDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
-                    <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
-                    <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
-                    <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
-                    <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
-                    <td v-if="!maskDealPrice" class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
-                    <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
-                    <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
-                    <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div v-else-if="plateDeals.length" class="relative">
+              <div class="overflow-x-auto bg-white rounded-xl border border-gray-100">
+                <table class="w-full text-sm border-collapse" :class="{ 'plate-grid': maskDealPrice }">
+                  <thead>
+                    <tr class="bg-gray-50 text-left text-[var(--color-text-secondary)]">
+                      <th class="p-3 font-medium whitespace-nowrap">成交时间</th>
+                      <th class="p-3 font-medium whitespace-nowrap">小区</th>
+                      <th class="p-3 font-medium whitespace-nowrap">房号</th>
+                      <th class="p-3 font-medium whitespace-nowrap text-right">面积(㎡)</th>
+                      <th v-if="!maskDealPrice" class="p-3 font-medium whitespace-nowrap text-right w-[130px]">成交单价</th>
+                      <th class="p-3 font-medium whitespace-nowrap text-right w-[110px]">成交总价(万)</th>
+                      <th class="p-3 font-medium whitespace-nowrap">备注</th>
+                      <th class="p-3 font-medium whitespace-nowrap text-right">一手买入价(万)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="r in plateDeals" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50">
+                      <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.dealDate||'-' }}</td>
+                      <td class="p-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{{ r.communityName||'-' }}</td>
+                      <td class="p-3 text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.roomNo||'-' }}</td>
+                      <td class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{{ r.houseArea!=null?Number(r.houseArea):'-' }}</td>
+                      <td v-if="!maskDealPrice" class="p-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap tabular-nums leading-5">{{ plateUnitPrice(r) }}</td>
+                      <td class="p-3 text-right font-bold text-[var(--color-danger)] whitespace-nowrap tabular-nums leading-5">{{ plateTotalPrice(r) }}</td>
+                      <td class="p-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{{ r.remark||'-' }}</td>
+                      <td class="p-3 text-right text-[var(--color-primary)] whitespace-nowrap">{{ r.yfyj!=null?Number(r.yfyj):'-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- 水印层：45° 斜向平铺，红色，透明度 35%；不拦截鼠标事件，避免影响表格交互 -->
+              <div v-if="watermarkText" class="pointer-events-none absolute inset-0 z-20 rounded-xl" :style="watermarkStyle"></div>
             </div>
           </div>
         </template>
       </div>
     </section>
+
+    <!-- 水印设置弹窗 -->
+    <t-dialog v-model:visible="watermarkVisible" header="添加水印" width="440px"
+              :confirm-btn="{ content: '应用水印', theme: 'primary' }" cancel-btn="取消"
+              :close-on-overlay-click="false" @confirm="applyWatermark">
+      <div class="space-y-3">
+        <t-input v-model="watermarkInput" placeholder="请输入水印文字，如：仅供内部参考 请勿外传"
+                 :maxlength="30" clearable @enter="applyWatermark" />
+        <p class="text-xs text-[var(--color-text-tertiary)]">
+          水印将以 45° 斜向平铺在成交数据上，红色，透明度 35%。留空并确认可移除水印。
+        </p>
+      </div>
+    </t-dialog>
 
     <!-- 图片全屏预览 -->
     <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" v-model:index="viewerIndex" />
@@ -298,7 +321,8 @@
 <script setup>
 import { ref, computed, watch, onErrorCaptured } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play, Eye, EyeOff } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play, Eye, EyeOff, Droplet } from 'lucide-vue-next'
+import { MessagePlugin } from 'tdesign-vue-next'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -341,6 +365,60 @@ function plateTotalPrice(r) {
   if (!maskDealPrice.value) return Number(r.dealPrice)
   const s = String(Math.round(Number(r.dealPrice)))
   return s.length <= 2 ? '**' : s.slice(0, -2) + '**'
+}
+
+// ===== 同板块成交数据水印（弹窗输入文字，45° 斜向平铺、红色、透明度 35%）=====
+const WATERMARK_COLOR = 'rgba(255, 0, 0, 0.35)'
+const watermarkText = ref('')
+const watermarkInput = ref('')
+const watermarkVisible = ref(false)
+const watermarkUrl = ref('')
+
+/** 生成水印平铺底图：文字旋转 -45°，画布尺寸按文字长度自适应，避免长文本被裁切 */
+function buildWatermarkUrl(text) {
+  const fontSize = 18
+  const gap = 70
+  const font = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif`
+  const probe = document.createElement('canvas').getContext('2d')
+  probe.font = font
+  // 旋转 45° 后文字外接盒边长 ≈ (文字宽 + 字高) / √2，正方形画布加间距即可完整容纳
+  const size = Math.max(160, Math.ceil((probe.measureText(text).width + fontSize) / Math.SQRT2) + gap)
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const canvas = document.createElement('canvas')
+  canvas.width = size * dpr
+  canvas.height = size * dpr
+  const ctx = canvas.getContext('2d')
+  ctx.scale(dpr, dpr)
+  ctx.translate(size / 2, size / 2)
+  ctx.rotate(-Math.PI / 4)
+  ctx.font = font
+  ctx.fillStyle = WATERMARK_COLOR
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, 0, 0)
+  return canvas.toDataURL('image/png')
+}
+
+const watermarkStyle = computed(() => watermarkUrl.value
+  ? { backgroundImage: `url(${watermarkUrl.value})`, backgroundRepeat: 'repeat' }
+  : {})
+
+function openWatermark() {
+  watermarkInput.value = watermarkText.value
+  watermarkVisible.value = true
+}
+
+function applyWatermark() {
+  const text = String(watermarkInput.value || '').trim()
+  if (!text) {
+    watermarkText.value = ''
+    watermarkUrl.value = ''
+    MessagePlugin.success('已移除水印')
+    return
+  }
+  watermarkUrl.value = buildWatermarkUrl(text)
+  watermarkText.value = text
+  MessagePlugin.success('已添加水印')
 }
 const yfyjBuilding = ref('')
 
