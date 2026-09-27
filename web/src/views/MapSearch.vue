@@ -2,19 +2,19 @@
   <div class="map-page">
     <!-- 地图容器 -->
     <div class="relative w-full h-[calc(100vh-var(--header-height))]">
-      <!-- 手机端筛选浮动按钮 -->
+      <!-- 侧边筛选面板开关按钮（全端可见，默认收起） -->
       <button
-        class="md:hidden absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
+        class="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
         @click="showPanel = !showPanel"
       >
         <SlidersHorizontal class="w-4 h-4 text-[var(--color-primary)]" />
         {{ showPanel ? '关闭列表' : '楼盘列表' }}
       </button>
 
-      <!-- 侧边筛选/列表面板（手机端可收起，桌面端常驻） -->
+      <!-- 侧边筛选面板（默认收起，点击按钮展开/收起；交互与土拍地图地块列表一致） -->
       <div
-        class="absolute top-14 md:top-4 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-5rem)] md:max-h-[calc(100vh-var(--header-height)-2rem)]"
-        :class="showPanel ? 'flex' : 'hidden md:flex'"
+        class="absolute top-14 left-4 z-10 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100vh-var(--header-height)-5rem)]"
+        :class="showPanel ? 'flex' : 'hidden'"
       >
         <!-- 搜索 -->
         <div class="p-4 border-b border-gray-50">
@@ -64,15 +64,17 @@
 
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
-      <!-- 卫星地图切换按钮（右下角） -->
-      <button
-        @click="toggleSatellite"
-        class="absolute bottom-6 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
-        :class="showSatellite ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
-      >
-        <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
-        {{ showSatellite ? '地图' : '卫星' }}
-      </button>
+      <!-- 右下角图层切换：卫星地图 -->
+      <div class="absolute bottom-6 right-4 z-20 flex items-center gap-2">
+        <button
+          @click="toggleSatellite"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+          :class="showSatellite ? 'text-[#0052D9] border-[#0052D9]' : 'text-gray-700'"
+        >
+          <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
+          {{ showSatellite ? '地图' : '卫星' }}
+        </button>
+      </div>
 
       <!-- 未配置 Key 提示 -->
       <div v-if="!mapReady && !mapError" class="absolute inset-0 flex items-center justify-center bg-gray-50/80">

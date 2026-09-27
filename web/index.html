@@ -6,9 +6,10 @@
   <meta name="description" content="fang123 - 让买房更简单。" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>fang123 - 找到你的理想家园</title>
-  <script>
-    window._AMapSecurityConfig = { securityJsCode: 'ec9016bfbd481d766643253c1bbe5bc3' }
-  </script>
+  <!-- 说明：调用高德「服务类接口」（AMap.PlaceSearch、地理编码等）时，需在加载 JS API 前设置
+       window._AMapSecurityConfig = { securityJsCode: '控制台的安全密钥' }，
+       该值与下面的 key 不是同一个值。纯地图展示与 Marker 不需要，故此处不再配置。 -->
+
   <script async src="https://webapi.amap.com/maps?v=2.0&key=ec9016bfbd481d766643253c1bbe5bc3&plugin=AMap.Marker"></script>
 </head>
 <body>

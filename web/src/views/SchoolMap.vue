@@ -28,8 +28,19 @@
         <component :is="showSatellite ? MapIcon : SatelliteIcon" class="w-4 h-4" />
         {{ showSatellite ? '地图' : '卫星' }}
       </button>
-      <!-- 侧边栏：学校列表（手机端隐藏） -->
-      <div class="hidden md:flex absolute top-3 left-3 bottom-3 w-[320px] bg-white rounded-xl shadow-lg overflow-hidden flex-col z-30">
+      <!-- 学校列表开关按钮（全端可见，默认收起） -->
+      <button
+        class="absolute top-3 left-3 z-40 flex items-center gap-1.5 bg-white rounded-full shadow-lg border border-gray-100 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]"
+        @click="showPanel = !showPanel"
+      >
+        <SlidersHorizontal class="w-4 h-4 text-[var(--color-primary)]" />
+        {{ showPanel ? '关闭列表' : '学校列表' }}
+      </button>
+      <!-- 侧边栏：学校列表（默认收起，点击按钮展开/收起；交互与地图找房/土拍地图一致） -->
+      <div
+        class="absolute top-14 left-3 bottom-3 w-[320px] max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-lg overflow-hidden flex-col z-30"
+        :class="showPanel ? 'flex' : 'hidden'"
+      >
         <div class="px-3 py-2 border-b border-gray-50 text-sm font-bold">学校列表 <span class="text-xs font-normal text-[var(--color-text-tertiary)]">{{ schoolList.length }}所</span></div>
         <div class="flex-1 overflow-y-auto">
           <div v-if="loading" class="flex justify-center py-10"><t-loading /></div>
@@ -52,7 +63,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { Search, MapPin, RefreshCw, Map as MapIcon, Satellite as SatelliteIcon } from 'lucide-vue-next'
+import { Search, MapPin, RefreshCw, Map as MapIcon, Satellite as SatelliteIcon, SlidersHorizontal } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const AMAP_KEY = 'ec9016bfbd481d766643253c1bbe5bc3'
@@ -80,6 +91,8 @@ let markers = []
 let satelliteLayer = null
 let roadNetLayer = null
 const showSatellite = ref(false)
+// 学校列表面板（默认收起，可展开/收起）
+const showPanel = ref(false)
 
 function typeColor(type) {
   return type.includes('小学') && !type.includes('九年') ? 'bg-green-500' :
