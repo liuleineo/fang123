@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,6 +101,44 @@ public class UserCustomerController {
         fillLastFollowUp(result.getRecords());
         fillShareDesc(result.getRecords(), userId);
         return Result.success(result);
+    }
+
+    /**
+     * 今日跟进统计（客户列表头部展示"今日跟进N个"）
+     * 口径：我今天发起过跟进的客户数（去重）、跟进次数；仅统计我可访问的客户（本人 + 被分享给我的）
+     */
+    @GetMapping("/follow-stats")
+    public Result<Map<String, Object>> followStats(@RequestHeader("Authorization") String authHeader) {
+        Long userId = getUserId(authHeader);
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        // 被分享给我的客户 id
+        List<Long> sharedIds = customerShareService.list(
+                        new LambdaQueryWrapper<CustomerShare>()
+                                .eq(CustomerShare::getSharedUserId, userId))
+                .stream().map(CustomerShare::getCustomerId).toList();
+        List<Long> accessibleIds = new ArrayList<>(customerService.list(
+                        new LambdaQueryWrapper<Customer>()
+                                .eq(Customer::getUserId, userId)
+                                .select(Customer::getId))
+                .stream().map(Customer::getId).toList());
+        accessibleIds.addAll(sharedIds);
+
+        Map<String, Object> stat = new LinkedHashMap<>();
+        if (accessibleIds.isEmpty()) {
+            stat.put("todayCustomerCount", 0);
+            stat.put("todayFollowCount", 0);
+            return Result.success(stat);
+        }
+        // 今日跟进记录：优先按跟进时间，跟进时间为空时回退到创建时间
+        List<FollowUp> todays = followUpService.list(
+                new LambdaQueryWrapper<FollowUp>()
+                        .eq(FollowUp::getUserId, userId)
+                        .in(FollowUp::getCustomerId, accessibleIds)
+                        .and(w -> w.ge(FollowUp::getFollowUpTime, start)
+                                .or(x -> x.isNull(FollowUp::getFollowUpTime).ge(FollowUp::getCreatedAt, start))));
+        stat.put("todayCustomerCount", todays.stream().map(FollowUp::getCustomerId).distinct().count());
+        stat.put("todayFollowCount", todays.size());
+        return Result.success(stat);
     }
 
     /** 为每个客户填充最后一次跟进时间和内容 */

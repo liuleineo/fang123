@@ -3,7 +3,7 @@
     <section class="py-3 md:py-6 bg-[#F8FAFE] min-h-[60vh]">
       <div class="section-container">
         <div class="flex items-center justify-between mb-3 md:mb-4">
-          <h1 class="text-lg md:text-xl font-bold text-[var(--color-text-primary)]">我的客户</h1>
+          <h1 class="text-lg md:text-xl font-bold text-[var(--color-text-primary)]">我的客户<span class="text-xs md:text-sm font-normal text-[var(--color-text-tertiary)]" :title="`今天已跟进 ${todayFollowCount} 位客户`">（今日跟进<span class="text-[var(--color-primary)] font-semibold">{{ todayFollowCount }}</span>个）</span></h1>
           <span class="text-xs text-[var(--color-text-tertiary)]">共 {{ total }} 位</span>
         </div>
 
@@ -38,15 +38,23 @@
           <p class="text-[var(--color-text-tertiary)]">暂无客户，点击右下角"+"录入客户</p>
         </div>
         <div v-else class="space-y-2 md:space-y-3">
-          <div v-for="c in list" :key="c.id" class="bg-white rounded-[4px] border border-gray-100 p-2.5 md:p-4 hover:shadow-md transition-all">
-            <!-- 三栏：头像 / 信息 / 操作按钮 -->
-            <div class="flex items-center gap-2.5 md:gap-3">
-              <!-- 左栏：头像（点击编辑） -->
-              <div class="w-10 h-10 md:w-12 md:h-12 rounded-[4px] flex-shrink-0 cursor-pointer overflow-hidden" @click="openEdit(c)" title="点击编辑客户">
-                <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e=>e.target.style.display='none'" />
-                <div v-else class="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                  <UserIcon class="w-5 h-5 md:w-6 md:h-6 text-[var(--color-primary)]" />
+          <div v-for="c in list" :key="c.id"
+               :class="['bg-white rounded-[4px] border p-2.5 md:p-4 hover:shadow-md transition-all',
+                 expandedId === c.id ? 'border-blue-200 shadow-md' : 'border-gray-100']"
+               title="点击展开跟进记录，双击复制手机号" @dblclick="onCustomerDblClick($event, c)">
+            <!-- 三栏：头像 / 信息 / 操作按钮（点击整行展开/收起跟进记录） -->
+            <div class="flex items-center gap-2.5 md:gap-3 cursor-pointer" @click="onCustomerClick($event, c)">
+              <!-- 左栏：头像（点击编辑）+ 未跟进天数 -->
+              <div class="flex flex-col items-center gap-0.5 flex-shrink-0">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-[4px] cursor-pointer overflow-hidden" data-no-dbl-copy @click="openEdit(c)" title="点击编辑客户">
+                  <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e=>e.target.style.display='none'" />
+                  <div v-else class="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                    <UserIcon class="w-5 h-5 md:w-6 md:h-6 text-[var(--color-primary)]" />
+                  </div>
                 </div>
+                <span v-if="idleMap[c.id]"
+                      :class="['text-[10px] leading-none font-medium px-1 py-0.5 rounded whitespace-nowrap', idleClass(idleMap[c.id].days)]"
+                      :title="idleMap[c.id].title">{{ idleMap[c.id].days }}天</span>
               </div>
               <!-- 中栏：信息 -->
               <div class="flex-1 min-w-0">
@@ -62,16 +70,19 @@
                   <span class="text-[var(--color-text-tertiary)] flex-shrink-0">需求：</span>{{ c.remark }}
                 </p>
                 <p v-if="c.lastFollowUpTime" class="text-xs text-[var(--color-text-tertiary)] mt-0.5 truncate">
-                  最后跟进 {{ fmtDate(c.lastFollowUpTime) }}{{ c.lastFollowUpContent ? '：' + c.lastFollowUpContent : '' }}
+                  最后跟进{{ fmtDate(c.lastFollowUpTime)}}{{ c.lastFollowUpContent ? '：' + c.lastFollowUpContent : '' }}
                 </p>
                 <p v-if="c.shareDesc" class="text-xs text-purple-500 flex items-center gap-0.5 mt-0.5" title="分享关系">
                   <Share2 class="w-3 h-3" />{{ c.shareDesc }}
                 </p>
 
               </div>
+              <!-- 展开箭头（桌面端显示） -->
+              <ChevronDown :class="['w-3.5 h-3.5 hidden md:block flex-shrink-0 text-gray-300 transition-transform',
+                expandedId === c.id && 'rotate-180']" />
               <!-- 右栏：操作按钮（移动端两行显示，PC 一行） -->
               <div class="grid grid-cols-2 gap-1.5 md:gap-2 flex-shrink-0 md:flex md:flex-row">
-                <a v-if="c.phone" :href="`tel:${c.phone}`" title="拨打电话" @click="recordPhoneCall(c)"
+                <a v-if="c.phone" :href="`tel:${c.phone}`" title="拨打电话"
                    class="w-8 h-8 md:w-9 md:h-9 rounded-full border-0 outline-none bg-blue-50 text-[var(--color-primary)] flex items-center justify-center hover:bg-blue-100 transition-colors">
                   <Phone class="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </a>
@@ -89,11 +100,38 @@
                 </button>
               </div>
             </div>
+
+            <!-- 展开区：该客户的跟进记录 -->
+            <div v-if="expandedId === c.id" class="mt-2.5 pt-2.5 border-t border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-[var(--color-text-primary)]">跟进记录</span>
+                <span class="text-xs text-[var(--color-text-tertiary)]">
+                  {{ expandedLoading ? '加载中...' : `共 ${expandedFollows.length} 条` }}
+                </span>
+              </div>
+              <div v-if="expandedLoading" class="py-4 text-center"><t-loading size="small" /></div>
+              <div v-else-if="!expandedFollows.length" class="py-4 text-center text-xs text-[var(--color-text-tertiary)]">暂无跟进记录</div>
+              <div v-else class="space-y-2 max-h-72 overflow-y-auto pr-0.5">
+                <div v-for="f in expandedFollows" :key="f.id" class="rounded-lg bg-gray-50 px-2.5 py-2">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span v-if="f.method" class="px-1.5 py-0.5 text-xs rounded bg-blue-50 text-[var(--color-primary)]">{{ f.method }}</span>
+                    <span class="text-xs font-medium text-[var(--color-text-primary)]">{{ f.userNickname || '我' }}</span>
+                    <span class="text-xs text-[var(--color-text-tertiary)] ml-auto">{{ fmtTime(f.followUpTime || f.createdAt) }}</span>
+                  </div>
+                  <p class="text-xs text-[var(--color-text-secondary)] whitespace-pre-wrap">{{ f.content }}</p>
+                  <div v-if="parsePhotos(f.photos).length" class="flex flex-wrap gap-1.5 mt-1.5">
+                    <img v-for="(url,i) in parsePhotos(f.photos)" :key="i" :src="url"
+                         class="w-14 h-14 object-cover rounded border border-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                         @error="e=>e.target.style.display='none'" @click="previewImages(parsePhotos(f.photos), i)" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div v-if="total > pg.pageSize" class="flex justify-center mt-8">
-          <t-pagination v-model:current="pg.current" v-model:page-size="pg.pageSize" :total="total" size="small" @current-change="fetchData" @page-size-change="onPageSizeChange" />
+          <t-pagination v-model:current="pg.current" v-model:page-size="pg.pageSize" :total="total" :page-size-options="[20, 50, 100]" size="small" @current-change="fetchData" @page-size-change="onPageSizeChange" />
         </div>
       </div>
     </section>
@@ -284,10 +322,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { Plus, Phone, UsersRound, User as UserIcon, MessageSquare, Share2, Image as ImageIcon, Sparkles, FileSpreadsheet, Camera, Search } from 'lucide-vue-next'
+import { Plus, Phone, UsersRound, User as UserIcon, MessageSquare, Share2, Image as ImageIcon, Sparkles, FileSpreadsheet, Camera, Search, ChevronDown } from 'lucide-vue-next'
 import request from '@/utils/request'
 import { copyText } from '@/utils/clipboard'
 
@@ -297,7 +335,17 @@ function onResize() { isMobile.value = window.innerWidth < 768 }
 const list = ref([])
 const loading = ref(false)
 const total = ref(0)
-const pg = reactive({ current: 1, pageSize: 10 })
+const pg = reactive({ current: 1, pageSize: 20 })
+
+// ===== 今日跟进统计（标题后展示"（今日跟进N个）"） =====
+const todayFollowCount = ref(0)
+/** 拉取今日已跟进的客户数（去重）；失败时静默，不影响列表展示 */
+async function fetchFollowStats() {
+  try {
+    const r = await request.get('/user/customers/follow-stats')
+    todayFollowCount.value = Number(r?.todayCustomerCount || 0)
+  } catch { /* 统计失败不打断主流程 */ }
+}
 
 // ===== 搜索筛选（列表上方单行筛选栏） =====
 const keywordFilter = ref('')
@@ -537,28 +585,82 @@ async function openFollowUps(c) {
   } catch { follows.value = [] } finally { followLoading.value = false }
 }
 
-/** 点击拨打电话时，自动添加一条"电话"跟进记录（静默，不阻塞拨号） */
-async function recordPhoneCall(c) {
-  try {
-    await request.post(`/user/customers/${c.id}/follow-ups`, {
-      content: '拨打了客户电话',
-      method: '电话'
-    })
-  } catch { /* 静默失败，不影响拨号 */ }
+/** 新增跟进后，同步列表中该客户的"最后跟进"展示（无需整页刷新） */
+function syncListLastFollowUp(customerId, content, time) {
+  const target = list.value.find(x => x.id === customerId)
+  if (!target) return
+  target.lastFollowUpTime = time || new Date().toISOString()
+  target.lastFollowUpContent = content
+  // 当前按跟进时间排序时，重新拉取以保持列表顺序正确
+  if (sortOption.value !== 'default') fetchData()
 }
+
+/** 双击客户卡片：复制该客户手机号到剪贴板（点操作按钮时不触发） */
+function onCustomerDblClick(e, c) {
+  // 取消待执行的单击展开，避免"展开又收起"
+  if (cardClickTimer) { clearTimeout(cardClickTimer); cardClickTimer = null }
+  if (e.target.closest('button, a, input, [data-no-dbl-copy]')) return
+  copyCustomerPhone(c)
+}
+async function copyCustomerPhone(c) {
+  if (!c?.phone) { MessagePlugin.warning('该客户没有手机号'); return }
+  try {
+    await copyText(c.phone)
+    MessagePlugin.success(`已复制手机号 ${c.phone}`)
+  } catch (err) { MessagePlugin.error(err?.message || '复制失败，请手动复制') }
+}
+
+// ===== 列表内展开查看跟进记录（再次点击收起） =====
+const expandedId = ref(null)
+const expandedFollows = ref([])
+const expandedLoading = ref(false)
+let cardClickTimer = null
+
+/** 单击客户卡片：展开/收起该客户的跟进记录（延迟 200ms，避免与双击复制冲突） */
+function onCustomerClick(e, c) {
+  if (e.target.closest('button, a, input, [data-no-dbl-copy]')) return
+  if (cardClickTimer) return  // 双击中的第二次 click，交由 dblclick 处理
+  cardClickTimer = setTimeout(() => { cardClickTimer = null; toggleExpand(c) }, 200)
+}
+function toggleExpand(c) {
+  if (expandedId.value === c.id) {
+    collapseFollowUps()
+    return
+  }
+  expandedId.value = c.id
+  loadExpandedFollows(c.id)
+}
+function collapseFollowUps() {
+  expandedId.value = null
+  expandedFollows.value = []
+}
+async function loadExpandedFollows(customerId) {
+  expandedLoading.value = true
+  expandedFollows.value = []
+  try {
+    expandedFollows.value = await request.get(`/user/customers/${customerId}/follow-ups`) || []
+  } catch { expandedFollows.value = [] } finally { expandedLoading.value = false }
+}
+
 async function addFollowUp() {
   if (!followContent.value.trim()) { MessagePlugin.warning('请填写跟进内容'); return }
   followSaving.value = true
   try {
-    await request.post(`/user/customers/${current.value.id}/follow-ups`, {
-      content: followContent.value,
+    const content = followContent.value
+    const customerId = current.value.id
+    const created = await request.post(`/user/customers/${customerId}/follow-ups`, {
+      content,
       method: followMethod.value,
       photos: followUploadUrls.value.length ? JSON.stringify(followUploadUrls.value) : null
     })
     MessagePlugin.success('已添加')
     followContent.value = ''
     followUploadUrls.value = []
-    follows.value = await request.get(`/user/customers/${current.value.id}/follow-ups`) || []
+    syncListLastFollowUp(customerId, content, created?.followUpTime)
+    fetchFollowStats()
+    follows.value = await request.get(`/user/customers/${customerId}/follow-ups`) || []
+    // 列表内已展开该客户时同步刷新
+    if (expandedId.value === customerId) loadExpandedFollows(customerId)
   } catch (e) { MessagePlugin.error(e?.message || '添加失败') } finally { followSaving.value = false }
 }
 
@@ -603,6 +705,34 @@ async function copyAiCopy() {
     await copyText(aiCopy.value)
     MessagePlugin.success('已复制')
   } catch { MessagePlugin.error('复制失败，请长按内容手动复制') }
+}
+
+// ---------- 未跟进天数（优先按最后跟进时间，无跟进记录则按创建时间） ----------
+/** 计算单个客户的未跟进天数，无可用时间返回 null */
+function calcIdle(c) {
+  const byFollow = !!c?.lastFollowUpTime
+  const base = c?.lastFollowUpTime || c?.createdAt
+  if (!base) return null
+  // 兼容 "2026-09-27 23:04:00"（部分环境 iOS 无法解析空格格式）
+  const t = new Date(String(base).replace(' ', 'T')).getTime()
+  if (Number.isNaN(t)) return null
+  const days = Math.max(0, Math.floor((Date.now() - t) / 86400000))
+  return { days, title: `未跟进 ${days} 天（距${byFollow ? '最后跟进' : '创建'} ${fmtDate(base)}）` }
+}
+/** 列表未跟进天数映射：{ [客户id]: { days, title } } */
+const idleMap = computed(() => {
+  const m = {}
+  for (const c of list.value) {
+    const info = calcIdle(c)
+    if (info) m[c.id] = info
+  }
+  return m
+})
+/** 天数颜色：3 天内绿色（跟进及时）、4-7 天橙色（待跟进）、7 天以上红色（久未跟进） */
+function idleClass(days) {
+  if (days <= 3) return 'text-green-600 bg-green-50'
+  if (days <= 7) return 'text-orange-600 bg-orange-50'
+  return 'text-red-600 bg-red-50'
 }
 
 function fmtTime(t) {
@@ -651,6 +781,7 @@ function restoreFavicon() {
 
 onMounted(() => {
   fetchData()
+  fetchFollowStats()
   window.addEventListener('resize', onResize)
   setCustomerFavicon()
 })
