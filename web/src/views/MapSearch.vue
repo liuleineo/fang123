@@ -128,12 +128,22 @@ let roadNetLayer = null
 const showSatellite = ref(false)
 // 当前地图缩放级别（右下角展示用）
 const zoomLevel = ref(12)
+// 缩放级别大于该值时，在楼盘名称下方显示户型面积、总价范围
+const ZOOM_DETAIL_LEVEL = 14
+const showMarkerDetail = ref(false)
+// marker 与楼盘数据的对应关系：缩放跨过阈值时只刷新标签，不重建标记（避免触发重新定位）
+let markerItems = []
 
 /** 同步右下角显示的缩放级别：高德 2.0 为 3~20 级，缩放动画过程中可能带小数 */
 function syncZoom() {
   if (!mapInstance) return
   const z = Number(mapInstance.getZoom())
   zoomLevel.value = Number.isFinite(z) ? Math.round(z * 10) / 10 : ''
+  const next = Number.isFinite(z) && z > ZOOM_DETAIL_LEVEL
+  if (next !== showMarkerDetail.value) {
+    showMarkerDetail.value = next
+    updateMarkerLabels()
+  }
 }
 
 // 楼盘价格候选顺序：高层 → 洋房 → 叠墅 → 排屋。
@@ -151,6 +161,26 @@ function pickPrice(lp) {
     if (v > 0) return { value: v, label }
   }
   return null
+}
+
+/** 户型面积范围：90-140㎡（只有一个值时降级为 90㎡） */
+function formatAreaRange(lp) {
+  const min = Number(lp?.areaMin) || 0
+  const max = Number(lp?.areaMax) || 0
+  if (!min && !max) return ''
+  const lo = min || max
+  const hi = max || min
+  return lo === hi ? `${lo}㎡` : `${lo}-${hi}㎡`
+}
+
+/** 总价范围：180-260万（数据库单位为万元） */
+function formatTotalPriceRange(lp) {
+  const min = Number(lp?.minTotalPrice) || 0
+  const max = Number(lp?.maxTotalPrice) || 0
+  if (!min && !max) return ''
+  const lo = min || max
+  const hi = max || min
+  return lo === hi ? `${lo}万` : `${lo}-${hi}万`
 }
 
 const filteredList = computed(() => {
@@ -237,28 +267,60 @@ function toggleSatellite() {
   }
 }
 
+/**
+ * 生成 marker 标签 HTML
+ * 缩放级别 > 14 时在楼盘名称下方追加两行：户型面积范围、总价范围
+ */
+function buildLabelContent(lp) {
+  // 只显示均价（万/㎡）；高层价为空时用洋房/叠墅/排屋均价回退，并带类型前缀
+  const priceStr = lp._price
+    ? `${lp._priceLabel}${Number((Number(lp._price) / 10000).toFixed(1))}万/㎡`
+    : '价格待定'
+  const nameRow = `<div style="display:flex;align-items:center;justify-content:center;gap:6px">
+          <span style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</span>
+          <span style="color:#FFE58F;font-weight:bold;font-size:11px;flex-shrink:0">${priceStr}</span>
+        </div>`
+
+  const detailRows = []
+  if (showMarkerDetail.value) {
+    const area = formatAreaRange(lp)
+    if (area) detailRows.push(`<div style="font-size:11px;color:#BAE0FF">户型面积：${area}</div>`)
+    const total = formatTotalPriceRange(lp)
+    if (total) detailRows.push(`<div style="font-size:11px;color:#FFE58F">总价范围：${total}</div>`)
+  }
+
+  const layout = detailRows.length
+    ? 'flex-direction:column;align-items:center;gap:2px;line-height:1.35'
+    : 'align-items:center;justify-content:center;gap:6px'
+  return `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);display:flex;${layout};border:none;outline:none">
+          ${nameRow}
+          ${detailRows.join('')}
+        </div>`
+}
+
+/** 缩放跨过阈值时按当前级别刷新所有标记标签（不重建标记，避免视野被重置） */
+function updateMarkerLabels() {
+  markerItems.forEach(({ marker, lp }) => {
+    marker.setLabel({ content: buildLabelContent(lp), direction: 'top' })
+  })
+}
+
 function addMarkers() {
   if (!mapInstance || !window.AMap) return
   markers.forEach(m => mapInstance.remove(m))
   markers = []
+  markerItems = []
 
   const list = filteredList.value
   if (!list.length) return
 
   list.forEach(lp => {
     if (!lp.longitude || !lp.latitude) return
-    // 只显示均价（万/㎡）；高层价为空时用洋房/叠墅/排屋均价回退，并带类型前缀
-    const priceStr = lp._price
-      ? `${lp._priceLabel}${Number((Number(lp._price) / 10000).toFixed(1))}万/㎡`
-      : '价格待定'
     const marker = new window.AMap.Marker({
       position: [lp.longitude, lp.latitude],
       title: lp.projectName,
       label: {
-        content: `<div style="background:#0052D9;color:#fff;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;gap:6px;border:none;outline:none">
-          <span style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis">${lp.projectName}</span>
-          <span style="color:#FFE58F;font-weight:bold;font-size:11px;flex-shrink:0">${priceStr}</span>
-        </div>`,
+        content: buildLabelContent(lp),
         direction: 'top'
       }
     })
@@ -271,6 +333,7 @@ function addMarkers() {
 
     marker.setMap(mapInstance)
     markers.push(marker)
+    markerItems.push({ marker, lp })
   })
 
   if (markers.length) {
