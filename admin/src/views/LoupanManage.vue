@@ -13,8 +13,10 @@
         <t-input v-model="keyword" placeholder="搜索楼盘名称/行政区/板块/开发商/宗地编号" clearable class="w-[280px]" @enter="search" @clear="search">
           <template #prefix-icon><Search class="w-4 h-4" /></template>
         </t-input>
+        <t-select v-model="district" :options="districtOptions" placeholder="行政区" clearable filterable
+          class="w-[150px]" :loading="districtLoading" @change="search" />
         <t-button theme="primary" @click="search"><Search class="w-4 h-4 mr-1" />搜索</t-button>
-        <t-button variant="outline" @click="keyword='';search()">重置</t-button>
+        <t-button variant="outline" @click="resetFilters">重置</t-button>
       </div>
       <t-table :data="data" :columns="cols" :loading="loading" :pagination="pg" row-key="id" hover stripe size="small" @page-change="onPg">
         <template #salesStatus="{ row }">
@@ -272,6 +274,10 @@ import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
 const data = ref([]); const loading = ref(false); const keyword = ref(''); const activeTab = ref('basic')
+// 行政区筛选：选项取自库中已有行政区，支持搜索选择
+const district = ref('')
+const districtOptions = ref([])
+const districtLoading = ref(false)
 const coverFiles = ref([])
 const coverTab = ref('upload')
 const coverPasteFiles = ref([])
@@ -448,9 +454,19 @@ function fmt(t){if(!t)return'';const d=new Date(t);return `${d.getFullYear()}-${
 
 async function fetchData() {
   loading.value=true
-  try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;const r=await request.get('/admin/loupans',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
+  try{const p={page:pg.current,size:pg.pageSize};if(keyword.value)p.keyword=keyword.value;if(district.value)p.district=district.value;const r=await request.get('/admin/loupans',{params:p});data.value=r.records||[];pg.total=r.total||0}catch(e){}finally{loading.value=false}
 }
 function search(){pg.current=1;fetchData()}
+/** 重置全部筛选条件 */
+function resetFilters(){keyword.value='';district.value='';search()}
+/** 拉取行政区下拉选项（库中已有的行政区去重） */
+async function loadDistrictOptions() {
+  districtLoading.value = true
+  try {
+    const list = await request.get('/admin/loupans/districts') || []
+    districtOptions.value = list.map(d => ({ label: d, value: d }))
+  } catch (e) { districtOptions.value = [] } finally { districtLoading.value = false }
+}
 function onPg(p){pg.current=p.current;pg.pageSize=p.pageSize;fetchData()}
 function openCreate(){isEdit.value=false;editId.value=null;coverFiles.value=[];Object.assign(form,initForm());activeTab.value='basic';drawer.value=true}
 function openEdit(row){isEdit.value=true;editId.value=row.id;coverFiles.value=[];Object.assign(form,row);activeTab.value='basic';drawer.value=true}
@@ -484,9 +500,9 @@ async function uploadCoverPaste() {
 }
 async function save(){
   saving.value=true
-  try{if(isEdit.value){await request.put(`/admin/loupans/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/loupans',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
+  try{if(isEdit.value){await request.put(`/admin/loupans/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/loupans',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData();loadDistrictOptions()}catch(e){}finally{saving.value=false}
 }
-async function del(id){await request.delete(`/admin/loupans/${id}`);MessagePlugin.success('已删除');fetchData()}
+async function del(id){await request.delete(`/admin/loupans/${id}`);MessagePlugin.success('已删除');fetchData();loadDistrictOptions()}
 
-onMounted(fetchData)
+onMounted(() => { fetchData(); loadDistrictOptions() })
 </script>

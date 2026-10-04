@@ -28,19 +28,41 @@ public class LoupanController {
     public Result<Page<Loupan>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String district) {
         LambdaQueryWrapper<Loupan> w = new LambdaQueryWrapper<>();
+        // 关键词内部用 and 包一层，避免与后面的行政区条件因 AND 优先级错乱
         if (StringUtils.hasText(keyword)) {
-            w.like(Loupan::getProjectName, keyword)
-             .or().like(Loupan::getDistrict, keyword)
-             .or().like(Loupan::getPlate, keyword)
-             .or().like(Loupan::getProjectCompany, keyword)
-             .or().like(Loupan::getLandNo, keyword);
+            w.and(wr -> wr.like(Loupan::getProjectName, keyword)
+                    .or().like(Loupan::getDistrict, keyword)
+                    .or().like(Loupan::getPlate, keyword)
+                    .or().like(Loupan::getProjectCompany, keyword)
+                    .or().like(Loupan::getLandNo, keyword));
+        }
+        // 行政区精确筛选
+        if (StringUtils.hasText(district)) {
+            w.eq(Loupan::getDistrict, district);
         }
         w.orderByDesc(Loupan::getId);
         Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
         result.getRecords().forEach(Loupan::computeCompletionRatio);
         return Result.success(result);
+    }
+
+    /** 行政区下拉选项：库中已有的行政区（去重、按拼音/字符升序） */
+    @GetMapping("/api/admin/loupans/districts")
+    public Result<List<String>> districts() {
+        List<String> list = loupanService.list(
+                        new LambdaQueryWrapper<Loupan>()
+                                .select(Loupan::getDistrict)
+                                .isNotNull(Loupan::getDistrict))
+                .stream()
+                .map(Loupan::getDistrict)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .sorted()
+                .toList();
+        return Result.success(list);
     }
 
     /** 楼盘下拉选项（id + 楼盘名），供成交记录等模块选择匹配楼盘ID使用 */

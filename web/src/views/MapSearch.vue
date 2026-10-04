@@ -64,8 +64,17 @@
 
       <!-- 地图 -->
       <div id="amap-container" class="w-full h-full" />
-      <!-- 右下角图层切换：卫星地图 -->
+      <!-- 右下角：当前缩放级别 + 图层切换 -->
       <div class="absolute bottom-6 right-4 z-20 flex items-center gap-2">
+        <!-- 缩放级别（随地图缩放实时更新） -->
+        <div
+          v-if="mapReady"
+          class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-sm text-xs font-medium text-gray-700 shadow-md border border-gray-200 select-none tabular-nums"
+          :title="`当前地图缩放级别：${zoomLevel} 级（3~20 级，数字越大越详细）`"
+        >
+          <span class="text-[var(--color-text-tertiary)]">缩放级别</span>
+          <span class="font-bold text-[var(--color-primary)]">{{ zoomLevel }}</span>
+        </div>
         <button
           @click="toggleSatellite"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-xs font-medium shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -117,6 +126,15 @@ let markers = []
 let satelliteLayer = null
 let roadNetLayer = null
 const showSatellite = ref(false)
+// 当前地图缩放级别（右下角展示用）
+const zoomLevel = ref(12)
+
+/** 同步右下角显示的缩放级别：高德 2.0 为 3~20 级，缩放动画过程中可能带小数 */
+function syncZoom() {
+  if (!mapInstance) return
+  const z = Number(mapInstance.getZoom())
+  zoomLevel.value = Number.isFinite(z) ? Math.round(z * 10) / 10 : ''
+}
 
 // 楼盘价格候选顺序：高层 → 洋房 → 叠墅 → 排屋。
 // 楼盘类型不同价格不同，高层均价为空时回退展示其他产品均价（标签用于区分来源）
@@ -197,6 +215,11 @@ async function initMap() {
   // 交通路况图层（默认显示当前交通情况）
   const trafficLayer = new window.AMap.TileLayer.Traffic()
   mapInstance.add(trafficLayer)
+
+  // 缩放级别：初始化时同步一次，之后随缩放（滚轮/双击/按钮/聚焦楼盘）实时更新
+  syncZoom()
+  mapInstance.on('zoomend', syncZoom)
+  mapInstance.on('zoomchange', syncZoom)
 
   mapReady.value = true
   addMarkers()
