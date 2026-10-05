@@ -203,13 +203,15 @@
     <!-- CTA -->
     <section class="py-16 bg-gradient-to-r from-[#0052D9] to-[#366EF4]">
       <div class="section-container text-center">
-        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">没找到合适的楼盘？</h2>
-        <p class="text-white/80 mb-8 text-sm max-w-md mx-auto">
-          关注我们，第一时间获取新开盘、价格变动等最新消息
-        </p>
-        <t-button theme="default" size="large" variant="outline" class="!border-white !text-black !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="searchKeyword=''; pg.current=1; fetchData(true)">
-          浏览全部楼盘
+        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">没有合适的新楼盘？看看二手房</h2>
+        
+        <t-button theme="default" size="large" variant="outline" class="!border-white !text-black !rounded-xl hover:!bg-white hover:!text-[#0052D9]" @click="goErshoufang">
+          浏览二手楼盘
         </t-button>
+        
+        <p class="text-white/80 mt-6 mb-8 text-sm max-w-md mx-auto">
+          也欢迎直接咨询经纪人，为您推荐好房。
+        </p>
       </div>
     </section>
   </div>
@@ -217,8 +219,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Search, Building2, MapPin, Megaphone, Rocket } from 'lucide-vue-next'
 import request from '@/utils/request'
+
+const router = useRouter()
 
 const loupanList = ref([])
 const loading = ref(false)
@@ -257,7 +262,7 @@ async function fetchData(showAll = false) {
   loading.value = true
   try {
     const p = { page: pg.current, size: pg.pageSize }
-    // 默认只展示在售楼盘，点击"浏览全部楼盘"时展示全部
+    // 默认只展示在售楼盘；showAll=true 时不带状态筛选（含售罄/待售）
     if (!showAll) p.salesStatus = '1'
     if (searchKeyword.value) p.keyword = searchKeyword.value
     if (filterDistrict.value) p.district = filterDistrict.value
@@ -316,6 +321,11 @@ function doSearch() {
   spotlightType.value = ''
   pg.current = 1
   fetchData()
+}
+
+/** 底部 CTA：首页没有合适的新楼盘时，引导去二手房页面 */
+function goErshoufang() {
+  router.push('/ershoufang')
 }
 
 onMounted(() => { fetchData(); fetchFilters(); fetchSpotlightCounts() })
