@@ -61,11 +61,29 @@ public class LoupanMediaController {
         return Result.success();
     }
 
-    /** 上传素材文件到 COS */
+    /** 上传素材文件到 COS（经服务器中转，作为直传失败时的降级通道） */
     @PostMapping("/api/admin/medias/upload")
     public Result<Map<String, String>> upload(@RequestParam(value = "file", required = false) MultipartFile file) {
         if (file == null || file.isEmpty()) return Result.badRequest("文件不能为空");
         String url = cosService.uploadFile(file, "media/loupan");
         return Result.success(Map.of("url", url));
+    }
+
+    /**
+     * 生成素材直传预签名地址：前端拿到 uploadUrl 后直接 PUT 到 COS。
+     * 浏览器 → COS 直传不占服务器出口带宽，大视频上传速度明显更快。
+     */
+    @PostMapping("/api/admin/medias/presign")
+    public Result<Map<String, Object>> presign(@RequestBody Map<String, Object> body) {
+        String filename = body.get("filename") instanceof String s ? s : "";
+        String contentType = body.get("contentType") instanceof String s ? s : null;
+        long size = body.get("size") instanceof Number n ? n.longValue() : 0L;
+        try {
+            CosService.PresignInfo info = cosService.presignPut("media/loupan", filename, contentType, size);
+            return Result.success(Map.<String, Object>of(
+                "key", info.key(), "uploadUrl", info.uploadUrl(), "url", info.url()));
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
     }
 }

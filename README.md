@@ -333,8 +333,7 @@ server {
 
     # 上传素材可达 500MB（与后端 max-file-size 保持一致），需提高 body 上限并延长超时
     client_max_body_size 600m;
-    client_body_timeout 600s;
-    proxy_read_timeout 600s;
+    client_body_timeout 1800s;
 
     # API 代理到后端
     location /api/ {
@@ -342,6 +341,14 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # 大视频上传：后端收完文件后还要转存腾讯云 COS，耗时可能数分钟到数十分钟。
+        # proxy_read_timeout 必须大于该耗时，否则 nginx 会以 504 切断长请求，
+        # 前端表现为进度卡在 99% 后突然失败。
+        proxy_read_timeout 1800s;
+        proxy_send_timeout 1800s;
+        # 不缓存请求体，边收边转发，避免大文件在 nginx 额外落一次盘
+        proxy_request_buffering off;
     }
 
     # 管理后台 (base=/admin/)

@@ -63,6 +63,11 @@
                   @fail="onUploadFail"
                   @remove="onUploadRemove"
                 />
+                <!-- 进度条封顶 99%，上传完成后仍需等待服务端转存云存储，用文案+计时避免用户误以为卡死 -->
+                <div v-if="uploadStageText" class="mt-2 flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+                  <t-loading size="small" />
+                  <span>{{ uploadStageText }}</span>
+                </div>
               </t-tab-panel>
               <t-tab-panel value="paste" label="粘贴图片">
                 <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onPaste" tabindex="0">
@@ -118,9 +123,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Search, Image, Layers, Upload, Video } from 'lucide-vue-next'
+import axios from 'axios'
 import request from '@/utils/request'
 
 const drawer = ref(false); const isEdit = ref(false); const editId = ref(null); const saving = ref(false)
@@ -133,6 +139,35 @@ const uploadTab = ref('upload')
 const pasteFiles = ref([])
 const pasteUploading = ref(false)
 const uploadFailShown = ref(false) // 是否已在上传方法内提示错误（避免与 onUploadFail 重复提示）
+
+// ===== 上传阶段提示 =====
+// t-upload 的进度条在上传进行中封顶 99%，文件传到服务端后还要等服务端转存云存储
+// （大视频受服务器上行带宽限制可能数分钟），这段时间没有任何反馈，容易让人以为卡死，
+// 因此用「文案 + 已等待秒数」明确告知仍在处理中。
+const uploadStageText = ref('')
+let stageBase = ''
+let stageStartAt = 0
+let stageTimer = null
+
+function startUploadStage(text) {
+  stageBase = text
+  if (!stageTimer) {
+    stageStartAt = Date.now()
+    stageTimer = setInterval(() => {
+      uploadStageText.value = `${stageBase}（已等待 ${Math.floor((Date.now() - stageStartAt) / 1000)} 秒）`
+    }, 1000)
+  }
+  uploadStageText.value = `${stageBase}（已等待 ${Math.floor((Date.now() - stageStartAt) / 1000)} 秒）`
+}
+
+function stopUploadStage() {
+  if (stageTimer) { clearInterval(stageTimer); stageTimer = null }
+  stageBase = ''
+  uploadStageText.value = ''
+}
+
+onUnmounted(stopUploadStage)
+
 
 // ===== 楼盘下拉选项（支持按名称搜索选择ID）=====
 const loupanOpts = ref([])
@@ -234,36 +269,80 @@ async function uploadRequest(file) {
     uploadFiles.value = []
     return { status: 'fail', error: `视频不能超过 ${MAX_VIDEO_MB}MB` }
   }
-  const fd = new FormData()
-  fd.append('file', blob, filename)
-  // 视频文件通常较大，远超 axios 全局 15s 默认超时，按上传入口单独放宽
-  // 视频预留 20 分钟（500MB 即使上行 ~0.5MB/s 也能传完），图片预留 2 分钟
-  let res
+  // 直传只需一次上行、中转需两次串行，超时分别估算（直传按 ~0.5MB/s，中转按 ~0.25MB/s）
+  const sizeMB = blob.size / 1024 / 1024
+  const directTimeout = isVideo ? Math.min(1800000, Math.max(600000, Math.ceil(sizeMB) * 2000)) : 120000
+  const serverTimeout = isVideo ? Math.min(2400000, Math.max(1200000, Math.ceil(sizeMB) * 4000)) : 120000
+
+  let url
   try {
-    res = await request.post('/admin/medias/upload', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: isVideo ? 1200000 : 120000,
-      onUploadProgress: (e) => {
-        if (!e.total) return
-        // 上传进行中封顶 99%，服务端确认返回后才由 t-upload 置为 100%/成功
-        const pct = Math.min(99, Math.round((e.loaded / e.total) * 100))
-        updateUploadPercent(file, pct)
-      }
-    })
+    startUploadStage('正在上传文件…')
+    try {
+      url = await uploadDirectToCos(file, blob, filename, directTimeout)
+    } catch (directErr) {
+      // 直传不可用（如 COS 桶未配置跨域 / 预签名失败）时回退服务器中转，保证功能不中断
+      console.warn('直传 COS 失败，回退服务器中转：', directErr)
+      startUploadStage('正在上传文件（经服务器中转）…')
+      url = await uploadViaServer(file, blob, filename, serverTimeout)
+    }
   } catch (e) {
     // 请求异常（后端报错/超时等）必须显式返回 fail，否则 promise reject 会让
     // t-upload 一直停留在上传进度状态（如 99%）而无法结束
+    stopUploadStage()
     const msg = e?.response?.data?.msg || e?.message || '上传失败'
     MessagePlugin.error(msg)
     uploadFailShown.value = true
     return { status: 'fail', error: msg }
   }
-  return { status: 'success', response: { url: res.url } }
+  stopUploadStage()
+  return { status: 'success', response: { url } }
 }
 
-function onUploadSuccess({ file }) { uploadFailShown.value = false; form.mediaUrl = file.response?.url || ''; MessagePlugin.success('上传成功'); uploadFiles.value = [] }
-function onUploadFail() { if (!uploadFailShown.value) MessagePlugin.error('上传失败'); uploadFailShown.value = false; uploadFiles.value = [] }
-function onUploadRemove() { uploadFiles.value = [] }
+/**
+ * 直传 COS：后端下发预签名 PUT 地址，浏览器直接把文件传到云存储。
+ * 相比"浏览器→服务器→COS"两段串行，直传只走一次上行、速度取决于本地上行带宽，
+ * 也不占用服务器出口带宽，因此不会出现"卡在 99% 等服务端转存"的情况。
+ */
+async function uploadDirectToCos(file, blob, filename, timeout) {
+  const contentType = blob.type || 'application/octet-stream'
+  const presign = await request.post('/admin/medias/presign', {
+    filename,
+    contentType,
+    size: blob.size
+  })
+  // 必须用裸 axios：预签名 URL 自带签名，附带 Authorization 等自定义头会导致签名校验失败
+  await axios.put(presign.uploadUrl, blob, {
+    headers: { 'Content-Type': contentType },
+    timeout,
+    onUploadProgress: (e) => {
+      if (!e.total) return
+      // 封顶 99%，请求成功后由 t-upload 置为 100%
+      updateUploadPercent(file, Math.min(99, Math.round((e.loaded / e.total) * 100)))
+    }
+  })
+  return presign.url
+}
+
+/** 服务器中转上传（直传失败时的降级通道）：浏览器 → 服务器 → COS */
+async function uploadViaServer(file, blob, filename, timeout) {
+  const fd = new FormData()
+  fd.append('file', blob, filename)
+  const res = await request.post('/admin/medias/upload', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout,
+    onUploadProgress: (e) => {
+      if (!e.total) return
+      updateUploadPercent(file, Math.min(99, Math.round((e.loaded / e.total) * 100)))
+      // 体数据已发完，剩余时间都花在服务端转存云存储上
+      if (e.loaded >= e.total) startUploadStage('文件传输完成，正在上传至云存储…')
+    }
+  })
+  return res.url
+}
+
+function onUploadSuccess({ file }) { stopUploadStage(); uploadFailShown.value = false; form.mediaUrl = file.response?.url || ''; MessagePlugin.success('上传成功'); uploadFiles.value = [] }
+function onUploadFail() { stopUploadStage(); if (!uploadFailShown.value) MessagePlugin.error('上传失败'); uploadFailShown.value = false; uploadFiles.value = [] }
+function onUploadRemove() { stopUploadStage(); uploadFiles.value = [] }
 
 const initForm = () => ({ loupanId:null,huxingId:null,mediaType:1,mediaUrl:'',mediaTitle:'',sort:0 })
 const form = reactive(initForm())
