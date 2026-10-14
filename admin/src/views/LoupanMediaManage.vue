@@ -282,6 +282,8 @@ async function uploadRequest(file) {
     } catch (directErr) {
       // 直传不可用（如 COS 桶未配置跨域 / 预签名失败）时回退服务器中转，保证功能不中断
       console.warn('直传 COS 失败，回退服务器中转：', directErr)
+      // 显式提示：回退是静默降级的话，很难发现桶跨域配置已经失效
+      MessagePlugin.warning('直传云存储失败，已切换到服务器中转上传（请检查 COS 桶跨域配置）')
       startUploadStage('正在上传文件（经服务器中转）…')
       url = await uploadViaServer(file, blob, filename, serverTimeout)
     }
@@ -433,11 +435,17 @@ async function doBatchUpload() {
         const newSize = (blob.size / 1024).toFixed(1)
         console.log(`批量图片压缩: ${origSize}KB → ${newSize}KB`)
       }
-      // 上传文件
-      const fd = new FormData(); fd.append('file', blob, 'image.jpg')
-      const res = await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      // 直传 COS（浏览器 → 云存储，不经过服务器），预签名不可用时回退服务器中转
+      let url
+      try {
+        url = await uploadDirectToCos(null, blob, 'image.jpg', 120000)
+      } catch (directErr) {
+        console.warn('批量直传 COS 失败，回退服务器中转：', directErr)
+        const fd = new FormData(); fd.append('file', blob, 'image.jpg')
+        url = (await request.post('/admin/medias/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })).url
+      }
       // 创建素材记录
-      await request.post('/admin/medias', { loupanId: batchForm.loupanId, mediaType: batchForm.mediaType, mediaUrl: res.url, mediaTitle: '', sort: 0 })
+      await request.post('/admin/medias', { loupanId: batchForm.loupanId, mediaType: batchForm.mediaType, mediaUrl: url, mediaTitle: '', sort: 0 })
       created++
     } catch (e) {
       console.error('batch upload failed:', e)

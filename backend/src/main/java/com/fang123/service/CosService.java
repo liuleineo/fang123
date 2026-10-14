@@ -6,6 +6,8 @@ import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.http.HttpMethodName;
+import com.qcloud.cos.model.BucketCrossOriginConfiguration;
+import com.qcloud.cos.model.CORSRule;
 import com.qcloud.cos.model.GeneratePresignedUrlRequest;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
@@ -24,7 +26,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -49,6 +54,10 @@ public class CosService {
         "jpg", "jpeg", "png", "gif", "webp", "bmp",
         "mp4", "mov", "webm", "avi", "mkv", "m4v"
     );
+    /** 直传所需的跨域方法：OPTIONS 预检会逐项校验，缺一个即 403（HEAD 用于校验对象是否存在） */
+    private static final List<CORSRule.AllowedMethods> REQUIRED_CORS_METHODS = List.of(
+        CORSRule.AllowedMethods.PUT, CORSRule.AllowedMethods.GET,
+        CORSRule.AllowedMethods.HEAD, CORSRule.AllowedMethods.POST);
 
     private final CosProperties cosProperties;
 
@@ -78,6 +87,69 @@ public class CosService {
         this.transferManager.setConfiguration(tmConfig);
         log.info("COS client initialized for bucket: {}, multipartThreshold={}MB, partSize={}MB, concurrency={}",
             cosProperties.getBucket(), MULTIPART_THRESHOLD / 1024 / 1024, PART_SIZE / 1024 / 1024, UPLOAD_CONCURRENCY);
+        syncBucketCors();
+    }
+
+    /**
+     * 启动时把 cos.cors-origins 补齐到桶 CORS 规则。
+     * 浏览器直传（预签名 PUT）会先发 OPTIONS 预检，来源或方法不在白名单里就会 403，
+     * 前端随即回退成"经服务器中转"，大视频上传速度会明显变慢——这是静默回退，日志里很难发现，
+     * 因此在启动时做一次幂等补齐。凭证没有 PutBucketCORS 权限时只告警，不影响启动。
+     */
+    private void syncBucketCors() {
+        List<String> wanted = cosProperties.getCorsOrigins();
+        if (!cosProperties.isAutoCors() || wanted == null || wanted.isEmpty()) {
+            return;
+        }
+        String bucket = cosProperties.getBucket();
+        try {
+            BucketCrossOriginConfiguration current = cosClient.getBucketCrossOriginConfiguration(bucket);
+            List<CORSRule> rules = (current == null || current.getRules() == null)
+                ? new ArrayList<>() : new ArrayList<>(current.getRules());
+
+            List<String> missing = wanted.stream()
+                .filter(o -> rules.stream().noneMatch(r -> r.getAllowedOrigins() != null
+                    && r.getAllowedOrigins().contains(o)))
+                .toList();
+            boolean methodsOk = rules.stream().anyMatch(r -> r.getAllowedMethods() != null
+                && r.getAllowedMethods().containsAll(REQUIRED_CORS_METHODS));
+            if (missing.isEmpty() && methodsOk) {
+                log.info("COS bucket CORS ok: origins={}", wanted);
+                return;
+            }
+
+            if (rules.isEmpty()) {
+                CORSRule rule = new CORSRule();
+                rule.setAllowedOrigins(wanted);
+                rule.setAllowedMethods(REQUIRED_CORS_METHODS);
+                rule.setAllowedHeaders(List.of("*"));
+                rule.setExposedHeaders(List.of("ETag", "Content-Length", "x-cos-request-id"));
+                rule.setMaxAgeSeconds(3600);
+                rules.add(rule);
+            } else {
+                // 在原有规则上补齐，保留其他来源的既有配置
+                CORSRule first = rules.get(0);
+                List<String> origins = new ArrayList<>(
+                    first.getAllowedOrigins() == null ? List.of() : first.getAllowedOrigins());
+                origins.addAll(missing);
+                first.setAllowedOrigins(origins);
+
+                LinkedHashSet<CORSRule.AllowedMethods> methods = new LinkedHashSet<>(
+                    first.getAllowedMethods() == null ? List.of() : first.getAllowedMethods());
+                methods.addAll(REQUIRED_CORS_METHODS);
+                first.setAllowedMethods(new ArrayList<>(methods));
+
+                if (first.getAllowedHeaders() == null || first.getAllowedHeaders().isEmpty()) {
+                    first.setAllowedHeaders(List.of("*"));
+                }
+                first.setMaxAgeSeconds(3600);
+            }
+
+            cosClient.setBucketCrossOriginConfiguration(bucket, new BucketCrossOriginConfiguration(rules));
+            log.info("COS bucket CORS updated: missingOrigins={}, origins={}", missing, wanted);
+        } catch (Exception e) {
+            log.warn("COS bucket CORS sync skipped（需 PutBucketCORS 权限，可在控制台手工配置）: {}", e.getMessage());
+        }
     }
 
     @PreDestroy
