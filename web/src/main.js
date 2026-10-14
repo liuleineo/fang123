@@ -5,6 +5,7 @@ import 'tdesign-vue-next/es/style/index.css'
 import './styles/global.css'
 import App from './App.vue'
 import router from './router'
+import { setupVisitTracking } from './utils/visit'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -28,5 +29,8 @@ app.config.errorHandler = (err) => {
 app.use(pinia)
 app.use(router)
 app.use(TDesign)
+
+// 访问统计埋点：注册在 mount 之前，保证首屏导航也被统计到
+setupVisitTracking(router)
 
 app.mount('#app')

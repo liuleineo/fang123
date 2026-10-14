@@ -28,6 +28,12 @@ const routes = [
         meta: { title: '管理员管理', icon: 'shield' }
       },
       {
+        path: 'visit-stats',
+        name: 'VisitStats',
+        component: () => import('@/views/VisitStats.vue'),
+        meta: { title: '访问统计', icon: 'chart' }
+      },
+      {
         path: 'users',
         name: 'UserManage',
         component: () => import('@/views/UserManage.vue'),

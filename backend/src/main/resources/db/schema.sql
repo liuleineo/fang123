@@ -668,3 +668,51 @@ CREATE TABLE `customer_shares` (
   KEY `idx_customer_id` (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户共享分配';
 
+
+-- =====================================================
+-- 访问统计（自建埋点：明细 + 日报两层）
+-- =====================================================
+
+-- 访问事件明细：只追加，报表不查这张表（避免拖慢主库）
+CREATE TABLE IF NOT EXISTS `visit_event` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `visitor_key` VARCHAR(80)     NOT NULL DEFAULT ''     COMMENT '访客标识：登录 u:{userId}，匿名 d:{deviceId}',
+    `user_id`     BIGINT UNSIGNED DEFAULT NULL            COMMENT '登录用户ID（匿名为 NULL）',
+    `device_id`   VARCHAR(64)     NOT NULL DEFAULT ''     COMMENT '设备标识（前端 localStorage 生成）',
+    `session_id`  VARCHAR(64)     NOT NULL DEFAULT ''     COMMENT '会话ID（30分钟无事件切换）',
+    `platform`    VARCHAR(16)     NOT NULL DEFAULT 'web'  COMMENT '平台：web/mini/android/ios/harmony',
+    `event_type`  VARCHAR(32)     NOT NULL DEFAULT 'page_view' COMMENT '事件类型：page_view/click/login/order',
+    `route`       VARCHAR(255)    NOT NULL DEFAULT ''     COMMENT '页面路径',
+    `page_title`  VARCHAR(128)    NOT NULL DEFAULT ''     COMMENT '页面标题',
+    `referrer`    VARCHAR(500)    NOT NULL DEFAULT ''     COMMENT '来源URL',
+    `channel`     VARCHAR(64)     NOT NULL DEFAULT ''     COMMENT '渠道：direct/internal/search/wechat/...',
+    `ip_hash`     CHAR(32)        NOT NULL DEFAULT ''     COMMENT 'IP 的 MD5（不存明文）',
+    `ua_brief`    VARCHAR(64)     NOT NULL DEFAULT ''     COMMENT 'UA 摘要：浏览器/系统',
+    `duration_ms` INT             NOT NULL DEFAULT 0      COMMENT '页面停留时长(ms)',
+    `event_time`  DATETIME        NOT NULL                COMMENT '事件发生时间（客户端上报，已做范围校正）',
+    `create_time` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '入库时间（服务端）',
+    PRIMARY KEY (`id`),
+    KEY `idx_event_time` (`event_time`),
+    KEY `idx_route_time` (`route`, `event_time`),
+    KEY `idx_visitor_time` (`visitor_key`, `event_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='访问事件明细';
+
+-- 访问统计日报：按小时增量聚合，管理端报表只查这张
+CREATE TABLE IF NOT EXISTS `visit_stat_daily` (
+    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `stat_date`       DATE            NOT NULL                COMMENT '统计日期',
+    `platform`        VARCHAR(16)     NOT NULL DEFAULT 'all'  COMMENT '平台；all 表示跨平台汇总行',
+    `dimension`       VARCHAR(32)     NOT NULL DEFAULT 'total' COMMENT '维度：total/route/channel',
+    `dim_value`       VARCHAR(255)    NOT NULL DEFAULT 'all'  COMMENT '维度值；total 维度固定为 all',
+    `pv`              INT             NOT NULL DEFAULT 0      COMMENT '访问量',
+    `uv`              INT             NOT NULL DEFAULT 0      COMMENT '独立访客数',
+    `session_cnt`     INT             NOT NULL DEFAULT 0      COMMENT '会话数',
+    `new_uv`          INT             NOT NULL DEFAULT 0      COMMENT '新访客数（仅 platform=all 的 total 行有效）',
+    `avg_duration_ms` INT             NOT NULL DEFAULT 0      COMMENT '平均停留时长(ms)',
+    `update_time`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_date_platform_dim` (`stat_date`, `platform`, `dimension`, `dim_value`),
+    KEY `idx_date` (`stat_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='访问统计日报';
+
+

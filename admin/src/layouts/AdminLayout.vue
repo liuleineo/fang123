@@ -119,7 +119,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import {
   Home, LayoutDashboard, Users, User, Shield, Coins, ScrollText, UsersRound, ListTodo, ClipboardCheck, DollarSign, Crown, UserCheck, Settings, Bell,
-  Building2, MapPin, LayoutTemplate, Image, TableProperties, GraduationCap, Megaphone,
+  Building2, MapPin, LayoutTemplate, Image, TableProperties, GraduationCap, Megaphone, TrendingUp,
   ChevronRight, ChevronLeft, ChevronDown, Menu
 } from 'lucide-vue-next'
 
@@ -133,6 +133,7 @@ const isMobile = ref(false)
 
 const menuItems = [
   { path: '/dashboard', label: '仪表盘', icon: LayoutDashboard },
+  { path: '/visit-stats', label: '访问统计', icon: TrendingUp },
   { path: '/loupans', label: '楼盘管理', icon: Building2 },
   { path: '/tupai-lands', label: '土拍地块', icon: MapPin },
   { path: '/huxings', label: '楼盘户型', icon: LayoutTemplate },
