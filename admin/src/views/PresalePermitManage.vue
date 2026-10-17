@@ -232,9 +232,9 @@ function fillFormFromAi() {
   Object.assign(form, initForm())
   const f = aiResult.value.fields
   Object.keys(f).forEach(k => { if (f[k] !== null && f[k] !== undefined) form[k] = f[k] })
-  // 从 permitNoStr 自动推导 permitNo：杭房预许字（2026）第00455号 → 202600455
+  // 从 permitNoStr 自动推导 permitNo：杭房预许字（2026）第00455号 → 202600455（全角/半角括号都兼容）
   if (form.permitNoStr && !form.permitNo) {
-    const y = form.permitNoStr.match(/（(\d{4})）/)
+    const y = form.permitNoStr.match(/[（(](\d{4})[）)]/)
     const n = form.permitNoStr.match(/第(\d+)号/)
     if (y && n) form.permitNo = y[1] + n[1]
   }

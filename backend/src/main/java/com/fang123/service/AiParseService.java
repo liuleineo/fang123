@@ -23,6 +23,8 @@ import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.ocr.v20181119.OcrClient;
 import com.tencentcloudapi.ocr.v20181119.models.GeneralBasicOCRRequest;
 import com.tencentcloudapi.ocr.v20181119.models.GeneralBasicOCRResponse;
+import com.tencentcloudapi.ocr.v20181119.models.ItemCoord;
+import com.tencentcloudapi.ocr.v20181119.models.TextDetection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -32,6 +34,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -518,38 +523,154 @@ public class AiParseService {
     // ============ 预售证 AI 解析 ============
 
     private static final String PRESALE_PARSE_PROMPT = """
-            你是一个预售许可证信息提取助手。请从以下OCR识别的文本中提取预售证信息，返回严格的JSON格式。
+            你是预售许可证信息提取助手。输入是杭州住保房管局"商品房预售证公示"图片的 OCR 结果：
+            第一行是大标题（预售证编号），下面是公示表格，同一行的单元格之间用 " | " 分隔，表头通常为：
+            开发公司 | 开发项目名 | 房屋坐落位置 | 用途 | 预售证号 | 公示日期 | 核发日期
 
+            OCR 示例：
+            杭房预许字（2026）第00622号
+            开发公司 | 开发项目名 | 房屋坐落位置 | 用途 | 预售证号 | 公示日期 | 核发日期
+            杭州越运房地产开发有限公司 | 杭政储出【2025】105号地块商品住宅（设配套公建）11#、12#楼 | 风华锦澜里11幢、12幢 | 住宅 | 202600622 | 2026-10-16 | 2026-10-19
+
+            对应提取结果：
             {
-              "projectName": "项目名称",
-              "permitNo": "留空不要填，由系统从permitNoStr自动推导（年份+编号，如2026+00453=202600453）",
-              "permitNoStr": "预售证编号STR 如杭房预许字（2023）第00692号 或 杭售许字(2026)第00453号",
-              "developCompany": "开发公司",
-              "publicityDate": "公示日期 格式YYYY-MM-DD",
-              "issueDate": "核发日期 格式YYYY-MM-DD",
-              "location": "坐落位置",
-              "saleAddress": "销售部地址",
-              "salePhone": "销售部电话",
-              "onlineSaleArea": "网上预(销)售总面积㎡ 纯数字"
+              "projectName": "杭政储出【2025】105号地块商品住宅（设配套公建）11#、12#楼",
+              "permitNoStr": "杭房预许字（2026）第00622号",
+              "permitNo": "202600622",
+              "developCompany": "杭州越运房地产开发有限公司",
+              "publicityDate": "2026-10-16",
+              "issueDate": "2026-10-19",
+              "location": "风华锦澜里11幢、12幢"
             }
 
-            规则：只返回JSON，数字去单位，无法确定的为null。
+            字段映射规则（务必区分易混字段）：
+            1. permitNoStr：大标题（如"杭房预许字（2026）第00622号"或"杭售许字(2026)第00453号"）整行；全角半角括号按原文保留。
+            2. permitNo：表格"预售证号"列的纯数字（如 202600622）；若该列缺失，则由 permitNoStr 推导（括号内年份 + "第X号"的X，保留前导零，如（2026）第00622号 → 202600622）。permitNo 只输出数字。
+            3. projectName：表头"开发项目名"整格内容（通常是"杭政储出【20XX】XXX号地块商品住宅（设配套公建）11#、12#楼"这类长文本），即使很长也完整保留，不要截断。
+            4. location：表头"房屋坐落位置"整格内容（通常是"案名+幢号"，如"风华锦澜里11幢、12幢"）。不要把"开发项目名"的内容填到这里，两者不同。
+            5. developCompany：表头"开发公司"。
+            6. publicityDate=公示日期，issueDate=核发日期，统一输出 YYYY-MM-DD（"2026年10月16日"、"2026.10.16"、"2026/10/16" 都要转成 "2026-10-16"）。
+            7. saleAddress=销售部地址、salePhone=销售部电话、onlineSaleArea=网上预(销)售总面积（纯数字，去单位）；公示表里没有这些列时为 null。
+            8. 只返回JSON；OCR 可能把一个格子拆成几段，请按表头顺序与 " | " 分隔符把各列对齐后再提取，无法确定的字段为 null。
 
             OCR文本：
             """;
 
     public AiParsePresaleResult parsePresale(MultipartFile[] files) {
-        String ocrText = doOcrBatch(files, "ai-presale")[0];
+        if (files == null || files.length == 0) throw new IllegalArgumentException("请至少上传一张图片");
+        // 公示图是表格：用坐标重组行（单元格间 " | " 分隔），比逐行纯文本的列对应准确得多
+        StringBuilder ocrTextBuilder = new StringBuilder();
+        for (int i = 0; i < files.length; i++) {
+            try {
+                String text = doOcrStructured(Base64.getEncoder().encodeToString(files[i].getBytes()));
+                ocrTextBuilder.append("【图片").append(i + 1).append("】\n").append(text).append("\n\n");
+            } catch (Exception e) {
+                log.error("Presale OCR failed for image {}", i + 1, e);
+            }
+        }
+        String ocrText = ocrTextBuilder.toString().trim();
+        if (ocrText.isEmpty()) throw new RuntimeException("所有图片OCR识别均失败，请检查图片清晰度");
+
         PresaleFields fields;
         try {
             String resp = callTokenHub(PRESALE_PARSE_PROMPT + ocrText, "预售证信息提取助手");
-            fields = objectMapper.readValue(resp, PresaleFields.class);
+            // 先读成 Map 做宽松清洗（LLM 可能返回带单位的数字、中文日期），再转换，避免反序列化失败
+            @SuppressWarnings("unchecked")
+            Map<String, Object> respMap = objectMapper.readValue(resp, Map.class);
+            normalizePresaleFields(respMap);
+            fields = objectMapper.convertValue(respMap, PresaleFields.class);
         } catch (Exception e) {
             throw new RuntimeException("AI解析失败: " + e.getMessage());
         }
         AiParsePresaleResult r = new AiParsePresaleResult();
         r.setOcrText(ocrText); r.setFields(fields);
         return r;
+    }
+
+    /**
+     * 表格类图片的 OCR：利用返回坐标把文字块聚成"行"，行内按 X 排序、单元格用 " | " 分隔。
+     * 通用印刷体 OCR 默认输出的文本顺序对表格不友好（列头与数据失去对应关系），
+     * 按坐标重排后大模型可以直接按列读取，解析准确率显著提升。
+     */
+    private String doOcrStructured(String imageBase64) throws TencentCloudSDKException {
+        Credential cred = new Credential(aiProperties.getSecretId(), aiProperties.getSecretKey());
+        HttpProfile httpProfile = new HttpProfile();
+        httpProfile.setEndpoint("ocr.tencentcloudapi.com");
+        ClientProfile clientProfile = new ClientProfile();
+        clientProfile.setHttpProfile(httpProfile);
+        OcrClient client = new OcrClient(cred, aiProperties.getRegion(), clientProfile);
+
+        GeneralBasicOCRRequest req = new GeneralBasicOCRRequest();
+        req.setImageBase64(imageBase64);
+        GeneralBasicOCRResponse resp = client.GeneralBasicOCR(req);
+
+        List<TextDetection> detections = resp.getTextDetections() == null
+                ? List.<TextDetection>of() : Arrays.asList(resp.getTextDetections());
+        if (detections.isEmpty()) return "";
+
+        List<TextDetection> sorted = new ArrayList<>(detections);
+        sorted.sort(Comparator.comparingLong(d -> d.getItemPolygon().getY()));
+
+        List<String> lines = new ArrayList<>();
+        List<TextDetection> currentRow = new ArrayList<>();
+        long rowY = -1, rowH = 0;
+        for (TextDetection d : sorted) {
+            ItemCoord c = d.getItemPolygon();
+            long height = c.getHeight() == null ? 0 : c.getHeight();
+            // 与当前行基准 Y 的偏差小于行高的 60% 视为同一行（表格单元格高度接近）
+            if (rowY >= 0 && c.getY() != null && Math.abs(c.getY() - rowY) <= Math.max(height, rowH) * 0.6) {
+                currentRow.add(d);
+                continue;
+            }
+            if (!currentRow.isEmpty()) lines.add(joinOcrRow(currentRow));
+            currentRow = new ArrayList<>();
+            currentRow.add(d);
+            rowY = c.getY() == null ? 0 : c.getY();
+            rowH = height;
+        }
+        if (!currentRow.isEmpty()) lines.add(joinOcrRow(currentRow));
+        return String.join("\n", lines);
+    }
+
+    /** 行内按 X 坐标从左到右排序，单元格之间用 " | " 连接 */
+    private String joinOcrRow(List<TextDetection> row) {
+        return row.stream()
+                .sorted(Comparator.comparingLong(d -> d.getItemPolygon().getX()))
+                .map(TextDetection::getDetectedText)
+                .collect(Collectors.joining(" | "));
+    }
+
+    /** 归一化预售证字段：日期统一 YYYY-MM-DD、证号只留数字并兜底推导、面积去单位 */
+    private void normalizePresaleFields(Map<String, Object> m) {
+        // 证号字符串去掉空白（OCR/LLM 可能在中间夹空格，如"杭房预许字（2026） 第00622号"）
+        if (m.get("permitNoStr") instanceof String s) {
+            m.put("permitNoStr", s.replaceAll("\\s+", ""));
+        }
+        // permitNo 只留数字；为空时从 permitNoStr 推导（全角/半角括号都兼容）
+        String permitNoDigits = m.get("permitNo") == null
+                ? "" : String.valueOf(m.get("permitNo")).replaceAll("[^0-9]", "");
+        if (permitNoDigits.isEmpty() && m.get("permitNoStr") instanceof String s) {
+            Matcher y = Pattern.compile("[（(](\\d{4})[）)]").matcher(s);
+            Matcher n = Pattern.compile("第(\\d+)号").matcher(s);
+            if (y.find() && n.find()) permitNoDigits = y.group(1) + n.group(1);
+        }
+        m.put("permitNo", permitNoDigits.isEmpty() ? null : permitNoDigits);
+        m.put("publicityDate", normalizeDateText(m.get("publicityDate")));
+        m.put("issueDate", normalizeDateText(m.get("issueDate")));
+        m.put("onlineSaleArea", toDecimal(m.get("onlineSaleArea")));
+    }
+
+    /** 中文/分隔符日期统一为 YYYY-MM-DD，识别不出来时原样返回交给前端兜底 */
+    private String normalizeDateText(Object v) {
+        if (v == null) return null;
+        String s = String.valueOf(v).trim();
+        Matcher m = Pattern.compile("(\\d{4})\\s*[年\\-/\\.]\\s*(\\d{1,2})\\s*[月\\-/\\.]\\s*(\\d{1,2})").matcher(s);
+        if (m.find()) {
+            return "%s-%02d-%02d".formatted(m.group(1), Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)));
+        }
+        Matcher m8 = Pattern.compile("(\\d{4})(\\d{2})(\\d{2})").matcher(s);
+        if (m8.find()) return "%s-%s-%s".formatted(m8.group(1), m8.group(2), m8.group(3));
+        return s;
     }
 
     // ============ 通用方法 ============
