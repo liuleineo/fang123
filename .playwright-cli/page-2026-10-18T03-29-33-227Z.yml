@@ -1,0 +1,112 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button "返回" [ref=e3]:
+      - img [ref=e4]
+    - generic [ref=e6]: 1/4
+  - generic:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - heading "王女士" [level=2] [ref=e14]
+              - generic [ref=e15]: 高意向
+            - paragraph [ref=e16]: "12366668888"
+            - paragraph [ref=e17]: 已 48 天未跟进
+        - generic [ref=e18]: 学区房需求
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "跟进记录" [level=3] [ref=e21]
+          - generic [ref=e22]: 共 4 条
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]: 电话
+              - generic [ref=e27]: 2026-08-30 21:59
+            - paragraph [ref=e28]: 看了沐青云
+          - generic [ref=e30]:
+            - generic [ref=e31]:
+              - generic [ref=e32]: 到访
+              - generic [ref=e33]: 2026-08-30 21:48
+            - paragraph [ref=e34]: 见面聊了需求
+          - generic [ref=e35]:
+            - generic [ref=e36]:
+              - generic [ref=e37]: 微信
+              - generic [ref=e38]: 2026-08-30 21:48
+            - paragraph [ref=e39]: 还要继续看房
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]: 电话
+              - generic [ref=e43]: 2026-08-30 21:47
+            - paragraph [ref=e44]: 近期看房
+      - paragraph [ref=e45]: 上下滑动切换客户
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - img [ref=e50]
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - heading "王先生" [level=2] [ref=e55]
+              - generic [ref=e56]: 低意向
+            - paragraph [ref=e57]: "18877778888"
+            - paragraph [ref=e58]: 已 47 天未跟进
+        - generic [ref=e59]: 还行吧
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - heading "跟进记录" [level=3] [ref=e62]
+          - generic [ref=e63]: 共 1 条
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - generic [ref=e67]: 电话
+            - generic [ref=e68]: 2026-08-31 14:17
+          - paragraph [ref=e69]: 拨打了客户电话
+      - paragraph [ref=e70]: 上下滑动切换客户
+    - generic [ref=e71]:
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - img [ref=e75]
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - heading "李女士" [level=2] [ref=e80]
+              - generic [ref=e81]: 中意向
+            - paragraph [ref=e82]: "12944445555"
+            - paragraph [ref=e83]: 已 47 天未跟进
+        - generic [ref=e84]: 城东1000万预算
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - heading "跟进记录" [level=3] [ref=e87]
+          - generic [ref=e88]: 加载中...
+        - img [ref=e91]
+      - paragraph [ref=e94]: 上下滑动切换客户
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - img [ref=e99]
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - heading "孙先生" [level=2] [ref=e102]
+              - generic [ref=e103]: 中意向
+            - paragraph [ref=e104]: "12155558888"
+            - paragraph [ref=e105]: 已 20 天未跟进
+        - generic [ref=e106]: 在看
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - heading "跟进记录" [level=3] [ref=e109]
+          - generic [ref=e110]: 加载中...
+        - img [ref=e113]
+      - paragraph [ref=e116]: 已经是最后一位客户
+  - generic [ref=e117]:
+    - button "电话客户" [ref=e118] [cursor=pointer]:
+      - img [ref=e119]
+      - generic [ref=e121]: 电话客户
+    - button "增加跟进" [ref=e122] [cursor=pointer]:
+      - img [ref=e123]
+      - generic [ref=e125]: 增加跟进
+  - generic [ref=e126]:
+    - generic [ref=e130] [cursor=pointer]:
+      - img [ref=e132]
+      - generic [ref=e136]: 图片无法显示
+    - generic [ref=e138] [cursor=pointer]:
+      - img [ref=e139]
+      - text: 预览

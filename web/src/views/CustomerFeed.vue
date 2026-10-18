@@ -17,7 +17,7 @@
       <t-loading size="large" text="正在加载客户..." />
     </div>
     <div v-else-if="!list.length" class="feed-center">
-      <UsersRound class="w-12 h-12 text-gray-200 mb-3" />
+      <UsersRound class="w-12 h-12 text-white/15 mb-3" />
       <p class="text-sm text-[var(--color-text-tertiary)]">还没有可跟进的客户</p>
       <t-button class="mt-4" theme="primary" @click="goBack">返回</t-button>
     </div>
@@ -28,7 +28,7 @@
         <!-- 客户资料 -->
         <div class="feed-card">
           <div class="flex items-start gap-3">
-            <div class="w-14 h-14 rounded-[6px] overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+            <div class="w-14 h-14 rounded-[6px] overflow-hidden flex-shrink-0 bg-[#1d2330] flex items-center justify-center">
               <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e => (e.target.style.display = 'none')" />
               <UserIcon v-else class="w-7 h-7 text-[var(--color-primary)]" />
             </div>
@@ -36,7 +36,7 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <h2 class="text-lg font-bold text-[var(--color-text-primary)] truncate">{{ c.name || '未命名客户' }}</h2>
                 <span v-if="c.intention" :class="['text-[11px] px-1.5 py-0.5 rounded font-medium', intentionClass(c.intention)]">{{ c.intention }}意向</span>
-                <span v-if="c.sharedTo" class="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-[var(--color-text-tertiary)]">共享</span>
+                <span v-if="c.sharedTo" class="text-[11px] px-1.5 py-0.5 rounded bg-white/10 text-[var(--color-text-tertiary)]">共享</span>
               </div>
               <p class="mt-1 text-base font-semibold tracking-wide text-[var(--color-text-primary)]">{{ c.phone || '未填写手机号' }}</p>
               <p class="mt-1 text-xs text-[var(--color-text-tertiary)]">
@@ -45,7 +45,7 @@
             </div>
           </div>
 
-          <div v-if="c.remark" class="mt-3 text-sm leading-6 text-[var(--color-text-secondary)] bg-[#F8FAFE] rounded-[4px] px-3 py-2 whitespace-pre-wrap max-h-[110px] overflow-y-auto overscroll-y-contain">
+          <div v-if="c.remark" class="mt-3 text-sm leading-6 text-[var(--color-text-secondary)] bg-white/[0.045] rounded-[4px] px-3 py-2 whitespace-pre-wrap max-h-[110px] overflow-y-auto overscroll-y-contain">
             {{ c.remark }}
           </div>
         </div>
@@ -64,17 +64,17 @@
             还没有跟进记录，点击下方「增加跟进」记录第一次沟通
           </p>
           <div v-else class="space-y-2">
-            <div v-for="f in followState(c.id).items.slice(0, 5)" :key="f.id" class="bg-[#F8FAFE] rounded-[4px] px-3 py-2">
+            <div v-for="f in followState(c.id).items.slice(0, 5)" :key="f.id" class="bg-white/[0.045] rounded-[4px] px-3 py-2">
               <div class="flex items-center gap-2 mb-1">
-                <span v-if="f.method" class="text-[11px] px-1.5 py-0.5 rounded bg-white text-[var(--color-primary)] border border-blue-100">{{ f.method }}</span>
+                <span v-if="f.method" class="text-[11px] px-1.5 py-0.5 rounded bg-white/10 text-[var(--color-primary)] border border-white/10">{{ f.method }}</span>
                 <span class="text-[11px] text-[var(--color-text-tertiary)] ml-auto">{{ fmtTime(f.followUpTime || f.createdAt) }}</span>
               </div>
               <p class="text-sm leading-5 text-[var(--color-text-secondary)] whitespace-pre-wrap line-clamp-3">{{ f.content }}</p>
-              <!-- 跟进图片：缩略图，点击全屏预览 -->
-              <div v-if="parsePhotos(f.photos).length" class="flex flex-wrap gap-1.5 mt-1.5">
-                <img v-for="(url, pi) in parsePhotos(f.photos)" :key="pi" :src="url" loading="lazy"
-                  class="w-14 h-14 object-cover rounded-[4px] border border-gray-100 cursor-pointer"
-                  @click.stop="previewImages(parsePhotos(f.photos), pi)" />
+              <!-- 跟进图片：固定尺寸缩略图（最多 6 张，避免刷屏），点击全屏预览 -->
+              <div v-if="parsePhotos(f.photos).length" class="follow-photos">
+                <img v-for="(url, pi) in parsePhotos(f.photos).slice(0, 6)" :key="pi" :src="url" alt=""
+                  class="follow-photo" @error="onPhotoError" @click.stop="previewImages(parsePhotos(f.photos), pi)" />
+                <span v-if="parsePhotos(f.photos).length > 6" class="follow-photo-more">+{{ parsePhotos(f.photos).length - 6 }}</span>
               </div>
             </div>
             <p v-if="followState(c.id).items.length > 5" class="text-[11px] text-[var(--color-text-tertiary)] text-center pt-1">
@@ -104,11 +104,10 @@
       </t-button>
     </div>
 
-    <!-- 跟进图片全屏预览 -->
-    <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
+    <!-- 占位说明：图片预览组件放在 .feed-page 之外（见模板末尾），避免参与 flex 布局 -->
 
     <!-- 增加跟进弹窗 -->
-    <t-dialog v-model:visible="followVisible" header="增加跟进" width="360px" :footer="false" :close-on-overlay-click="false">
+    <t-dialog v-model:visible="followVisible" class="feed-dark-dialog" header="增加跟进" width="360px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-3">
         <p class="text-sm text-[var(--color-text-secondary)]">
           客户：<span class="font-medium text-[var(--color-text-primary)]">{{ current?.name || '' }}</span>
@@ -116,7 +115,7 @@
         <div class="flex items-center gap-1.5 flex-wrap">
           <button v-for="m in followMethods" :key="m" type="button"
             :class="['px-3 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors',
-              followMethod === m ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-100 text-[var(--color-text-secondary)]']"
+              followMethod === m ? 'bg-[var(--color-primary)] text-white' : 'bg-white/10 text-[var(--color-text-secondary)]']"
             @click="followMethod = m">{{ m }}</button>
         </div>
         <t-textarea v-model="followContent" placeholder="记录本次沟通内容，如：客户想了解89㎡户型，预算300万左右" :autosize="{ minRows: 3, maxRows: 6 }" />
@@ -124,6 +123,10 @@
       </div>
     </t-dialog>
   </div>
+
+  <!-- 跟进图片预览：独立于 .feed-page 布局，避免组件容器挤压信息流高度 -->
+  <t-image-viewer v-if="viewerVisible" :visible="viewerVisible" :images="viewerImages"
+    :default-index="viewerIndex" @close="viewerVisible = false" @update:visible="v => (viewerVisible = v)" />
 </template>
 
 <script setup>
@@ -223,14 +226,15 @@ function idleText(c) {
 }
 function idleClass(c) {
   const d = idleDays(c)
-  if (d === null || d >= 7) return 'text-red-500 font-medium'
-  if (d >= 3) return 'text-orange-500'
+  if (d === null || d >= 7) return 'text-red-400 font-medium'
+  if (d >= 3) return 'text-orange-400'
   return 'text-[var(--color-text-tertiary)]'
 }
 function intentionClass(v) {
-  if (v === '高') return 'bg-red-50 text-red-500'
-  if (v === '中') return 'bg-orange-50 text-orange-500'
-  return 'bg-gray-100 text-[var(--color-text-tertiary)]'
+  // 深色主题下用带透明度的底色，避免浅色块刺眼
+  if (v === '高') return 'bg-red-500/15 text-red-400'
+  if (v === '中') return 'bg-orange-500/15 text-orange-400'
+  return 'bg-white/10 text-[var(--color-text-tertiary)]'
 }
 function fmtTime(t) {
   if (!t) return ''
@@ -245,6 +249,12 @@ function parsePhotos(photos) {
     const arr = typeof photos === 'string' ? JSON.parse(photos) : photos
     return Array.isArray(arr) ? arr.filter(Boolean) : []
   } catch { return [] }
+}
+
+/** 图片加载失败时替换为透明占位，避免出现裂图图标 */
+const TRANSPARENT_GIF = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+function onPhotoError(e) {
+  if (e?.target) e.target.src = TRANSPARENT_GIF
 }
 
 // ===== 图片全屏预览 =====
@@ -322,9 +332,15 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: #f8fafe;
+  background: #0d0f13;
   display: flex;
   flex-direction: column;
+  /* 深色主题：覆盖全局文字/主题色变量，模板里的 var(--color-*) 自动跟随 */
+  --color-text-primary: #f2f4f7;
+  --color-text-secondary: #a9b1bd;
+  --color-text-tertiary: #6f7886;
+  --color-primary: #4c8dff;
+  color: var(--color-text-primary);
 }
 .feed-top {
   position: absolute;
@@ -337,7 +353,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   z-index: 10;
-  background: linear-gradient(to bottom, rgba(248, 250, 254, 0.96), rgba(248, 250, 254, 0));
+  background: linear-gradient(to bottom, rgba(13, 15, 19, 0.96), rgba(13, 15, 19, 0));
 }
 .feed-icon-btn {
   width: 32px;
@@ -348,9 +364,8 @@ onUnmounted(() => {
   border: 0;
   outline: none;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--color-text-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8ebf0;
 }
 .feed-scroller {
   flex: 1;
@@ -375,15 +390,15 @@ onUnmounted(() => {
   gap: 10px;
 }
 .feed-card {
-  background: #fff;
-  border: 1px solid #f0f2f5;
+  background: #161a21;
+  border: 1px solid #232833;
   border-radius: 6px;
   padding: 14px;
   flex-shrink: 0;
 }
 .feed-follows {
-  background: #fff;
-  border: 1px solid #f0f2f5;
+  background: #161a21;
+  border: 1px solid #232833;
   border-radius: 6px;
   padding: 12px;
   flex: 1;
@@ -398,14 +413,83 @@ onUnmounted(() => {
   color: var(--color-text-tertiary);
   padding-bottom: 2px;
 }
+/* 跟进图片：显式尺寸，不依赖工具类，避免图片按原始大小撑爆一屏 */
+.follow-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.follow-photo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #2a303a;
+  background: #1b2029;
+  cursor: pointer;
+}
+.follow-photo-more {
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 加载态文字在深色下可读 */
+.feed-page :deep(.t-loading__text) {
+  color: #a9b1bd;
+}
+
+/* 增加跟进弹窗（Teleport 到 body：class 落在外层容器，需用后代选择器命中 .t-dialog） */
+:global(.feed-dark-dialog .t-dialog) {
+  background: #161a21;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --td-bg-color-container: #161a21;
+}
+:global(.feed-dark-dialog .t-dialog__header),
+:global(.feed-dark-dialog .t-dialog__header-content) {
+  color: #f2f4f7;
+}
+:global(.feed-dark-dialog .t-dialog__body) {
+  color: #a9b1bd;
+}
+:global(.feed-dark-dialog .t-dialog__close) {
+  color: #a9b1bd;
+}
+:global(.feed-dark-dialog .t-textarea__inner) {
+  background: #1b2029;
+  border-color: #2a303a;
+  color: #f2f4f7;
+}
+:global(.feed-dark-dialog .t-textarea__inner::placeholder) {
+  color: #6f7886;
+}
 .feed-footer {
   flex-shrink: 0;
   display: flex;
   gap: 10px;
   padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid #f0f2f5;
+  background: rgba(13, 15, 19, 0.94);
+  border-top: 1px solid #232833;
   backdrop-filter: blur(8px);
+}
+/* 深色下描边按钮默认是白底黑字，改成透明底浅色描边 */
+.feed-footer :deep(.t-button--variant-outline) {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #e8ebf0;
+}
+.feed-footer :deep(.t-button--variant-outline:hover) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
 }
 .feed-center {
   flex: 1;
