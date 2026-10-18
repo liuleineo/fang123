@@ -15,8 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +52,25 @@ public class CustomerController {
         fillSharedTo(result.getRecords());
         fillLastFollowUp(result.getRecords());
         return Result.success(result);
+    }
+
+    /** 每日跟进目标（打开客户页时用于提示进度） */
+    private static final int DAILY_FOLLOW_TARGET = 10;
+
+    /**
+     * 今日跟进进度：今日被跟进过的客户数（同一客户多次跟进只算 1 个）。
+     * 注意路径必须放在 /{id} 之前声明？不必须：Spring 的路径匹配会优先命中字面量段，
+     * 但保持在上方更直观。
+     */
+    @GetMapping("/api/admin/customers/today-follow-stats")
+    public Result<Map<String, Object>> todayFollowStats() {
+        LocalDate today = LocalDate.now();
+        long count = followUpService.countDistinctCustomersBetween(
+                today.atStartOfDay(), today.plusDays(1).atStartOfDay());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("count", count);
+        data.put("target", DAILY_FOLLOW_TARGET);
+        return Result.success(data);
     }
 
     @GetMapping("/api/admin/customers/{id}")
