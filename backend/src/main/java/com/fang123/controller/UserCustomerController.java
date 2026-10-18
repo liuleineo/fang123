@@ -103,8 +103,11 @@ public class UserCustomerController {
         return Result.success(result);
     }
 
+    /** 每日跟进目标（客户页每次进入时弹窗提示进度） */
+    private static final int DAILY_FOLLOW_TARGET = 10;
+
     /**
-     * 今日跟进统计（客户列表头部展示"今日跟进N个"）
+     * 今日跟进统计（客户页顶部展示"今日跟进N个"，进入页面时弹窗提示目标进度）
      * 口径：我今天发起过跟进的客户数（去重）、跟进次数；仅统计我可访问的客户（本人 + 被分享给我的）
      */
     @GetMapping("/follow-stats")
@@ -124,6 +127,7 @@ public class UserCustomerController {
         accessibleIds.addAll(sharedIds);
 
         Map<String, Object> stat = new LinkedHashMap<>();
+        stat.put("target", DAILY_FOLLOW_TARGET);
         if (accessibleIds.isEmpty()) {
             stat.put("todayCustomerCount", 0);
             stat.put("todayFollowCount", 0);

@@ -318,6 +318,24 @@
         </div>
       </div>
     </t-dialog>
+
+    <!-- 今日跟进进度提示（每次进入页面弹出） -->
+    <t-dialog v-model:visible="followTipVisible" header="今日跟进进度" width="340px" :footer="false" :close-on-overlay-click="false">
+      <div class="text-center py-1">
+        <div class="flex items-end justify-center gap-1">
+          <span class="text-4xl font-bold leading-none" :class="followDone ? 'text-green-600' : 'text-[var(--color-primary)]'">{{ todayFollowCount }}</span>
+          <span class="text-base text-[var(--color-text-tertiary)] mb-0.5">/ {{ followTarget }} 个</span>
+        </div>
+        <p class="mt-3 text-sm text-[var(--color-text-secondary)]">
+          今日已跟进客户 <span class="font-semibold text-[var(--color-text-primary)]">{{ todayFollowCount }}</span> 个，目标 {{ followTarget }} 个
+        </p>
+        <t-progress class="mt-3" theme="plump" :percentage="followPercent" :status="followDone ? 'success' : 'active'" />
+        <p class="mt-2 text-xs" :class="followDone ? 'text-green-600' : 'text-[var(--color-text-tertiary)]'">
+          {{ followDone ? '今日目标已达成，继续保持' : `还差 ${followTarget - todayFollowCount} 个客户完成今日目标` }}
+        </p>
+        <t-button class="mt-4" block theme="primary" @click="followTipVisible = false">关闭提示</t-button>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
@@ -337,14 +355,26 @@ const loading = ref(false)
 const total = ref(0)
 const pg = reactive({ current: 1, pageSize: 20 })
 
-// ===== 今日跟进统计（标题后展示"（今日跟进N个）"） =====
+// ===== 今日跟进统计（标题后展示"（今日跟进N个）" + 进入页面弹窗提示） =====
 const todayFollowCount = ref(0)
-/** 拉取今日已跟进的客户数（去重）；失败时静默，不影响列表展示 */
-async function fetchFollowStats() {
+const followTarget = ref(10)
+const followTipVisible = ref(false)
+const followDone = computed(() => todayFollowCount.value >= followTarget.value)
+const followPercent = computed(() => {
+  if (!followTarget.value) return 0
+  return Math.min(100, Math.round((todayFollowCount.value / followTarget.value) * 100))
+})
+/**
+ * 拉取今日已跟进的客户数（去重）；失败时静默，不影响列表展示。
+ * @param {boolean} showTip 是否弹出进度提示（仅进入页面时弹，新增跟进后刷新不弹）
+ */
+async function fetchFollowStats(showTip = false) {
   try {
     const r = await request.get('/user/customers/follow-stats')
     todayFollowCount.value = Number(r?.todayCustomerCount || 0)
+    if (r?.target) followTarget.value = Number(r.target)
   } catch { /* 统计失败不打断主流程 */ }
+  if (showTip) followTipVisible.value = true
 }
 
 // ===== 搜索筛选（列表上方单行筛选栏） =====
@@ -781,7 +811,7 @@ function restoreFavicon() {
 
 onMounted(() => {
   fetchData()
-  fetchFollowStats()
+  fetchFollowStats(true)
   window.addEventListener('resize', onResize)
   setCustomerFavicon()
 })

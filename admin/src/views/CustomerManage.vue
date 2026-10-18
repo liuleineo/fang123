@@ -86,33 +86,13 @@
       </div>
     </t-dialog>
 
-    <!-- 今日跟进进度提示（每次进入页面弹出） -->
-    <t-dialog v-model:visible="todayStatVisible" header="今日跟进进度" width="420px" :footer="false" :close-on-overlay-click="false">
-      <div class="text-center py-2">
-        <div class="flex items-end justify-center gap-1">
-          <span class="text-5xl font-bold" :class="todayStat.count >= todayStat.target ? 'text-green-600' : 'text-[var(--color-primary)]'">{{ todayStat.count }}</span>
-          <span class="text-lg text-[var(--color-text-tertiary)] mb-1">/ {{ todayStat.target }} 个</span>
-        </div>
-        <p class="mt-3 text-sm text-[var(--color-text-secondary)]">
-          今日已跟进客户 <span class="font-semibold text-[var(--color-text-primary)]">{{ todayStat.count }}</span> 个，目标 {{ todayStat.target }} 个
-        </p>
-        <t-progress class="mt-4" theme="plump" :percentage="followPercent" :status="todayStat.count >= todayStat.target ? 'success' : 'active'" />
-        <p class="mt-2 text-sm" :class="todayStat.count >= todayStat.target ? 'text-green-600' : 'text-[var(--color-text-tertiary)]'">
-          {{ todayStat.count >= todayStat.target ? '今日目标已达成，继续保持' : `还差 ${todayStat.target - todayStat.count} 个客户完成今日目标` }}
-        </p>
-      </div>
-      <div class="mt-4 flex justify-center">
-        <t-button theme="primary" @click="todayStatVisible = false">关闭提示</t-button>
-      </div>
-    </t-dialog>
-
     <!-- 图片全屏预览 -->
     <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { Plus, Search, User as UserIcon } from 'lucide-vue-next'
 import request from '@/utils/request'
@@ -205,24 +185,5 @@ function fmtTime(t) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-// ===== 今日跟进进度弹窗（每次进入页面都提示）=====
-const todayStatVisible = ref(false)
-const todayStat = reactive({ count: 0, target: 10 })
-const followPercent = computed(() => {
-  if (!todayStat.target) return 0
-  return Math.min(100, Math.round((todayStat.count / todayStat.target) * 100))
-})
-async function fetchTodayFollowStat() {
-  try {
-    const r = await request.get('/admin/customers/today-follow-stats')
-    todayStat.count = Number(r?.count || 0)
-    todayStat.target = Number(r?.target || 10)
-  } catch {
-    todayStat.count = 0
-  } finally {
-    todayStatVisible.value = true
-  }
-}
-
-onMounted(() => { fetchData(); fetchUserOpts(); fetchTodayFollowStat() })
+onMounted(() => { fetchData(); fetchUserOpts() })
 </script>
