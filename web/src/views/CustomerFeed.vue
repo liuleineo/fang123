@@ -70,6 +70,12 @@
                 <span class="text-[11px] text-[var(--color-text-tertiary)] ml-auto">{{ fmtTime(f.followUpTime || f.createdAt) }}</span>
               </div>
               <p class="text-sm leading-5 text-[var(--color-text-secondary)] whitespace-pre-wrap line-clamp-3">{{ f.content }}</p>
+              <!-- 跟进图片：缩略图，点击全屏预览 -->
+              <div v-if="parsePhotos(f.photos).length" class="flex flex-wrap gap-1.5 mt-1.5">
+                <img v-for="(url, pi) in parsePhotos(f.photos)" :key="pi" :src="url" loading="lazy"
+                  class="w-14 h-14 object-cover rounded-[4px] border border-gray-100 cursor-pointer"
+                  @click.stop="previewImages(parsePhotos(f.photos), pi)" />
+              </div>
             </div>
             <p v-if="followState(c.id).items.length > 5" class="text-[11px] text-[var(--color-text-tertiary)] text-center pt-1">
               仅显示最近 5 条，共 {{ followState(c.id).items.length }} 条
@@ -97,6 +103,9 @@
         <template #icon><MessageSquarePlus class="w-4 h-4" /></template>增加跟进
       </t-button>
     </div>
+
+    <!-- 跟进图片全屏预览 -->
+    <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" :default-index="viewerIndex" />
 
     <!-- 增加跟进弹窗 -->
     <t-dialog v-model:visible="followVisible" header="增加跟进" width="360px" :footer="false" :close-on-overlay-click="false">
@@ -227,6 +236,25 @@ function fmtTime(t) {
   if (!t) return ''
   const d = new Date(t)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** 跟进图片字段存的是 JSON 数组字符串，兼容已是数组的情况 */
+function parsePhotos(photos) {
+  if (!photos) return []
+  try {
+    const arr = typeof photos === 'string' ? JSON.parse(photos) : photos
+    return Array.isArray(arr) ? arr.filter(Boolean) : []
+  } catch { return [] }
+}
+
+// ===== 图片全屏预览 =====
+const viewerVisible = ref(false)
+const viewerImages = ref([])
+const viewerIndex = ref(0)
+function previewImages(images, index) {
+  viewerImages.value = images || []
+  viewerIndex.value = index || 0
+  viewerVisible.value = true
 }
 
 // ===== 电话客户 =====
