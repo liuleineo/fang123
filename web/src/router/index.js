@@ -123,6 +123,13 @@ const routes = [
     ]
   },
   {
+    // 客户跟进信息流：全屏独立页面（不使用 WebLayout，避免顶部导航占位）
+    path: '/customer-feed',
+    name: 'CustomerFeed',
+    component: () => import('@/views/CustomerFeed.vue'),
+    meta: { title: '客户跟进', requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),

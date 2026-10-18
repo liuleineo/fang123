@@ -333,7 +333,10 @@
         <p class="mt-2 text-xs" :class="followDone ? 'text-green-600' : 'text-[var(--color-text-tertiary)]'">
           {{ followDone ? '今日目标已达成，继续保持' : `还差 ${followTarget - todayFollowCount} 个客户完成今日目标` }}
         </p>
-        <t-button class="mt-4" block theme="primary" @click="followTipVisible = false">关闭提示</t-button>
+        <div class="mt-4 flex gap-2">
+          <t-button class="flex-1" variant="outline" @click="followTipVisible = false">关闭提示</t-button>
+          <t-button class="flex-1" theme="primary" @click="goCustomerFeed">跟进客户</t-button>
+        </div>
       </div>
     </t-dialog>
   </div>
@@ -375,6 +378,12 @@ async function fetchFollowStats(showTip = false) {
     if (r?.target) followTarget.value = Number(r.target)
   } catch { /* 统计失败不打断主流程 */ }
   if (showTip) followTipVisible.value = true
+}
+
+/** 进入客户跟进信息流（全屏上下滑动逐个过客户） */
+function goCustomerFeed() {
+  followTipVisible.value = false
+  router.push('/customer-feed')
 }
 
 // ===== 搜索筛选（列表上方单行筛选栏） =====
