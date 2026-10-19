@@ -112,6 +112,17 @@
         <p class="text-sm text-[var(--color-text-secondary)]">
           客户：<span class="font-medium text-[var(--color-text-primary)]">{{ current?.name || '' }}</span>
         </p>
+        <!-- 客户意向：可在记录跟进时顺便调整，选中的再点一次取消 -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-[var(--color-text-secondary)] shrink-0">意向</span>
+          <div class="flex items-center gap-1.5">
+            <button v-for="lv in intentionLevels" :key="lv" type="button"
+              :class="['px-3 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors',
+                followIntention === lv ? intentionActiveClass(lv) : 'bg-white/10 text-[var(--color-text-secondary)]']"
+              @click="toggleIntention(lv)">{{ lv }}</button>
+          </div>
+          <span class="text-[11px] text-[var(--color-text-tertiary)] ml-auto">再点可取消</span>
+        </div>
         <div class="flex items-center gap-1.5 flex-wrap">
           <button v-for="m in followMethods" :key="m" type="button"
             :class="['px-3 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors',
@@ -140,30 +151,79 @@ const router = useRouter()
 
 const list = ref([])
 const total = ref(0)
-const page = ref(1)
-const pageSize = 20
 const loading = ref(false)
 const currentIndex = ref(0)
 const scrollerRef = ref(null)
-const hasMore = computed(() => list.value.length < total.value)
+/** 一次拉全量后本地排序，不存在"还有更多" */
+const hasMore = ref(false)
 const current = computed(() => list.value[currentIndex.value] || null)
 
-/** 客户列表：按"最久未跟进"排序，方便信息流逐个过客户 */
-async function fetchList(reset = false) {
-  if (loading.value) return
-  if (reset) { page.value = 1; list.value = []; total.value = 0 }
-  loading.value = true
-  try {
+/** 每次请求的页大小 */
+const FETCH_SIZE = 500
+/** 意向权重：高的排前面，无意向的排最后 */
+function intentionWeight(c) {
+  if (c?.intention === '高') return 3
+  if (c?.intention === '中') return 2
+  if (c?.intention === '低') return 1
+  return 0
+}
+
+/** Fisher-Yates 洗牌（原地） */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+/**
+ * 客户信息流的展示顺序：意向高的优先，同一意向内部随机打乱。
+ * 每次打开页面都会重新洗牌，避免总是同样的顺序、只跟进到前面几个人。
+ */
+function shuffleByIntention(customers) {
+  const groups = new Map()
+  customers.forEach(c => {
+    const w = intentionWeight(c)
+    if (!groups.has(w)) groups.set(w, [])
+    groups.get(w).push(c)
+  })
+  const result = []
+  ;[...groups.keys()].sort((a, b) => b - a).forEach(w => {
+    result.push(...shuffle(groups.get(w)))
+  })
+  return result
+}
+
+/** 拉全量客户（客户量在几百级别，一次拉完才能做全局随机排序） */
+async function fetchAllCustomers() {
+  const all = []
+  let page = 1
+  let totalCount = 0
+  while (page <= 10) {
     const r = await request.get('/user/customers', {
-      params: { page: page.value, size: pageSize, sortField: 'lastFollowUpTime', sortOrder: 'asc' }
+      params: { page, size: FETCH_SIZE, sortField: 'lastFollowUpTime', sortOrder: 'asc' }
     })
     const records = r?.records || []
-    list.value = reset ? records : [...list.value, ...records]
-    total.value = Number(r?.total || 0)
-    page.value += 1
+    totalCount = Number(r?.total || 0)
+    all.push(...records)
+    if (!records.length || all.length >= totalCount) break
+    page += 1
+  }
+  return all
+}
+
+async function fetchList() {
+  if (loading.value) return
+  loading.value = true
+  try {
+    const all = await fetchAllCustomers()
+    list.value = shuffleByIntention(all)
+    total.value = list.value.length
+    currentIndex.value = 0
     await nextTick()
-    if (reset) scrollerRef.value?.scrollTo({ top: 0 })
-    ensureFollows(currentIndex.value)
+    scrollerRef.value?.scrollTo({ top: 0 })
+    ensureFollows(0)
   } catch (e) {
     MessagePlugin.error(e?.message || '客户加载失败')
   } finally {
@@ -282,10 +342,24 @@ const followContent = ref('')
 const followMethod = ref('电话')
 const followSaving = ref(false)
 
+// ===== 客户意向（可在记录跟进时顺手调整）=====
+const intentionLevels = ['高', '中', '低']
+const followIntention = ref('')
+function toggleIntention(level) {
+  // 选中同一个再点一次 = 取消意向
+  followIntention.value = followIntention.value === level ? '' : level
+}
+function intentionActiveClass(level) {
+  if (level === '高') return 'bg-red-500/85 text-white'
+  if (level === '中') return 'bg-orange-500/85 text-white'
+  return 'bg-slate-500/80 text-white'
+}
+
 function openFollow() {
   if (!current.value) return
   followContent.value = ''
   followMethod.value = '电话'
+  followIntention.value = current.value?.intention || ''
   followVisible.value = true
 }
 
@@ -293,19 +367,32 @@ async function submitFollow() {
   const content = followContent.value.trim()
   if (!content) { MessagePlugin.warning('请填写跟进内容'); return }
   followSaving.value = true
+  const c = current.value
   try {
-    const created = await request.post(`/user/customers/${current.value.id}/follow-ups`, {
+    const created = await request.post(`/user/customers/${c.id}/follow-ups`, {
       content,
       method: followMethod.value
     })
     // 同步当前客户卡片上的"最后跟进"，并刷新该客户记录
-    const c = current.value
     c.lastFollowUpTime = created?.followUpTime || created?.createdAt || new Date().toISOString()
     followCache[c.id] = { items: [], loaded: false, loading: false }
     await loadFollows(c)
     followVisible.value = false
     followContent.value = ''
-    MessagePlugin.success('已添加跟进')
+
+    // 意向有变化时一并更新客户（归属人才能改，被共享的客户更新会失败，不影响跟进已保存）
+    const newIntention = followIntention.value || ''
+    if (newIntention !== (c.intention || '')) {
+      try {
+        await request.put(`/user/customers/${c.id}`, { intention: newIntention })
+        c.intention = newIntention
+        MessagePlugin.success(newIntention ? `已添加跟进，意向更新为「${newIntention}」` : '已添加跟进，已清除意向')
+      } catch {
+        MessagePlugin.warning('跟进已保存，但意向修改失败（仅客户归属人可修改意向）')
+      }
+    } else {
+      MessagePlugin.success('已添加跟进')
+    }
   } catch (e) {
     MessagePlugin.error(e?.message || '添加失败')
   } finally {
@@ -319,7 +406,7 @@ function goBack() {
 }
 
 onMounted(() => {
-  fetchList(true)
+  fetchList()
 })
 onUnmounted(() => {
   // 释放缓存引用，避免长时间浏览后堆积
