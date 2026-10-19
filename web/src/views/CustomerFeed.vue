@@ -28,9 +28,13 @@
         <!-- 客户资料 -->
         <div class="feed-card">
           <div class="flex items-start gap-3">
-            <div class="w-14 h-14 rounded-[6px] overflow-hidden flex-shrink-0 bg-[#1d2330] flex items-center justify-center">
-              <img v-if="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e => (e.target.style.display = 'none')" />
+            <div class="relative w-14 h-14 rounded-[6px] overflow-hidden flex-shrink-0 bg-[#1d2330] flex items-center justify-center cursor-pointer"
+              title="点击修改客户资料" @click.stop="openEdit(c)">
+              <img v-if="c.photo" :key="c.photo" :src="c.photo" class="w-full h-full object-cover" @error="e => (e.target.style.display = 'none')" />
               <UserIcon v-else class="w-7 h-7 text-[var(--color-primary)]" />
+              <span class="absolute bottom-0 right-0 w-4 h-4 bg-black/60 flex items-center justify-center rounded-tl-[4px]">
+                <Pencil class="w-2.5 h-2.5 text-white/85" />
+              </span>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
@@ -133,6 +137,61 @@
         <t-button block theme="primary" :loading="followSaving" @click="submitFollow">保存跟进</t-button>
       </div>
     </t-dialog>
+
+    <!-- 修改客户资料（点击头像打开） -->
+    <t-dialog v-model:visible="editVisible" class="feed-dark-dialog" header="修改客户资料" width="360px" :footer="false" :close-on-overlay-click="false">
+      <div class="space-y-3">
+        <!-- 头像：点击预览图选图，或在任意位置 Ctrl+V 粘贴图片 -->
+        <div class="flex items-center gap-3">
+          <div class="relative w-16 h-16 rounded-[6px] overflow-hidden shrink-0 bg-[#1d2330] border border-[#2a303a] flex items-center justify-center cursor-pointer"
+            title="点击更换头像" @click="pickAvatar">
+            <img v-if="editForm.photo" :key="editForm.photo" :src="editForm.photo" class="w-full h-full object-cover"
+              @error="e => (e.target.style.display = 'none')" />
+            <UserIcon v-else class="w-7 h-7 text-[var(--color-primary)]" />
+            <span v-if="avatarUploading" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <t-loading size="small" />
+            </span>
+            <span v-else class="absolute bottom-0 right-0 w-4 h-4 bg-black/60 flex items-center justify-center rounded-tl-[4px]">
+              <Camera class="w-2.5 h-2.5 text-white/85" />
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="avatar-paste-zone" :class="{ 'is-busy': avatarUploading }" @click="pickAvatar">
+              <ImageIcon class="w-4 h-4 shrink-0" />
+              <span class="text-xs">点击上传，或 Ctrl+V 粘贴</span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <p class="text-[11px] text-[var(--color-text-tertiary)]">支持 JPG/PNG/GIF/WebP，5MB 内</p>
+              <button v-if="editForm.photo" type="button" class="avatar-clear" @click.stop="clearAvatar">清除</button>
+            </div>
+          </div>
+          <input ref="avatarInputRef" type="file" accept="image/*" class="hidden" @change="onAvatarPick" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-[var(--color-text-secondary)] w-14 shrink-0">姓名</span>
+          <t-input v-model="editForm.name" placeholder="客户姓名" :maxlength="100" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-[var(--color-text-secondary)] w-14 shrink-0">手机号</span>
+          <t-input v-model="editForm.phone" placeholder="手机号" :maxlength="20" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-[var(--color-text-secondary)] w-14 shrink-0">意向</span>
+          <div class="flex items-center gap-1.5">
+            <button v-for="lv in intentionLevels" :key="lv" type="button"
+              :class="['px-3 py-1 rounded-full text-xs font-medium border-0 outline-none transition-colors',
+                editForm.intention === lv ? intentionActiveClass(lv) : 'bg-white/10 text-[var(--color-text-secondary)]']"
+              @click="toggleEditIntention(lv)">{{ lv }}</button>
+          </div>
+          <span class="text-[11px] text-[var(--color-text-tertiary)] ml-auto">再点可取消</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-sm text-[var(--color-text-secondary)] w-14 shrink-0 pt-2">需求备注</span>
+          <t-textarea v-model="editForm.remark" placeholder="客户需求、预算、意向区域等" :autosize="{ minRows: 3, maxRows: 6 }" />
+        </div>
+        <t-button block theme="primary" :loading="editSaving" @click="saveCustomerInfo">保存</t-button>
+      </div>
+    </t-dialog>
   </div>
 
   <!-- 跟进图片预览：独立于 .feed-page 布局，避免组件容器挤压信息流高度 -->
@@ -144,7 +203,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { ChevronLeft, Phone, MessageSquarePlus, UsersRound, User as UserIcon } from 'lucide-vue-next'
+import { ChevronLeft, Phone, MessageSquarePlus, UsersRound, User as UserIcon, Pencil, Camera, Image as ImageIcon } from 'lucide-vue-next'
 import request from '@/utils/request'
 
 const router = useRouter()
@@ -400,6 +459,109 @@ async function submitFollow() {
   }
 }
 
+// ===== 修改客户资料（点击头像）=====
+const editVisible = ref(false)
+const editSaving = ref(false)
+const editTarget = ref(null)
+const editForm = reactive({ name: '', phone: '', intention: '', remark: '', photo: '' })
+
+function openEdit(c) {
+  if (!c) return
+  editTarget.value = c
+  Object.assign(editForm, {
+    name: c.name || '',
+    phone: c.phone || '',
+    intention: c.intention || '',
+    remark: c.remark || '',
+    photo: c.photo || ''
+  })
+  editVisible.value = true
+}
+
+// ===== 修改头像（点击上传 + Ctrl+V 粘贴上传）=====
+const AVATAR_MAX_SIZE = 5 * 1024 * 1024
+const avatarInputRef = ref(null)
+const avatarUploading = ref(false)
+
+function pickAvatar() {
+  if (avatarUploading.value) return
+  avatarInputRef.value?.click()
+}
+
+function onAvatarPick(e) {
+  const file = e.target?.files?.[0]
+  // 清空 input，保证再次选择同一张图片也能触发 change
+  if (e.target) e.target.value = ''
+  if (file) uploadAvatarFile(file)
+}
+
+/** 文档级粘贴监听：仅在资料弹窗打开时接管剪贴板里的图片，文本粘贴不受影响 */
+function onDocumentPaste(e) {
+  if (!editVisible.value || avatarUploading.value) return
+  const items = Array.from(e.clipboardData?.items || [])
+  const item = items.find(it => it.kind === 'file' && String(it.type).startsWith('image/'))
+  if (!item) return
+  const file = item.getAsFile()
+  if (!file) return
+  e.preventDefault()
+  uploadAvatarFile(file)
+}
+
+async function uploadAvatarFile(file) {
+  if (!file.type?.startsWith('image/')) { MessagePlugin.warning('请选择图片文件'); return }
+  if (file.size > AVATAR_MAX_SIZE) { MessagePlugin.warning('图片大小不能超过 5MB'); return }
+  avatarUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const url = await request.post('/user/upload/avatar', fd)
+    if (!url) throw new Error('上传失败')
+    editForm.photo = url
+    MessagePlugin.success('头像已更新，点击保存生效')
+  } catch (err) {
+    MessagePlugin.error(err?.response?.data?.msg || err?.message || '头像上传失败')
+  } finally {
+    avatarUploading.value = false
+  }
+}
+
+function clearAvatar() {
+  if (avatarUploading.value) return
+  editForm.photo = ''
+}
+
+function toggleEditIntention(level) {
+  editForm.intention = editForm.intention === level ? '' : level
+}
+
+async function saveCustomerInfo() {
+  const name = editForm.name.trim()
+  if (!name) { MessagePlugin.warning('请填写客户姓名'); return }
+  const c = editTarget.value
+  if (!c) return
+  editSaving.value = true
+  try {
+    const payload = {
+      name,
+      phone: editForm.phone.trim(),
+      intention: editForm.intention || '',
+      remark: editForm.remark || '',
+      photo: editForm.photo || ''
+    }
+    await request.put(`/user/customers/${c.id}`, payload)
+    // 只回填本次编辑的字段：接口返回的是裸客户对象，没有 lastFollowUpTime 等列表补充字段，
+    // 整体覆盖会把"未跟进天数"弄丢
+    Object.assign(c, payload)
+    editVisible.value = false
+    MessagePlugin.success('客户资料已更新')
+  } catch (e) {
+    const msg = e?.response?.data?.msg || e?.message || ''
+    MessagePlugin.error(/不存在/.test(msg) ? '仅客户归属人可以修改资料' : (msg || '保存失败'))
+  } finally {
+    editSaving.value = false
+  }
+}
+
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.push('/customers')
@@ -407,8 +569,10 @@ function goBack() {
 
 onMounted(() => {
   fetchList()
+  document.addEventListener('paste', onDocumentPaste)
 })
 onUnmounted(() => {
+  document.removeEventListener('paste', onDocumentPaste)
   // 释放缓存引用，避免长时间浏览后堆积
   Object.keys(followCache).forEach(k => delete followCache[k])
 })
@@ -558,6 +722,20 @@ onUnmounted(() => {
 :global(.feed-dark-dialog .t-textarea__inner::placeholder) {
   color: #6f7886;
 }
+:global(.feed-dark-dialog .t-input) {
+  background: #1b2029;
+  border-color: #2a303a;
+}
+:global(.feed-dark-dialog .t-input .t-input__inner) {
+  color: #f2f4f7;
+}
+:global(.feed-dark-dialog .t-input .t-input__inner::placeholder) {
+  color: #6f7886;
+}
+:global(.feed-dark-dialog .t-input.t-is-focused) {
+  border-color: #4c8dff;
+  box-shadow: none;
+}
 .feed-footer {
   flex-shrink: 0;
   display: flex;
@@ -584,5 +762,39 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+/* 头像上传区：虚线框提示位，点击选图 + Ctrl+V 粘贴 */
+.avatar-paste-zone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px dashed #3a4150;
+  border-radius: 6px;
+  color: var(--color-text-tertiary);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.avatar-paste-zone:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.avatar-paste-zone.is-busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.avatar-clear {
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: 0;
+  font-size: 11px;
+  color: #f87171;
+  cursor: pointer;
+}
+.avatar-clear:hover {
+  text-decoration: underline;
 }
 </style>

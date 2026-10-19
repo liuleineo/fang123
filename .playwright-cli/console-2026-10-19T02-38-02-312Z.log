@@ -1,0 +1,84 @@
+[  597304ms] [WARNING] [Vue warn]: Failed to resolve component: Camera
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597306ms] [WARNING] [Vue warn]: Failed to resolve component: ImageIcon
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597311ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597311ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597415ms] [WARNING] [Vue warn]: Failed to resolve component: Camera
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597415ms] [WARNING] [Vue warn]: Failed to resolve component: ImageIcon
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597417ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  597417ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  599758ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< null > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< null > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  599758ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< null > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< null > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  599762ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[  599762ms] [WARNING] [Vue warn]: Property "avatarUploading" was accessed during render but is not defined on instance. 
+  at <TDialogCard ref=Ref< Proxy(Object) > theme="default" width="360px"  ... > 
+  at <BaseTransition onBeforeEnter=fn<onBeforeEnter> onAfterEnter=fn<afterEnter2> onBeforeLeave=fn<beforeLeave2>  ... > 
+  at <Transition duration=300 name="t-dialog-zoom__vue" onBeforeEnter=fn<beforeEnter2>  ... > 
+  at <TDialog visible=false onUpdate:visible=fn class="feed-dark-dialog"  ... > 
+  at <CustomerFeed onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
