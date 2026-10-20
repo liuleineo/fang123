@@ -1,0 +1,2 @@
+[     254ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[   10596ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:4173/favicon.ico:0

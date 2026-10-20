@@ -34,3 +34,12 @@ app.use(TDesign)
 setupVisitTracking(router)
 
 app.mount('#app')
+
+// PWA：注册 Service Worker（仅生产构建，避免开发时缓存干扰 HMR）
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((err) => {
+      console.warn('[PWA] Service Worker 注册失败：', err)
+    })
+  })
+}

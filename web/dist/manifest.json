@@ -1,0 +1,52 @@
+{
+  "id": "/",
+  "name": "杭房一二三 - 找到你的理想家园",
+  "short_name": "杭房一二三",
+  "description": "杭房一二三房产平台：找新房、看二手房、地图找房、客户跟进。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "/customers",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0052D9",
+  "categories": ["business", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "客户信息流",
+      "short_name": "客户跟进",
+      "description": "上下滑动逐个跟进客户",
+      "url": "/customer-feed",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "我的客户",
+      "short_name": "客户",
+      "description": "客户列表与跟进记录",
+      "url": "/customers",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

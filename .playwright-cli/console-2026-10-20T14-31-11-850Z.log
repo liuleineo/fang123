@@ -1,0 +1,8 @@
+[     248ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[    3488ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[    7561ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[   15449ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[   16310ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://webapi.amap.com/maps?v=2.0&key=ec9016bfbd481d766643253c1bbe5bc3&plugin=AMap.Marker:0
+[   16458ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
+[   20532ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://webapi.amap.com/maps?v=2.0&key=ec9016bfbd481d766643253c1bbe5bc3&plugin=AMap.Marker:0
+[   20672ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/login:0
