@@ -7,7 +7,7 @@
  * 3. 绝不缓存接口数据，避免出现「客户资料改了但页面还是旧的」。
  */
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `fang123-static-${CACHE_VERSION}`
 const PAGE_CACHE = `fang123-page-${CACHE_VERSION}`
 const INDEX_KEY = '/index.html'
