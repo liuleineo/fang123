@@ -142,6 +142,12 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- 生成海报：把当前楼栋的一房一价表导出为图片 -->
+            <button type="button" class="poster-fab" @click="openPoster">
+              <ImageIcon class="w-4 h-4" />
+              生成海报
+            </button>
           </div>
         </template>
 
@@ -308,6 +314,22 @@
       </div>
     </t-dialog>
 
+    <!-- 一房一价海报预览 -->
+    <t-dialog v-model:visible="posterVisible" header="一房一价海报" width="420px" :footer="false" :close-on-overlay-click="false">
+      <div v-if="posterGenerating" class="flex flex-col items-center justify-center gap-3 py-12">
+        <t-loading />
+        <p class="text-sm text-[var(--color-text-tertiary)]">正在生成海报…</p>
+      </div>
+      <div v-else-if="posterUrl" class="space-y-3">
+        <img :src="posterUrl" class="poster-preview" alt="一房一价海报" />
+        <p class="text-xs text-[var(--color-text-tertiary)]">手机端可长按图片保存到相册，或点击下方「保存图片」下载</p>
+        <div class="flex gap-2">
+          <t-button class="flex-1" variant="outline" @click="posterVisible = false">关闭</t-button>
+          <t-button class="flex-1" theme="primary" @click="downloadPoster">保存图片</t-button>
+        </div>
+      </div>
+    </t-dialog>
+
     <!-- 图片全屏预览 -->
     <t-image-viewer v-model:visible="viewerVisible" :images="viewerImages" v-model:index="viewerIndex" />
 
@@ -321,7 +343,7 @@
 <script setup>
 import { ref, computed, watch, onErrorCaptured } from 'vue'
 import { useRoute } from 'vue-router'
-import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play, Eye, EyeOff, Droplet } from 'lucide-vue-next'
+import { Images, LayoutGrid, BadgeCent, Newspaper, HandCoins, Play, Eye, EyeOff, Droplet, Image as ImageIcon } from 'lucide-vue-next'
 import { MessagePlugin } from 'tdesign-vue-next'
 import request from '@/utils/request'
 
@@ -494,6 +516,281 @@ const yfyjAllFloors = computed(() => {
   yfyjUnits.value.forEach(unit => Object.keys(yfyjUnitGrid(unit)).forEach(f => set.add(Number(f))))
   return [...set].sort((a,b)=>b-a)
 })
+
+// ===== 一房一价海报：用 Canvas 把当前楼栋的表格画成图片（不依赖截图库，文字更清晰）=====
+const posterVisible = ref(false)
+const posterGenerating = ref(false)
+const posterUrl = ref('')
+
+/** 房态配色：与页面表格保持一致 */
+const POSTER_STATUS = [
+  { label: '未售', bg: '#F3F4F6', color: '#6B7280' },
+  { label: '认购', bg: '#FFF3E6', color: '#D46B08' },
+  { label: '已售', bg: '#FFECEC', color: '#D4380D' },
+  { label: '抵押', bg: '#F4EEFF', color: '#722ED1' },
+  { label: '保留', bg: '#EAF2FF', color: '#1D4ED8' }
+]
+const POSTER_FONT = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif'
+function posterFont(size, weight = 'normal') { return `${weight} ${size}px ${POSTER_FONT}` }
+
+function posterPad2(n) { return String(n).padStart(2, '0') }
+function posterDate() {
+  const d = new Date()
+  return `${d.getFullYear()}-${posterPad2(d.getMonth() + 1)}-${posterPad2(d.getDate())}`
+}
+function posterDateTime() {
+  const d = new Date()
+  return `${posterDate()} ${posterPad2(d.getHours())}:${posterPad2(d.getMinutes())}`
+}
+
+/** 圆角矩形路径（不依赖 ctx.roundRect，兼容旧版 Safari） */
+function posterRoundRect(ctx, x, y, w, h, r) {
+  const radius = Math.max(0, Math.min(r, w / 2, h / 2))
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.arcTo(x + w, y, x + w, y + h, radius)
+  ctx.arcTo(x + w, y + h, x, y + h, radius)
+  ctx.arcTo(x, y + h, x, y, radius)
+  ctx.arcTo(x, y, x + w, y, radius)
+  ctx.closePath()
+}
+
+/** 超长文本截断为「…」，避免小区名压到右上角日期 */
+function posterFitText(ctx, text, font, maxWidth) {
+  const str = String(text || '')
+  ctx.font = font
+  if (ctx.measureText(str).width <= maxWidth) return str
+  let s = str
+  while (s.length > 1 && ctx.measureText(s + '…').width > maxWidth) s = s.slice(0, -1)
+  return s + '…'
+}
+
+function posterCentered(ctx, text, x, y, font, color) {
+  ctx.font = font
+  ctx.fillStyle = color
+  ctx.textAlign = 'center'
+  ctx.fillText(text, x, y)
+}
+
+/** 取出当前楼栋的列定义：每个单元 × 每个户室位置 = 一列 */
+function posterColumns() {
+  const cols = []
+  yfyjUnits.value.forEach(unit => {
+    const grid = yfyjUnitGrid(unit)
+    yfyjUnitPositions(unit).forEach(pos => cols.push({ unit, pos, grid }))
+  })
+  return cols
+}
+
+/** 生成海报 dataURL */
+function buildYfyjPoster() {
+  const projectName = String(loupan.value?.projectName || '楼盘').trim()
+  const buildingNo = String(yfyjBuilding.value || '').trim()
+  const cols = posterColumns()
+  const floors = yfyjAllFloors.value
+  if (!cols.length || !floors.length) throw new Error('当前楼栋没有可展示的房号')
+
+  const PAD = 32
+  const TITLE_H = 148
+  const HEAD_H = 56
+  const CELL_W = 132
+  const CELL_H = 96
+  const FLOOR_W = 64
+  const LEGEND_H = 52
+  const FOOTER_H = 62
+
+  const tableW = FLOOR_W + cols.length * CELL_W
+  const W = Math.max(760, tableW + PAD * 2)
+  const tableX = Math.round((W - tableW) / 2)
+  const tableY = TITLE_H + 26
+  const tableH = HEAD_H + floors.length * CELL_H
+  const legendY = tableY + tableH + 20
+  const H = legendY + LEGEND_H + FOOTER_H
+
+  // iOS Safari 单个画布面积上限约 1670 万像素，超了会得到空白图，这里按面积收敛倍率
+  let scale = 2
+  const MAX_AREA = 12000000
+  while (scale > 1 && W * H * scale * scale > MAX_AREA) scale = Math.max(1, scale - 0.25)
+
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(W * scale)
+  canvas.height = Math.round(H * scale)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('当前浏览器不支持 Canvas')
+  ctx.scale(scale, scale)
+  ctx.textBaseline = 'middle'
+
+  // 背景
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, W, H)
+
+  // 顶部标题区
+  const grad = ctx.createLinearGradient(0, 0, W, TITLE_H)
+  grad.addColorStop(0, '#0052D9')
+  grad.addColorStop(1, '#3C7BFF')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, W, TITLE_H)
+
+  const titleFont = posterFont(36, 'bold')
+  const title = posterFitText(ctx, projectName, titleFont, W - PAD * 2 - 190)
+  ctx.font = titleFont
+  ctx.fillStyle = '#FFFFFF'
+  ctx.textAlign = 'left'
+  ctx.fillText(title, PAD, 60)
+
+  // 副标题：楼栋号 + 一房一价
+  ctx.font = posterFont(20)
+  ctx.fillStyle = 'rgba(255,255,255,0.94)'
+  ctx.fillText(`${buildingNo ? buildingNo + '号楼 · ' : ''}一房一价`, PAD, 104)
+
+  // 右上角：日期与站点
+  ctx.textAlign = 'right'
+  ctx.font = posterFont(14)
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'
+  ctx.fillText(posterDate(), W - PAD, 60)
+  ctx.font = posterFont(12)
+  ctx.fillStyle = 'rgba(255,255,255,0.78)'
+  ctx.fillText('杭房一二三 · hangfang123.com', W - PAD, 88)
+
+  // 表头
+  ctx.fillStyle = '#F5F7FB'
+  ctx.fillRect(tableX, tableY, tableW, HEAD_H)
+  posterCentered(ctx, '楼层', tableX + FLOOR_W / 2, tableY + HEAD_H / 2, posterFont(13, '500'), '#6B7280')
+  cols.forEach((c, i) => {
+    const cx = tableX + FLOOR_W + i * CELL_W + CELL_W / 2
+    posterCentered(ctx, `${c.unit}单元`, cx, tableY + 18, posterFont(11), '#8A94A6')
+    posterCentered(ctx, `${c.pos}室`, cx, tableY + 38, posterFont(14, 'bold'), '#4B5563')
+  })
+
+  // 房号单元格
+  let houseCount = 0
+  floors.forEach((floor, ri) => {
+    const rowY = tableY + HEAD_H + ri * CELL_H
+    ctx.fillStyle = '#FAFBFD'
+    ctx.fillRect(tableX, rowY, FLOOR_W, CELL_H)
+    posterCentered(ctx, `${floor}F`, tableX + FLOOR_W / 2, rowY + CELL_H / 2, posterFont(13, 'bold'), '#6B7280')
+
+    cols.forEach((c, ci) => {
+      const x = tableX + FLOOR_W + ci * CELL_W
+      const item = c.grid?.[floor]?.[c.pos]
+      const status = item ? (POSTER_STATUS[item.houseStatus] || POSTER_STATUS[0]) : null
+      ctx.fillStyle = status ? status.bg : '#FBFCFD'
+      ctx.fillRect(x + 2, rowY + 2, CELL_W - 4, CELL_H - 4)
+      if (!item) {
+        posterCentered(ctx, '-', x + CELL_W / 2, rowY + CELL_H / 2, posterFont(13), '#C8CDD6')
+        return
+      }
+      houseCount += 1
+      const lines = []
+      if (item.roomNo) lines.push({ t: String(item.roomNo), size: 15, weight: 'bold', color: status.color })
+      if (item.area != null && item.area !== '') lines.push({ t: `${item.area}㎡`, size: 12, color: '#5B6472' })
+      if (item.recordUnitPrice) lines.push({ t: `${item.recordUnitPrice}元/㎡`, size: 12, color: '#5B6472' })
+      if (item.recordTotalPrice) lines.push({ t: `${(Number(item.recordTotalPrice) / 10000).toFixed(2)}万`, size: 12, color: '#5B6472' })
+      lines.push({ t: status.label, size: 11, weight: '500', color: status.color })
+
+      // 按行高铺满单元格高度，再整体垂直居中
+      const heights = lines.map(l => l.size * 1.38)
+      const totalH = heights.reduce((a, b) => a + b, 0)
+      let cy = rowY + (CELL_H - totalH) / 2
+      lines.forEach((l, li) => {
+        const h = heights[li]
+        posterCentered(ctx, l.t, x + CELL_W / 2, cy + h / 2, posterFont(l.size, l.weight || 'normal'), l.color)
+        cy += h
+      })
+    })
+  })
+
+  // 表格网格线
+  ctx.strokeStyle = '#E9EDF3'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  for (let r = 0; r <= floors.length; r++) {
+    const y = tableY + HEAD_H + r * CELL_H + 0.5
+    ctx.moveTo(tableX, y)
+    ctx.lineTo(tableX + tableW, y)
+  }
+  for (let i = 0; i <= cols.length; i++) {
+    const x = tableX + FLOOR_W + i * CELL_W + 0.5
+    ctx.moveTo(x, tableY)
+    ctx.lineTo(x, tableY + tableH)
+  }
+  ctx.moveTo(tableX + FLOOR_W + 0.5, tableY)
+  ctx.lineTo(tableX + FLOOR_W + 0.5, tableY + tableH)
+  ctx.moveTo(tableX + 0.5, tableY)
+  ctx.lineTo(tableX + 0.5, tableY + tableH)
+  ctx.moveTo(tableX + tableW - 0.5, tableY)
+  ctx.lineTo(tableX + tableW - 0.5, tableY + tableH)
+  // 表头底边加深一点，和页面表格观感一致
+  ctx.moveTo(tableX, tableY + HEAD_H + 0.5)
+  ctx.lineTo(tableX + tableW, tableY + HEAD_H + 0.5)
+  ctx.strokeStyle = '#DDE3EC'
+  ctx.stroke()
+
+  // 图例
+  let lx = tableX
+  const ly = legendY + 10
+  POSTER_STATUS.forEach(s => {
+    ctx.fillStyle = s.bg
+    posterRoundRect(ctx, lx, ly, 14, 14, 3)
+    ctx.fill()
+    ctx.fillStyle = '#6B7280'
+    ctx.font = posterFont(12)
+    ctx.textAlign = 'left'
+    ctx.fillText(s.label, lx + 20, ly + 7)
+    lx += 20 + ctx.measureText(s.label).width + 20
+  })
+  ctx.textAlign = 'right'
+  ctx.font = posterFont(12)
+  ctx.fillStyle = '#6B7280'
+  ctx.fillText(`${buildingNo ? buildingNo + '号楼 · ' : ''}共 ${houseCount} 套`, tableX + tableW, ly + 7)
+
+  // 页脚
+  ctx.textAlign = 'left'
+  ctx.font = posterFont(11)
+  ctx.fillStyle = '#9AA3B2'
+  ctx.fillText('数据来源：杭房一二三 · hangfang123.com', PAD, H - 40)
+  ctx.fillText('本图仅供参考，最终以售楼处公示及网签备案价为准', PAD, H - 22)
+  ctx.textAlign = 'right'
+  ctx.fillText(`生成时间 ${posterDateTime()}`, W - PAD, H - 40)
+
+  return canvas.toDataURL('image/png')
+}
+
+async function openPoster() {
+  if (!yfyjList.value.length) { MessagePlugin.warning('暂无一房一价数据'); return }
+  posterVisible.value = true
+  posterGenerating.value = true
+  posterUrl.value = ''
+  // 先让弹窗渲染出 loading，再执行同步绘制，避免点击后界面无反馈
+  await new Promise(r => setTimeout(r, 30))
+  try {
+    posterUrl.value = buildYfyjPoster()
+  } catch (e) {
+    console.error('[一房一价海报] 生成失败:', e)
+    MessagePlugin.error('海报生成失败：' + (e?.message || '请稍后重试'))
+    posterVisible.value = false
+  } finally {
+    posterGenerating.value = false
+  }
+}
+
+// 关闭弹窗后释放大图（dataURL 可能几 MB），延迟到关闭动画结束
+watch(posterVisible, v => {
+  if (v) return
+  setTimeout(() => { if (!posterVisible.value) posterUrl.value = '' }, 300)
+})
+
+function downloadPoster() {
+  if (!posterUrl.value) return
+  const projectName = String(loupan.value?.projectName || '楼盘').trim()
+  const building = yfyjBuilding.value ? `${yfyjBuilding.value}号楼-` : ''
+  const a = document.createElement('a')
+  a.href = posterUrl.value
+  a.download = `${projectName}-${building}一房一价-${posterDate()}.png`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
 
 const id = computed(() => route.params.id)
 
@@ -728,5 +1025,46 @@ watch([id, subType], () => {
 .plate-grid th,
 .deal-grid th {
   background-color: #f5f5f5;
+}
+
+/* 一房一价：右下角悬浮「生成海报」按钮 */
+.poster-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 0;
+  outline: none;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0052d9, #3c7bff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 82, 217, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.poster-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 82, 217, 0.42);
+}
+.poster-fab:active {
+  transform: translateY(0);
+}
+
+/* 海报预览：等比缩放，长图可滚动查看 */
+.poster-preview {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #eef0f4;
+  background: #f7f8fa;
 }
 </style>
