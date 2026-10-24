@@ -85,6 +85,12 @@ const routes = [
         meta: { title: '楼盘详情' }
       },
       {
+        path: 'loupan/:id/info',
+        name: 'LoupanInfo',
+        component: () => import('@/views/LoupanInfo.vue'),
+        meta: { title: '楼盘信息' }
+      },
+      {
         path: 'loupan/:id/media',
         name: 'LoupanMedia',
         component: () => import('@/views/LoupanSubPage.vue'),

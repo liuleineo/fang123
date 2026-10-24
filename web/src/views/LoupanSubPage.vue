@@ -749,7 +749,7 @@ function buildYfyjPoster() {
   ctx.font = posterFont(11)
   ctx.fillStyle = '#9AA3B2'
   ctx.fillText('数据来源：杭房一二三 · hangfang123.com', PAD, H - 40)
-  ctx.fillText('本图仅供参考，最终以售楼处公示及网签备案价为准', PAD, H - 22)
+  ctx.fillText('本图为房管局备案价，最终成交价以售楼处网签备案价为准', PAD, H - 22)
   ctx.textAlign = 'right'
   ctx.fillText(`生成时间 ${posterDateTime()}`, W - PAD, H - 40)
 

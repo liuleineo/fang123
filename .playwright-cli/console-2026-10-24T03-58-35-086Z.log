@@ -1,0 +1,16 @@
+[    2058ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4000/api/public/loupans/2:0
+[    2061ms] [ERROR] 响应错误: AxiosError: Request failed with status code 500
+    at settle (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1457:12)
+    at XMLHttpRequest.onloadend (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1862:7) @ http://localhost:4000/src/utils/request.js:33
+[    2119ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4000/api/public/loupans/2/medias:0
+[    2120ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4000/api/public/loupans/2/huxings:0
+[    2121ms] [ERROR] 响应错误: AxiosError: Request failed with status code 500
+    at settle (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1457:12)
+    at XMLHttpRequest.onloadend (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1862:7) @ http://localhost:4000/src/utils/request.js:33
+[    2123ms] [ERROR] 响应错误: AxiosError: Request failed with status code 500
+    at settle (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1457:12)
+    at XMLHttpRequest.onloadend (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1862:7) @ http://localhost:4000/src/utils/request.js:33
+[    2126ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4000/api/public/loupans/2/presale-permits:0
+[    2126ms] [ERROR] 响应错误: AxiosError: Request failed with status code 500
+    at settle (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1457:12)
+    at XMLHttpRequest.onloadend (http://localhost:4000/node_modules/.vite/deps/axios.js?v=ab6558c0:1862:7) @ http://localhost:4000/src/utils/request.js:33

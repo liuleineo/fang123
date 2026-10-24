@@ -1,0 +1,274 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "杭 杭房一二三" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: 杭
+        - generic [ref=e8]: 杭房一二三
+      - button [ref=e10]:
+        - img [ref=e11]
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - link "首页" [ref=e17] [cursor=pointer]:
+            - /url: ""
+            - generic [ref=e19]: 首页
+          - img [ref=e21]
+        - generic [ref=e24]:
+          - generic [ref=e27]: 钱塘区
+          - img [ref=e29]
+        - generic [ref=e35]: 滨江兴耀·沐青云
+      - generic [ref=e37]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading "滨江兴耀·沐青云" [level=1] [ref=e41]
+            - generic [ref=e42]: 滨江集团,兴耀
+            - generic [ref=e43]: 在售
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - img [ref=e46]
+              - text: 钱塘区·下沙
+            - generic [ref=e49]: "|"
+            - generic [ref=e50]: 住宅
+            - generic [ref=e51]: "|"
+            - generic [ref=e52]: 精装 · 70年产权
+          - generic [ref=e54]: 价格待定
+          - generic [ref=e56]: 交房时间：2027-09-30
+        - generic [ref=e57]:
+          - button "楼盘信息" [ref=e58] [cursor=pointer]:
+            - generic [ref=e60]:
+              - img [ref=e61]
+              - generic [ref=e63]: 楼盘信息
+          - button "图库视频" [ref=e64] [cursor=pointer]:
+            - generic [ref=e66]:
+              - img [ref=e67]
+              - generic [ref=e72]: 图库视频
+          - button "户型" [ref=e73] [cursor=pointer]:
+            - generic [ref=e75]:
+              - img [ref=e76]
+              - generic [ref=e81]: 户型
+          - button "一房一价" [ref=e82] [cursor=pointer]:
+            - generic [ref=e84]:
+              - img [ref=e85]
+              - generic [ref=e88]: 一房一价
+          - button "楼盘动态" [ref=e89] [cursor=pointer]:
+            - generic [ref=e91]:
+              - img [ref=e92]
+              - generic [ref=e95]: 楼盘动态
+          - button "二手真实成交" [ref=e96] [cursor=pointer]:
+            - generic [ref=e98]:
+              - img [ref=e99]
+              - generic [ref=e105]: 二手真实成交
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - heading "楼盘位置" [level=2] [ref=e109]:
+            - img [ref=e110]
+            - text: 楼盘位置
+          - generic [ref=e113]: 暂无位置信息
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - heading "户型信息" [level=2] [ref=e116]:
+              - img [ref=e117]
+              - text: 户型信息
+            - generic [ref=e121] [cursor=pointer]: 查看全部 ›
+          - generic [ref=e122]: 暂无户型信息
+        - generic [ref=e123]:
+          - heading "开盘信息" [level=2] [ref=e124]:
+            - img [ref=e125]
+            - text: 开盘信息
+          - generic [ref=e128]: 暂无开盘信息
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - heading "楼盘信息" [level=2] [ref=e131]:
+              - img [ref=e132]
+              - text: 楼盘信息
+            - generic [ref=e134]:
+              - heading "基本信息" [level=3] [ref=e135]:
+                - img [ref=e136]
+                - text: 基本信息
+              - generic [ref=e138]:
+                - generic [ref=e139]:
+                  - generic [ref=e140]: 装修情况
+                  - text: 精装
+                - generic [ref=e141]:
+                  - generic [ref=e142]: 开盘时间
+                  - text: 2025-06-18
+                - generic [ref=e143]:
+                  - generic [ref=e144]: 交房时间
+                  - text: 2027-09-30
+                - generic [ref=e145]:
+                  - generic [ref=e146]: 户型面积
+                  - text: 89-168㎡
+                - generic [ref=e147]:
+                  - generic [ref=e148]: 楼盘类型
+                  - text: 住宅
+                - generic [ref=e149]:
+                  - generic [ref=e150]: 产权年限
+                  - text: 70年
+                - generic [ref=e151]:
+                  - generic [ref=e152]: 层高
+                  - text: 3-3.3m
+            - generic [ref=e153]:
+              - heading "建筑指标" [level=3] [ref=e154]:
+                - img [ref=e155]
+                - text: 建筑指标
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: 总建面积
+                  - text: 128,000㎡
+                - generic [ref=e162]:
+                  - generic [ref=e163]: 占地面积
+                  - text: 45,000㎡
+                - generic [ref=e164]:
+                  - generic [ref=e165]: 容积率
+                  - text: "2.2"
+                - generic [ref=e166]:
+                  - generic [ref=e167]: 绿地率
+                  - text: 35%
+                - generic [ref=e168]:
+                  - generic [ref=e169]: 总户数
+                  - text: 868户
+                - generic [ref=e170]:
+                  - generic [ref=e171]: 楼栋总数
+                  - text: 12栋
+                - generic [ref=e172]:
+                  - generic [ref=e173]: 楼层范围
+                  - text: 11-26层
+                - generic [ref=e174]:
+                  - generic [ref=e175]: 自持率
+                  - text: 8%
+            - generic [ref=e176]:
+              - heading "开发信息" [level=3] [ref=e177]:
+                - img [ref=e178]
+                - text: 开发信息
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - generic [ref=e182]: 开发公司
+                  - text: 杭州兴耀房地产开发有限公司
+                - generic [ref=e183]:
+                  - generic [ref=e184]: 开发品牌
+                  - text: 滨江集团,兴耀
+                - generic [ref=e185]:
+                  - generic [ref=e186]: 拿地总价
+                  - text: 236000万
+                - generic [ref=e187]:
+                  - generic [ref=e188]: 楼面单价
+                  - text: 18400元/㎡
+                - generic [ref=e189]:
+                  - generic [ref=e190]: 拿地日期
+                  - text: 2024-04-16
+                - generic [ref=e191]:
+                  - generic [ref=e192]: 物业公司
+                  - text: 滨江物业
+                - generic [ref=e193]:
+                  - generic [ref=e194]: 小高/洋房物业费
+                  - text: 3.8元/㎡/月
+                - generic [ref=e195]:
+                  - generic [ref=e196]: 排屋别墅物业费
+                  - text: 5.2元/㎡/月
+            - generic [ref=e197]:
+              - heading "车位信息" [level=3] [ref=e198]:
+                - img [ref=e199]
+                - text: 车位信息
+              - generic [ref=e203]:
+                - generic [ref=e204]:
+                  - generic [ref=e205]: 总车位
+                  - text: 1100个
+                - generic [ref=e206]:
+                  - generic [ref=e207]: 可售车位
+                  - text: 980个
+                - generic [ref=e208]:
+                  - generic [ref=e209]: 车位配比
+                  - text: 1:1.2
+                - generic [ref=e210]:
+                  - generic [ref=e211]: 人车分流
+                  - text: 是
+            - generic [ref=e212]:
+              - heading "外立面材料" [level=3] [ref=e213]:
+                - img [ref=e214]
+                - text: 外立面材料
+              - paragraph [ref=e218]: 铝板+大面积玻璃幕墙，局部石材
+            - generic [ref=e219]:
+              - heading "样板房说明" [level=3] [ref=e220]:
+                - img [ref=e221]
+                - text: 样板房说明
+              - paragraph [ref=e224]: 建面约89㎡、118㎡样板房已开放，需提前预约
+            - generic [ref=e225]:
+              - heading "小区配套" [level=3] [ref=e226]:
+                - img [ref=e227]
+                - text: 小区配套
+              - list [ref=e229]:
+                - listitem [ref=e230]: •恒温泳池
+                - listitem [ref=e231]: •健身房
+                - listitem [ref=e232]: •儿童乐园
+                - listitem [ref=e233]: •架空层泛会所
+                - listitem [ref=e234]: •快递柜
+          - generic [ref=e235]:
+            - heading "周边配套" [level=2] [ref=e236]:
+              - img [ref=e237]
+              - text: 周边配套
+            - generic [ref=e239]:
+              - generic [ref=e240]:
+                - heading "教育" [level=4] [ref=e241]
+                - list [ref=e242]:
+                  - listitem [ref=e243]: •钱塘实验小学（800m）
+                  - listitem [ref=e244]: •下沙中学（1.2km）
+                  - listitem [ref=e245]: •社区幼儿园
+              - generic [ref=e246]:
+                - heading "交通" [level=4] [ref=e247]
+                - list [ref=e248]:
+                  - listitem [ref=e249]: •地铁1号线文海南路站（900m）
+                  - listitem [ref=e250]: •公交373路
+              - generic [ref=e251]:
+                - heading "医疗" [level=4] [ref=e252]
+                - list [ref=e253]:
+                  - listitem [ref=e254]: •邵逸夫医院下沙院区（2.5km）
+              - generic [ref=e255]:
+                - heading "商业" [level=4] [ref=e256]
+                - list [ref=e257]:
+                  - listitem [ref=e258]: •龙湖天街（1.8km）
+                  - listitem [ref=e259]: •宝龙城市广场
+              - generic [ref=e260]:
+                - heading "景观" [level=4] [ref=e261]
+                - list [ref=e262]:
+                  - listitem [ref=e263]: •一线钱塘江景
+                  - listitem [ref=e264]: •沿江公园
+    - generic:
+      - generic [ref=e265] [cursor=pointer]:
+        - img [ref=e267]
+        - generic [ref=e271]: 图片无法显示
+      - generic [ref=e272] [cursor=pointer]:
+        - img [ref=e273]
+        - text: 预览
+  - contentinfo [ref=e279]:
+    - generic [ref=e280]:
+      - generic [ref=e281]:
+        - generic [ref=e282]:
+          - heading "找房工具" [level=4] [ref=e283]
+          - list [ref=e284]:
+            - listitem [ref=e285]:
+              - link "地图找房" [ref=e286] [cursor=pointer]:
+                - /url: /map
+            - listitem [ref=e287]:
+              - link "学区地图" [ref=e288] [cursor=pointer]:
+                - /url: /school-map
+            - listitem [ref=e289]:
+              - link "土拍地图" [ref=e290] [cursor=pointer]:
+                - /url: /tupai-map
+        - generic [ref=e291]:
+          - heading "行情信息" [level=4] [ref=e292]
+          - list [ref=e293]:
+            - listitem [ref=e294]:
+              - link "真实成交" [ref=e295] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e296]:
+              - link "成交行情" [ref=e297] [cursor=pointer]:
+                - /url: /
+      - generic [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300]: "N"
+          - generic [ref=e301]: hangfang123.com 杭房一二三 - 让买房变简单
+        - generic [ref=e302]: 浙ICP备2021037366号-2
+        - generic [ref=e303]: powered by 公子鱼
+        - generic [ref=e304]: 隐私政策/服务条款
