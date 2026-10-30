@@ -483,7 +483,7 @@ function addMarkers() {
     // 楼面价 / 溢价率：有值才展示（历史数据可能为空）
     const priceParts = []
     if (item.floorUnitPrice != null) {
-      priceParts.push(`<span>楼面价 <b style="color:#0052D9">${Number(item.floorUnitPrice).toLocaleString()}</b> 元/㎡</span>`)
+      priceParts.push(`<span>楼面单价 <b style="color:#0052D9">${Number(item.floorUnitPrice).toLocaleString()}</b> 元/㎡</span>`)
     }
     if (item.premiumRate != null) {
       priceParts.push(`<span>溢价率 <b style="color:#E34D59">${Number(item.premiumRate)}%</b></span>`)

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -104,7 +105,30 @@ public class TupaiResourceService {
             log.warn("Parse coordinate failed for {}: {}", resourceId, e.getMessage());
         }
 
-        // 4. 构建实体
+        // 4. 容积率 / 计容建面 / 楼面价 / 溢价率（平台只给面积和容积率区间，楼面价按容积率上限折算）
+        BigDecimal ratio = parsePlotRatioUpper(getText(data, "plotRatio"));
+        BigDecimal assignmentArea = parseBigDecimal(data, "assignmentArea");
+        BigDecimal buildAreaLimit = null;
+        if (assignmentArea != null && ratio != null && ratio.compareTo(BigDecimal.ZERO) > 0) {
+            buildAreaLimit = assignmentArea.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
+        }
+        Long dealPrice = parseLong(data, "dealPrice");
+        Long startPrice = parseLong(data, "startPrice");
+        Integer floorUnitPrice = null;
+        if (dealPrice != null && dealPrice > 0 && buildAreaLimit != null
+                && buildAreaLimit.compareTo(BigDecimal.ZERO) > 0) {
+            // dealPrice 单位是万元
+            floorUnitPrice = BigDecimal.valueOf(dealPrice).multiply(BigDecimal.valueOf(10000))
+                    .divide(buildAreaLimit, 0, RoundingMode.HALF_UP).intValue();
+        }
+        BigDecimal premiumRate = null;
+        if (dealPrice != null && dealPrice > 0 && startPrice != null && startPrice > 0) {
+            premiumRate = BigDecimal.valueOf(dealPrice - startPrice)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(startPrice), 2, RoundingMode.HALF_UP);
+        }
+
+        // 5. 构建实体
         LoupanTupaiLand entity = new LoupanTupaiLand();
         entity.setLandName(getText(data, "resourceName"));
         entity.setLandNo(getText(data, "resourceNumber"));
@@ -115,13 +139,14 @@ public class TupaiResourceService {
         entity.setWinnerCompany(defaultIfNull(getText(data, "theUnit"), ""));
         entity.setLandUseType(defaultIfNull(getText(data, "primaryLandUse"), ""));
         entity.setLandYear(parseInt(data, "transferPeriodTo", 70));
-        entity.setLandArea(parseBigDecimal(data, "assignmentArea"));
-        entity.setBuildAreaLimit(null);
-        entity.setPlotRatio(null);
-        entity.setStartPrice(parseLong(data, "startPrice"));
-        entity.setDealPrice(parseLong(data, "dealPrice"));
-        entity.setFloorUnitPrice(null);
-        entity.setPremiumRate(null);
+        entity.setLandArea(assignmentArea);
+        entity.setStartPrice(startPrice);
+        entity.setDealPrice(dealPrice);
+        // plot_ratio 列是 decimal(3,2)，超过 9.99 的容积率放不下，直接不存
+        entity.setPlotRatio(ratio != null && ratio.compareTo(BigDecimal.valueOf(9.99)) <= 0 ? ratio : null);
+        entity.setBuildAreaLimit(buildAreaLimit);
+        entity.setFloorUnitPrice(floorUnitPrice);
+        entity.setPremiumRate(premiumRate);
         entity.setDealDate(parseDate(data, "endTime"));
         entity.setResourceId(resourceId);
         entity.setLocationImage(imageUrl);
@@ -148,6 +173,25 @@ public class TupaiResourceService {
     private Integer parseInt(JsonNode node, String field, int defaultVal) {
         try { return node.has(field) && !node.get(field).isNull() ? Integer.parseInt(node.get(field).asText()) : defaultVal; }
         catch (Exception e) { return defaultVal; }
+    }
+
+    /**
+     * 解析容积率区间，取上限：{"RJL_X_FH":"<","RJL_X":"1.0","RJL_S_FH":"≤","RJL_S":"2.2"} → 2.2
+     */
+    private BigDecimal parsePlotRatioUpper(String plotRatioJson) {
+        if (plotRatioJson == null || plotRatioJson.isBlank()) return null;
+        try {
+            JsonNode node = objectMapper.readTree(plotRatioJson);
+            for (String key : new String[]{"RJL_S", "RJL_X"}) {
+                JsonNode v = node.get(key);
+                if (v != null && !v.isNull() && !v.asText().isBlank()) {
+                    return new BigDecimal(v.asText().trim());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Parse plotRatio failed: {}", plotRatioJson);
+        }
+        return null;
     }
 
     private BigDecimal parseBigDecimal(JsonNode node, String field) {
