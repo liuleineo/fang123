@@ -1,7 +1,7 @@
 <template>
   <div v-if="loupan" class="space-y-6">
     <!-- 楼盘信息 -->
-    <div>
+    <div v-if="showInfo">
       <h2 v-if="showMainTitle" class="text-lg font-bold text-[var(--color-text-primary)] mb-5 flex items-center gap-2">
         <Info class="w-5 h-5 text-[var(--color-primary)]" />楼盘信息
       </h2>
@@ -131,6 +131,8 @@ import { Info, Building2, Shield, Car, Paintbrush, Eye, Sparkles } from 'lucide-
 defineProps({
   /** 楼盘详情对象（后端 /public/loupans/{id} 返回） */
   loupan: { type: Object, default: null },
+  /** 是否渲染「楼盘信息」整块（详情页改为楼盘动态后传 false） */
+  showInfo: { type: Boolean, default: true },
   /** 是否渲染「楼盘信息」大标题（子页面顶部已有标题时传 false） */
   showMainTitle: { type: Boolean, default: true },
   /** 是否渲染「周边配套」 */

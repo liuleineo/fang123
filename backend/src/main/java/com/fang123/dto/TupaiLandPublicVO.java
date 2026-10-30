@@ -16,6 +16,10 @@ public class TupaiLandPublicVO {
     private String winnerCompany;
     private BigDecimal landArea;
     private Long dealPrice;
+    /** 楼面价（元/㎡） */
+    private Integer floorUnitPrice;
+    /** 溢价率（%） */
+    private BigDecimal premiumRate;
     private LocalDate dealDate;
     private BigDecimal longitude;
     private BigDecimal latitude;

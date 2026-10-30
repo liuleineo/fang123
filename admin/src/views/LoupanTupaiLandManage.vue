@@ -27,6 +27,8 @@
         <template #createTime="{ row }"><span class="text-xs text-[var(--color-text-tertiary)]">{{ fmt(row.createTime) }}</span></template>
         <template #operation="{ row }">
           <t-space size="small">
+            <a v-if="row.resourceId" :href="landDetailUrl(row)" target="_blank" rel="noopener noreferrer"
+               class="text-xs text-[var(--color-primary)] hover:underline whitespace-nowrap">查看地块</a>
             <t-button variant="text" theme="primary" size="small" @click="openEdit(row)">编辑</t-button>
             <t-popconfirm content="确定删除？" @confirm="del(row.id)"><t-button variant="text" theme="danger" size="small">删除</t-button></t-popconfirm>
           </t-space>
@@ -195,8 +197,14 @@ const cols = [
   {colKey:'premiumRate',title:'溢价率',width:80},
   {colKey:'dealDate',title:'成交日期',width:110},
   {colKey:'createTime',title:'创建时间',width:160},
-  {colKey:'operation',title:'操作',width:120,fixed:'right'},
+  {colKey:'operation',title:'操作',width:170,fixed:'right'},
 ]
+
+/** 浙江自然资源交易平台的地块详情页（按 resourceId 跳转） */
+const LAND_DETAIL_BASE = 'https://www.zjzrzyjy.com/landView/land-bidding/source-detail?resourceId='
+function landDetailUrl(row) {
+  return LAND_DETAIL_BASE + encodeURIComponent(row?.resourceId || '')
+}
 
 function fmt(t){if(!t)return'';const d=new Date(t);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 

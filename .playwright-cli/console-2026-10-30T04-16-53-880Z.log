@@ -1,0 +1,36 @@
+[    1614ms] [WARNING] [Vue warn]: Failed to resolve component: Map
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <TupaiMap onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > key="/tupai-map" > 
+  at <RouterView> 
+  at <WebLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[    1621ms] [WARNING] [Vue warn]: Failed to resolve component: Map
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <TupaiMap onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > key="/tupai-map" > 
+  at <RouterView> 
+  at <WebLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[    1698ms] [WARNING] [Vue warn]: Failed to resolve component: Map
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <TupaiMap onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > key="/tupai-map" > 
+  at <RouterView> 
+  at <WebLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[    1708ms] [WARNING] [Vue warn]: Failed to resolve component: Map
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <TupaiMap onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > key="/tupai-map" > 
+  at <RouterView> 
+  at <WebLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225
+[    3444ms] [WARNING] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently @ https://webapi.amap.com/maps?v=2.0&key=ec9016bfbd481d766643253c1bbe5bc3&plugin=AMap.Marker:0
+[   22522ms] [WARNING] [Vue warn]: Failed to resolve component: Map
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <TupaiMap onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > key="/tupai-map" > 
+  at <RouterView> 
+  at <WebLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > 
+  at <RouterView> 
+  at <App> @ http://localhost:4000/node_modules/.vite/deps/chunk-5HDFFJ6C.js?v=ab6558c0:2225

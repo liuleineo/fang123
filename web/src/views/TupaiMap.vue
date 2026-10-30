@@ -480,6 +480,17 @@ function addMarkers() {
     marker._pos = pos
 
     const dealStr = item.dealPrice ? `${item.dealPrice}万` : '待出让'
+    // 楼面价 / 溢价率：有值才展示（历史数据可能为空）
+    const priceParts = []
+    if (item.floorUnitPrice != null) {
+      priceParts.push(`<span>楼面价 <b style="color:#0052D9">${Number(item.floorUnitPrice).toLocaleString()}</b> 元/㎡</span>`)
+    }
+    if (item.premiumRate != null) {
+      priceParts.push(`<span>溢价率 <b style="color:#E34D59">${Number(item.premiumRate)}%</b></span>`)
+    }
+    const priceHtml = priceParts.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin:2px 0;font-size:12px;color:#4E5969">${priceParts.join('')}</div>`
+      : ''
     const infoWindow = new window.AMap.InfoWindow({
       content: `
         <div style="min-width:180px">
@@ -489,6 +500,7 @@ function addMarkers() {
             <p style="margin:0;font-size:12px;color:#86909C">${item.landNo}</p>
             <p style="margin:0;font-size:12px;color:#86909C">${item.district}${item.plate?'·'+item.plate:''} | ${item.landArea}㎡</p>
             <p style="margin:2px 0;font-size:13px;color:#E34D59;font-weight:bold">成交：${dealStr}</p>
+            ${priceHtml}
             <p style="margin:0;font-size:12px;color:#86909C">${item.winnerCompany||''}</p>
             ${item.dealDate ? `<p style="margin:0;font-size:12px;color:#86909C">${item.dealDate}</p>` : ''}
           </div>
