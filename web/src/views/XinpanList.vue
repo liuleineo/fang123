@@ -15,7 +15,7 @@
           <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <t-select v-model="district" :options="districtOptions" placeholder="全部区域" clearable
                       class="!w-32" @change="onFilterChange" />
-            <t-input v-model="keyword" placeholder="搜索楼盘 / 开发商" clearable class="!w-48"
+            <t-input v-model="keyword" placeholder="搜索楼盘 / 品牌" clearable class="!w-48"
                      @enter="onFilterChange" @clear="onFilterChange">
               <template #prefix-icon><Search class="w-4 h-4" /></template>
             </t-input>
@@ -42,7 +42,7 @@
                   <th class="w-[80px]">区域</th>
                   <th class="w-[170px]">楼盘名称</th>
                   <th class="w-[90px]">板块</th>
-                  <th class="w-[170px]">开发商</th>
+                  <th class="w-[140px]">开发商品牌</th>
                   <th class="w-[100px]">面积段</th>
                   <th class="w-[120px]">单价</th>
                   <th class="w-[110px]">总价范围</th>
@@ -60,7 +60,7 @@
                     </router-link>
                   </td>
                   <td>{{ lp.plate || '-' }}</td>
-                  <td class="text-[13px]">{{ lp.projectCompany || '-' }}</td>
+                  <td class="text-[13px]">{{ lp.brandList || '-' }}</td>
                   <td>{{ areaText(lp) }}</td>
                   <td class="price">{{ unitPriceText(lp) }}</td>
                   <td class="price">{{ totalPriceText(lp) }}</td>
@@ -90,7 +90,7 @@
                 </span>
               </div>
               <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[13px] text-[var(--color-text-primary)]">
-                <p><span class="text-[var(--color-text-tertiary)]">开发商 </span>{{ lp.projectCompany || '-' }}</p>
+                <p><span class="text-[var(--color-text-tertiary)]">开发商品牌 </span>{{ lp.brandList || '-' }}</p>
                 <p><span class="text-[var(--color-text-tertiary)]">面积段 </span>{{ areaText(lp) }}</p>
                 <p><span class="text-[var(--color-text-tertiary)]">单价 </span><span class="price-inline">{{ unitPriceText(lp) }}</span></p>
                 <p><span class="text-[var(--color-text-tertiary)]">总价 </span><span class="price-inline">{{ totalPriceText(lp) }}</span></p>
