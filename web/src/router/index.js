@@ -62,6 +62,12 @@ const routes = [
       },
       {
         path: 'xinpan',
+        name: 'Xinpan',
+        component: () => import('@/views/Xinpan.vue'),
+        meta: { title: '新盘' }
+      },
+      {
+        path: 'xinpanlist',
         name: 'XinpanList',
         component: () => import('@/views/XinpanList.vue'),
         meta: { title: '新盘信息' }

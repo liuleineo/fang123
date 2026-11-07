@@ -191,8 +191,8 @@ function handleLogout() {
 
 const navItems = [
   { label: '首页', href: '/' },
-  { label: '新盘', href: '/#list' },
-  { label: '新盘信息', href: '/xinpan' },
+  { label: '新盘', href: '/xinpan' },
+  { label: '新盘信息', href: '/xinpanlist' },
   { label: '二手房', href: '/ershoufang' },
   { label: '地图找房', href: '/map' },
   { label: '土拍地图', href: '/tupai-map' },
