@@ -1,0 +1,107 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "杭 杭房一二三" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: 杭
+        - generic [ref=e8]: 杭房一二三
+      - button [ref=e10]:
+        - img [ref=e11]
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - heading "新盘信息" [level=1] [ref=e18]:
+            - img [ref=e19]
+            - text: 新盘信息
+          - paragraph [ref=e21]: 杭州新盘关键信息一览，共 3 个楼盘
+        - generic [ref=e22]:
+          - generic [ref=e26]:
+            - textbox "全部区域" [ref=e27] [cursor=pointer]
+            - img [ref=e29]
+          - generic [ref=e32]:
+            - img [ref=e34]
+            - textbox "搜索楼盘 / 开发商" [ref=e37]
+          - button "查询" [ref=e38] [cursor=pointer]:
+            - generic [ref=e39]: 查询
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - link "滨江兴耀·沐青云" [ref=e45] [cursor=pointer]:
+                  - /url: /loupan/KjtcfZ4fS24
+                - generic [ref=e46]: 钱塘区 · 下沙
+              - generic [ref=e47]:
+                - paragraph [ref=e48]: 开发商 杭州兴耀房地产开发有限公司
+                - paragraph [ref=e49]: 面积段 89-168㎡
+                - paragraph [ref=e50]: 单价 28,500元/㎡
+                - paragraph [ref=e51]: 总价 254-479万
+                - paragraph [ref=e52]: 物业费 3.8-5.2元/㎡·月
+              - paragraph [ref=e53]: 优点 地铁1号线文海南路站约900米；自带恒温泳池与架空层泛会所；一线钱塘江景；滨江物业
+              - paragraph [ref=e54]: 缺点 周边商业配套尚在建设中，短期内生活便利度一般；高层得房率偏低
+            - generic [ref=e55]:
+              - generic [ref=e56]:
+                - link "绿城·桂语映月轩" [ref=e57] [cursor=pointer]:
+                  - /url: /loupan/KjtcfZ4fS2w
+                - generic [ref=e58]: 西湖区 · 之江
+              - generic [ref=e59]:
+                - paragraph [ref=e60]: 开发商 杭州绿城房地产开发有限公司
+                - paragraph [ref=e61]: 面积段 110-140㎡
+                - paragraph [ref=e62]: 单价 36,000元/㎡
+                - paragraph [ref=e63]: 总价 396-504万
+                - paragraph [ref=e64]: 物业费 4.5元/㎡·月
+              - paragraph [ref=e65]: 优点 绿城品牌，园区品质高；学区确定为求是小学
+              - paragraph [ref=e66]: 缺点 总价门槛高；车位配比一般
+            - generic [ref=e67]:
+              - generic [ref=e68]:
+                - link "万科·未来城" [ref=e69] [cursor=pointer]:
+                  - /url: /loupan/KjtcfZ4fS2x
+                - generic [ref=e70]: 余杭区 · 未来科技城
+              - generic [ref=e71]:
+                - paragraph [ref=e72]: 开发商 杭州万科置业有限公司
+                - paragraph [ref=e73]: 面积段 -
+                - paragraph [ref=e74]: 单价 32,000元/㎡
+                - paragraph [ref=e75]: 总价 -
+                - paragraph [ref=e76]: 物业费 -
+          - generic [ref=e78]:
+            - generic [ref=e79]: 共 3 条数据
+            - generic [ref=e83]:
+              - textbox "请选择" [ref=e84] [cursor=pointer]: 20 条/页
+              - img [ref=e86]
+            - img [ref=e89]
+            - list [ref=e92]:
+              - listitem [ref=e93] [cursor=pointer]: "1"
+            - img [ref=e95]
+        - paragraph [ref=e98]: 数据来源于公开信息整理，仅供参考；实际价格、物业费以售楼处公示及网签合同为准。
+  - contentinfo [ref=e99]:
+    - generic [ref=e100]:
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - heading "找房工具" [level=4] [ref=e103]
+          - list [ref=e104]:
+            - listitem [ref=e105]:
+              - link "地图找房" [ref=e106] [cursor=pointer]:
+                - /url: /map
+            - listitem [ref=e107]:
+              - link "学区地图" [ref=e108] [cursor=pointer]:
+                - /url: /school-map
+            - listitem [ref=e109]:
+              - link "土拍地图" [ref=e110] [cursor=pointer]:
+                - /url: /tupai-map
+        - generic [ref=e111]:
+          - heading "行情信息" [level=4] [ref=e112]
+          - list [ref=e113]:
+            - listitem [ref=e114]:
+              - link "真实成交" [ref=e115] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e116]:
+              - link "成交行情" [ref=e117] [cursor=pointer]:
+                - /url: /
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120]: "N"
+          - generic [ref=e121]: hangfang123.com 杭房一二三 - 让买房变简单
+        - generic [ref=e122]: 浙ICP备2021037366号-2
+        - generic [ref=e123]: powered by 公子鱼
+        - generic [ref=e124]: 隐私政策/服务条款

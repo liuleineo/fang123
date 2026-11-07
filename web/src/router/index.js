@@ -61,6 +61,12 @@ const routes = [
         meta: { title: '会员中心', requiresAuth: true }
       },
       {
+        path: 'xinpan',
+        name: 'XinpanList',
+        component: () => import('@/views/XinpanList.vue'),
+        meta: { title: '新盘信息' }
+      },
+      {
         path: 'map',
         name: 'MapSearch',
         component: () => import('@/views/MapSearch.vue'),
