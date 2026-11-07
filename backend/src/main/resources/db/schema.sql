@@ -416,6 +416,8 @@ CREATE TABLE IF NOT EXISTS `loupan` (
   `medical_support` text COMMENT '医疗配套，逗号分隔',
   `business_support` text COMMENT '商业配套，逗号分隔',
   `view_support` text COMMENT '景观公园配套，逗号分隔',
+  `advantage` text COMMENT '楼盘优点',
+  `disadvantage` text COMMENT '楼盘缺点',
   `longitude` decimal(12,6) DEFAULT NULL COMMENT '经度',
   `latitude` decimal(12,6) DEFAULT NULL COMMENT '纬度',
   `sort` int NOT NULL DEFAULT 0 COMMENT '排序权重',

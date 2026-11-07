@@ -81,6 +81,10 @@ public class Loupan implements Serializable {
     private String medicalSupport;
     private String businessSupport;
     private String viewSupport;
+    /** 楼盘优点 */
+    private String advantage;
+    /** 楼盘缺点 */
+    private String disadvantage;
     private BigDecimal longitude;
     private BigDecimal latitude;
     private Integer sort;

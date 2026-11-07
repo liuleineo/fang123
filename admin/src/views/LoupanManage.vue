@@ -82,6 +82,14 @@
               <t-form-item label="楼盘地址"><t-input v-model="form.projectAddress" /></t-form-item>
             </div>
             <t-form-item label="样板房说明"><t-textarea v-model="form.showHouseDesc" :maxlength="500" /></t-form-item>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <t-form-item label="楼盘优点">
+                <t-textarea v-model="form.advantage" :autosize="{ minRows: 3, maxRows: 8 }" placeholder="如：地铁口、学区好、品牌开发商" />
+              </t-form-item>
+              <t-form-item label="楼盘缺点">
+                <t-textarea v-model="form.disadvantage" :autosize="{ minRows: 3, maxRows: 8 }" placeholder="如：周边配套待成熟、总价偏高" />
+              </t-form-item>
+            </div>
             <div class="grid grid-cols-2 gap-3">
               <t-form-item label="售楼状态">
                 <t-select v-model="form.salesStatus" :options="[{label:'待售',value:0},{label:'在售',value:1},{label:'售罄',value:2},{label:'已交付',value:3}]" />
@@ -428,7 +436,8 @@ const initForm = () => ({
   propertyCompany:'',parkTotal:0,parkSellNum:0,parkRatio:'',facadeMaterial:'',selfHoldRate:0,
   buildArea:0,landArea:0,houseTotal:0,plotRatio:0,greenRate:0,projectCompany:'',brandList:'',
   landPrice:0,landUnitPrice:0,landBuyDate:'',
-  eduSupport:'',trafficSupport:'',medicalSupport:'',businessSupport:'',viewSupport:'',sort:0,landNo:'',landId:null
+  eduSupport:'',trafficSupport:'',medicalSupport:'',businessSupport:'',viewSupport:'',
+  advantage:'',disadvantage:'',sort:0,landNo:'',landId:null
 })
 const form = reactive(initForm())
 
