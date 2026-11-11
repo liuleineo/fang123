@@ -9,7 +9,7 @@
               <Table2 class="w-6 h-6 text-[var(--color-primary)]" />
               新盘信息
             </h1>
-            <p class="text-sm text-[var(--color-text-tertiary)] mt-1">杭州新盘关键信息一览，共 {{ total }} 个楼盘</p>
+            <p class="text-sm text-[var(--color-text-tertiary)] mt-1">杭州新盘关键信息一览，共 {{ total }} 个{{ salesStatusLabel }}楼盘</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -33,7 +33,7 @@
 
         <div v-else-if="!list.length" class="py-16 text-center">
           <p class="text-sm text-[var(--color-text-tertiary)]">暂无符合条件的楼盘</p>
-          <t-button v-if="keyword || district || salesStatus" variant="text" theme="primary" class="!mt-2"
+          <t-button v-if="keyword || district || salesStatus !== '1'" variant="text" theme="primary" class="!mt-2"
                     @click="resetFilter">清空筛选</t-button>
         </div>
 
@@ -155,7 +155,7 @@ const size = ref(20)
 const loading = ref(false)
 const keyword = ref('')
 const district = ref('')
-const salesStatus = ref('')
+const salesStatus = ref('1')  // 默认只看在售楼盘
 const districts = ref([])
 
 const districtOptions = computed(() => districts.value.map(d => ({ label: d, value: d })))
@@ -167,6 +167,11 @@ const salesStatusOptions = [
   { label: '售罄', value: '2' },
   { label: '已交付', value: '3' },
 ]
+
+/** 副标题用：当前状态下显示「共 N 个在售楼盘」 */
+const salesStatusLabel = computed(() =>
+  salesStatusOptions.find(o => o.value === salesStatus.value)?.label || ''
+)
 
 async function fetchFilters() {
   try {
@@ -204,7 +209,7 @@ function onFilterChange() {
 function resetFilter() {
   keyword.value = ''
   district.value = ''
-  salesStatus.value = ''
+  salesStatus.value = '1'
   onFilterChange()
 }
 
