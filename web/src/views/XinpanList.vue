@@ -37,34 +37,49 @@
         <template v-else>
           <div class="hidden sm:block overflow-x-auto">
             <table class="xinpan-table">
+              <colgroup>
+                <col class="c-district" />
+                <col class="c-name" />
+                <col class="c-plate" />
+                <col class="c-brand" />
+                <col class="c-area" />
+                <col class="c-price" />
+                <col class="c-total" />
+                <col class="c-fee" />
+                <col />
+                <col />
+              </colgroup>
               <thead>
                 <tr>
-                  <th class="w-[80px]">区域</th>
-                  <th class="w-[170px]">楼盘名称</th>
-                  <th class="w-[90px]">板块</th>
-                  <th class="w-[140px]">开发商品牌</th>
-                  <th class="w-[100px]">面积段</th>
-                  <th class="w-[120px]">单价</th>
-                  <th class="w-[110px]">总价范围</th>
-                  <th class="w-[130px]">物业费</th>
-                  <th class="min-w-[220px]">优点</th>
-                  <th class="min-w-[220px]">缺点</th>
+                  <th>区域</th>
+                  <th>楼盘名称</th>
+                  <th>板块</th>
+                  <th>开发商品牌</th>
+                  <th>面积段</th>
+                  <th>单价</th>
+                  <th>总价范围</th>
+                  <th>物业费</th>
+                  <th>优点</th>
+                  <th>缺点</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="lp in list" :key="lp.id">
-                  <td>{{ lp.district || '-' }}</td>
+                  <td class="whitespace-nowrap">{{ lp.district || '-' }}</td>
                   <td>
-                    <router-link :to="`/loupan/${lp.encodedId}`" class="name-link">
+                    <router-link :to="`/loupan/${lp.encodedId}`" class="name-link block truncate"
+                                 :title="lp.projectName">
                       {{ lp.projectName }}
                     </router-link>
                   </td>
-                  <td>{{ lp.plate || '-' }}</td>
-                  <td class="text-[13px]">{{ lp.brandList || '-' }}</td>
+                  <td class="truncate" :title="lp.plate || ''">{{ lp.plate || '-' }}</td>
+                  <td>
+                    <p class="cell-brand" :title="lp.brandList || ''">{{ lp.brandList || '-' }}</p>
+                  </td>
                   <td>{{ areaText(lp) }}</td>
                   <td class="price">{{ unitPriceText(lp) }}</td>
                   <td class="price">{{ totalPriceText(lp) }}</td>
-                  <td class="text-[13px]">{{ feeText(lp) }}</td>
+                  <td class="text-[13px] whitespace-nowrap">{{ feeText(lp) }}</td>
                   <td class="align-top">
                     <p class="cell-text" :title="lp.advantage">{{ lp.advantage || '-' }}</p>
                   </td>
@@ -229,17 +244,27 @@ onMounted(() => {
 <style scoped>
 .xinpan-table {
   width: 100%;
-  min-width: 1400px;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
   color: var(--color-text-primary);
 }
+/* 列宽：8 个固定列 + 优点/缺点均分剩余空间，容器内不产生横向滚动 */
+.xinpan-table .c-district { width: 70px; }
+.xinpan-table .c-name { width: 176px; }
+.xinpan-table .c-plate { width: 92px; }
+.xinpan-table .c-brand { width: 118px; }
+.xinpan-table .c-area { width: 88px; }
+.xinpan-table .c-price { width: 106px; }
+.xinpan-table .c-total { width: 110px; }
+.xinpan-table .c-fee { width: 134px; }
+
 .xinpan-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 12px 14px;
+  padding: 12px 10px;
   text-align: left;
   font-size: 13px;
   font-weight: 600;
@@ -249,10 +274,56 @@ onMounted(() => {
   white-space: nowrap;
 }
 .xinpan-table tbody td {
-  padding: 12px 14px;
+  padding: 12px 10px;
   border-bottom: 1px solid #f2f4f7;
   vertical-align: middle;
   line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xinpan-table th:first-child,
+.xinpan-table td:first-child {
+  padding-left: 16px;
+}
+.xinpan-table th:last-child,
+.xinpan-table td:last-child {
+  padding-right: 16px;
+}
+
+/* 1024–1279：收紧列宽与字号，保证 PC 端仍无横向滚动 */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .xinpan-table {
+    font-size: 13px;
+  }
+  .xinpan-table .c-district { width: 60px; }
+  .xinpan-table .c-name { width: 140px; }
+  .xinpan-table .c-plate { width: 86px; }
+  .xinpan-table .c-brand { width: 100px; }
+  .xinpan-table .c-area { width: 82px; }
+  .xinpan-table .c-price { width: 100px; }
+  .xinpan-table .c-total { width: 104px; }
+  .xinpan-table .c-fee { width: 132px; }
+  .xinpan-table thead th,
+  .xinpan-table tbody td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .xinpan-table th:first-child,
+  .xinpan-table td:first-child {
+    padding-left: 12px;
+  }
+  .xinpan-table th:last-child,
+  .xinpan-table td:last-child {
+    padding-right: 14px;
+  }
+}
+
+/* 平板（<1024）：列太多，保留横向滚动 + 提示 */
+@media (max-width: 1023px) {
+  .xinpan-table {
+    table-layout: auto;
+    min-width: 980px;
+  }
 }
 .xinpan-table tbody tr:hover td {
   background: #f7faff;
@@ -277,6 +348,17 @@ onMounted(() => {
 .cell-text {
   font-size: 13px;
   color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+}
+/* 品牌可能多个（如「滨江集团/绿城中国」），最多两行 */
+.cell-brand {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
