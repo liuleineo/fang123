@@ -2,6 +2,7 @@ package com.fang123.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fang123.common.DistrictOrder;
 import com.fang123.common.IdObfuscator;
 import com.fang123.common.Result;
 import com.fang123.dto.TupaiLandPublicVO;
@@ -53,7 +54,8 @@ public class LoupanPublicController {
             @RequestParam(required = false) Integer houseType,
             @RequestParam(required = false) Integer decorateType,
             @RequestParam(required = false) String salesStatus,
-            @RequestParam(required = false) Boolean light) {
+            @RequestParam(required = false) Boolean light,
+            @RequestParam(required = false) Boolean orderByDistrict) {
         LambdaQueryWrapper<Loupan> w = new LambdaQueryWrapper<>();
         if (Boolean.TRUE.equals(light)) {
             // 精简模式：只查询地图/列表所需字段，减少传输
@@ -79,7 +81,12 @@ public class LoupanPublicController {
                     .map(Integer::parseInt).toList();
             w.in(Loupan::getSalesStatus, statusList);
         }
-        w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
+        if (Boolean.TRUE.equals(orderByDistrict)) {
+            // 新盘信息等表格页：按行政区（官方区划顺序）分组，同区内仍按权重、创建时间倒序
+            w.last(DistrictOrder.orderByClause("district", "sort DESC, create_time DESC"));
+        } else {
+            w.orderByDesc(Loupan::getSort).orderByDesc(Loupan::getCreateTime);
+        }
         Page<Loupan> result = loupanService.page(new Page<>(page, size), w);
         result.getRecords().forEach(lp -> lp.setEncodedId(IdObfuscator.encode(lp.getId())));
         return Result.success(result);
@@ -234,7 +241,9 @@ public class LoupanPublicController {
     @GetMapping("/api/public/loupan-filters")
     public Result<Map<String, Object>> filters() {
         List<Loupan> list = loupanService.list();
-        List<String> districts = list.stream().map(Loupan::getDistrict).filter(StringUtils::hasText).distinct().sorted().toList();
+        // 行政区按官方区划顺序返回，与列表排序保持一致
+        List<String> districts = DistrictOrder.sorted(
+                list.stream().map(Loupan::getDistrict).filter(StringUtils::hasText).distinct().toList());
         List<String> plates = list.stream().map(Loupan::getPlate).filter(StringUtils::hasText).distinct().sorted().toList();
         return Result.success(Map.of("districts", districts, "plates", plates));
     }

@@ -15,6 +15,8 @@
           <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <t-select v-model="district" :options="districtOptions" placeholder="全部区域" clearable
                       class="!w-32" @change="onFilterChange" />
+            <t-select v-model="salesStatus" :options="salesStatusOptions" placeholder="全部状态" clearable
+                      class="!w-32" @change="onFilterChange" />
             <t-input v-model="keyword" placeholder="搜索楼盘 / 品牌" clearable class="!w-48"
                      @enter="onFilterChange" @clear="onFilterChange">
               <template #prefix-icon><Search class="w-4 h-4" /></template>
@@ -31,7 +33,8 @@
 
         <div v-else-if="!list.length" class="py-16 text-center">
           <p class="text-sm text-[var(--color-text-tertiary)]">暂无符合条件的楼盘</p>
-          <t-button v-if="keyword || district" variant="text" theme="primary" class="!mt-2" @click="resetFilter">清空筛选</t-button>
+          <t-button v-if="keyword || district || salesStatus" variant="text" theme="primary" class="!mt-2"
+                    @click="resetFilter">清空筛选</t-button>
         </div>
 
         <template v-else>
@@ -76,7 +79,7 @@
                   <td>
                     <p class="cell-brand" :title="lp.brandList || ''">{{ lp.brandList || '-' }}</p>
                   </td>
-                  <td>{{ areaText(lp) }}</td>
+                  <td class="whitespace-nowrap">{{ areaText(lp) }}</td>
                   <td class="price">{{ unitPriceText(lp) }}</td>
                   <td class="price">{{ totalPriceText(lp) }}</td>
                   <td class="text-[13px] whitespace-nowrap">{{ feeText(lp) }}</td>
@@ -152,9 +155,18 @@ const size = ref(20)
 const loading = ref(false)
 const keyword = ref('')
 const district = ref('')
+const salesStatus = ref('')
 const districts = ref([])
 
 const districtOptions = computed(() => districts.value.map(d => ({ label: d, value: d })))
+
+// 销售状态：0 待售 / 1 在售 / 2 售罄 / 3 已交付（与 Loupan.salesStatus 一致）
+const salesStatusOptions = [
+  { label: '在售', value: '1' },
+  { label: '待售', value: '0' },
+  { label: '售罄', value: '2' },
+  { label: '已交付', value: '3' },
+]
 
 async function fetchFilters() {
   try {
@@ -168,9 +180,11 @@ async function fetchFilters() {
 async function fetchList() {
   loading.value = true
   try {
-    const params = { page: page.value, size: size.value }
+    // orderByDistrict：按杭州行政区官方顺序分组展示
+    const params = { page: page.value, size: size.value, orderByDistrict: true }
     if (keyword.value) params.keyword = keyword.value
     if (district.value) params.district = district.value
+    if (salesStatus.value !== '') params.salesStatus = salesStatus.value
     const r = await request.get('/public/loupans', { params })
     list.value = r?.records || []
     total.value = r?.total || 0
@@ -190,6 +204,7 @@ function onFilterChange() {
 function resetFilter() {
   keyword.value = ''
   district.value = ''
+  salesStatus.value = ''
   onFilterChange()
 }
 
@@ -255,7 +270,7 @@ onMounted(() => {
 .xinpan-table .c-name { width: 176px; }
 .xinpan-table .c-plate { width: 92px; }
 .xinpan-table .c-brand { width: 118px; }
-.xinpan-table .c-area { width: 88px; }
+.xinpan-table .c-area { width: 94px; }
 .xinpan-table .c-price { width: 106px; }
 .xinpan-table .c-total { width: 110px; }
 .xinpan-table .c-fee { width: 134px; }
@@ -299,7 +314,7 @@ onMounted(() => {
   .xinpan-table .c-name { width: 140px; }
   .xinpan-table .c-plate { width: 86px; }
   .xinpan-table .c-brand { width: 100px; }
-  .xinpan-table .c-area { width: 82px; }
+  .xinpan-table .c-area { width: 86px; }
   .xinpan-table .c-price { width: 100px; }
   .xinpan-table .c-total { width: 104px; }
   .xinpan-table .c-fee { width: 132px; }
