@@ -165,7 +165,7 @@ const salesStatusOptions = [
   { label: '在售', value: '1' },
   { label: '待售', value: '0' },
   { label: '售罄', value: '2' },
-  { label: '已交付', value: '3' },
+ 
 ]
 
 /** 副标题用：当前状态下显示「共 N 个在售楼盘」 */
