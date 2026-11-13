@@ -615,6 +615,7 @@ CREATE TABLE `real_deal_info` (
   `community_name` varchar(128) NOT NULL DEFAULT '' COMMENT '小区名称',
   `room_no` varchar(64) NOT NULL DEFAULT '' COMMENT '房号',
   `house_area` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '房间面积，单位m2',
+  `listing_price` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '挂牌价，单位万元',
   `deal_price` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '成交价格，单位万元',
   `remark` varchar(512) NOT NULL DEFAULT '' COMMENT '备注（是否带车位等信息）',
   `yfyj` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '一手买入价格，手工录入一房一价，单位万元',

@@ -19,6 +19,8 @@ public class AiParseRealDealResult {
         private String roomNo;
         /** 房源面积，㎡ */
         private Double houseArea;
+        /** 挂牌价，万元（可选） */
+        private Double listingPrice;
         /** 成交价格，万元 */
         private Double dealPrice;
         /** 备注（是否带车位等） */

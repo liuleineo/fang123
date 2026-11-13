@@ -21,6 +21,8 @@ public class RealDealInfo implements Serializable {
     private String communityName;
     private String roomNo;
     private BigDecimal houseArea;
+    /** 挂牌价，单位万元 */
+    private BigDecimal listingPrice;
     private BigDecimal dealPrice;
     private String remark;
     private BigDecimal yfyj;

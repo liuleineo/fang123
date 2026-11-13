@@ -122,7 +122,8 @@ public class RealDealInfoController {
 
             // 定位表头列（容忍不同表头命名，取首个命中列）
             int dealDateCol = -1, districtCol = -1, plateCol = -1, communityCol = -1,
-                    roomCol = -1, areaCol = -1, priceCol = -1, yfyjCol = -1, loupanCol = -1, remarkCol = -1;
+                    roomCol = -1, areaCol = -1, listingCol = -1, priceCol = -1, yfyjCol = -1,
+                    loupanCol = -1, remarkCol = -1;
             if (holder.header != null) {
                 for (Map.Entry<Integer, String> e : holder.header.entrySet()) {
                     String h = e.getValue() == null ? "" : e.getValue().trim();
@@ -134,6 +135,7 @@ public class RealDealInfoController {
                     else if (communityCol < 0 && h.contains("小区")) communityCol = col;
                     else if (roomCol < 0 && (h.contains("房号") || h.contains("门牌") || h.contains("室号"))) roomCol = col;
                     else if (areaCol < 0 && h.contains("面积")) areaCol = col;
+                    else if (listingCol < 0 && (h.contains("挂牌") || h.contains("报价"))) listingCol = col;
                     else if (priceCol < 0 && (h.contains("成交价") || h.contains("成交总价") || h.contains("成交金额"))) priceCol = col;
                     else if (yfyjCol < 0 && (h.contains("一手") || h.contains("买入") || h.contains("一房一价"))) yfyjCol = col;
                     else if (loupanCol < 0 && (h.toLowerCase().contains("loupan") || h.contains("楼盘ID") || h.contains("楼盘id"))) loupanCol = col;
@@ -141,7 +143,7 @@ public class RealDealInfoController {
                 }
             }
             if (communityCol < 0 || dealDateCol < 0) {
-                return Result.badRequest("未找到“小区名称 / 成交日期”列，模板表头示例：成交日期|行政区|板块|小区名称|房号|面积|成交价|一手买入价|楼盘ID|备注");
+                return Result.badRequest("未找到“小区名称 / 成交日期”列，模板表头示例：成交日期|行政区|板块|小区名称|房号|面积|挂牌价|成交价|一手买入价|楼盘ID|备注");
             }
 
             int successCount = 0, failedCount = 0;
@@ -165,16 +167,19 @@ public class RealDealInfoController {
                 }
                 // 可选数值列：非空但解析失败则整行记错
                 String[] nums = {
-                        cell(row, areaCol), cell(row, priceCol), cell(row, yfyjCol), cell(row, loupanCol)
+                        cell(row, areaCol), cell(row, listingCol), cell(row, priceCol),
+                        cell(row, yfyjCol), cell(row, loupanCol)
                 };
-                BigDecimal area = parseNum(nums[0]), price = parseNum(nums[1]), yfyj = parseNum(nums[2]);
-                Long loupanId = parseLongId(nums[3]);
+                BigDecimal area = parseNum(nums[0]), listing = parseNum(nums[1]), price = parseNum(nums[2]),
+                        yfyj = parseNum(nums[3]);
+                Long loupanId = parseLongId(nums[4]);
                 if ((!nums[0].isEmpty() && area == null)
-                        || (!nums[1].isEmpty() && price == null)
-                        || (!nums[2].isEmpty() && yfyj == null)
-                        || (!nums[3].isEmpty() && loupanId == null)) {
+                        || (!nums[1].isEmpty() && listing == null)
+                        || (!nums[2].isEmpty() && price == null)
+                        || (!nums[3].isEmpty() && yfyj == null)
+                        || (!nums[4].isEmpty() && loupanId == null)) {
                     failedCount++;
-                    errors.add(Map.of("row", rowNo, "msg", "面积/成交价/一手价需为数字，楼盘ID需为整数"));
+                    errors.add(Map.of("row", rowNo, "msg", "面积/挂牌价/成交价/一手价需为数字，楼盘ID需为整数"));
                     continue;
                 }
 
@@ -185,6 +190,7 @@ public class RealDealInfoController {
                 d.setDistrict(opt(row, districtCol));
                 d.setPlate(opt(row, plateCol));
                 d.setHouseArea(area);
+                d.setListingPrice(listing);
                 d.setDealPrice(price);
                 d.setYfyj(yfyj);
                 d.setLoupanId(loupanId);

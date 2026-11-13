@@ -23,6 +23,7 @@
         <template #dealPrice="{ row }"><span class="text-[var(--color-danger)] font-medium">{{ row.dealPrice }}万</span></template>
         <template #dealUnitPrice="{ row }"><span>{{ (row.dealPrice!=null && row.houseArea) ? (Number(row.dealPrice)*10000/Number(row.houseArea)).toFixed(0)+'元/㎡' : '-' }}</span></template>
         <template #houseArea="{ row }"><span>{{ row.houseArea }}㎡</span></template>
+        <template #listingPrice="{ row }"><span v-if="row.listingPrice" class="text-[var(--color-text-secondary)]">{{ row.listingPrice }}万</span><span v-else class="text-xs text-gray-300">-</span></template>
         <template #yfyj="{ row }"><span v-if="row.yfyj" class="text-[var(--color-primary)]">{{ row.yfyj }}万</span><span v-else class="text-xs text-gray-300">-</span></template>
         <template #loupanId="{ row }">
           <span v-if="row.loupanId" class="flex flex-col leading-tight">
@@ -55,14 +56,15 @@
         <t-form-item label="房号"><t-input v-model="form.roomNo" /></t-form-item>
         <div class="grid grid-cols-2 gap-3">
           <t-form-item label="房间面积（㎡）"><t-input-number v-model="form.houseArea" :min="0" :decimal-places="2" /></t-form-item>
-          <t-form-item label="成交价格（万元）"><t-input-number v-model="form.dealPrice" :min="0" :decimal-places="2" /></t-form-item>
+          <t-form-item label="挂牌价（万元）"><t-input-number v-model="form.listingPrice" :min="0" :decimal-places="2" /></t-form-item>
         </div>
         <div class="grid grid-cols-2 gap-3">
+          <t-form-item label="成交价格（万元）"><t-input-number v-model="form.dealPrice" :min="0" :decimal-places="2" /></t-form-item>
           <t-form-item label="一手买入价（万元）"><t-input-number v-model="form.yfyj" :min="0" :decimal-places="2" /></t-form-item>
-          <t-form-item label="楼盘ID（匹配loupan表）">
-            <t-select v-model="form.loupanId" filterable clearable placeholder="选择或输入楼盘" :options="loupanOpts" class="w-full" />
-          </t-form-item>
         </div>
+        <t-form-item label="楼盘ID（匹配loupan表）">
+          <t-select v-model="form.loupanId" filterable clearable placeholder="选择或输入楼盘" :options="loupanOpts" class="w-full" />
+        </t-form-item>
         <t-form-item label="备注（是否带车位等）"><t-input v-model="form.remark" /></t-form-item>
         <t-button block theme="primary" :loading="saving" @click="save">保存</t-button>
       </t-form>
@@ -118,16 +120,19 @@
                 <t-input-number v-model="aiFields.houseArea" :min="0" :decimal-places="2" class="w-full" />
               </div>
               <div>
-                <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">成交价格（万元）</label>
-                <t-input-number v-model="aiFields.dealPrice" :min="0" :decimal-places="2" class="w-full" />
+                <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">挂牌价（万元）</label>
+                <t-input-number v-model="aiFields.listingPrice" :min="0" :decimal-places="2" class="w-full" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
+                <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">成交价格（万元）</label>
+                <t-input-number v-model="aiFields.dealPrice" :min="0" :decimal-places="2" class="w-full" />
+              </div>
+              <div>
                 <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">一手买入价（万元）</label>
                 <t-input-number v-model="aiFields.yfyj" :min="0" :decimal-places="2" class="w-full" />
               </div>
-              <div></div>
             </div>
             <div>
               <label class="text-xs text-[var(--color-text-tertiary)] block mb-1">备注（是否带车位等）</label>
@@ -145,8 +150,8 @@
     <!-- Excel 批量导入真实成交 -->
     <t-dialog v-model:visible="excelVisible" header="Excel 批量导入真实成交" width="560px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-3">
-        <t-alert theme="info" message="上传 Excel 文件（.xlsx/.xls），第一行为表头。必填列：『小区名称』『成交日期』；其余选填：行政区、板块、房号、面积、成交价、一手买入价、楼盘ID、备注。成交日期支持 2026-08-06 等格式。" />
-        <div class="text-xs text-[var(--color-text-tertiary)]">模板表头示例：成交日期 | 行政区 | 板块 | 小区名称 | 房号 | 面积 | 成交价 | 一手买入价 | 楼盘ID | 备注</div>
+        <t-alert theme="info" message="上传 Excel 文件（.xlsx/.xls），第一行为表头。必填列：『小区名称』『成交日期』；其余选填：行政区、板块、房号、面积、挂牌价、成交价、一手买入价、楼盘ID、备注。成交日期支持 2026-08-06 等格式。" />
+        <div class="text-xs text-[var(--color-text-tertiary)]">模板表头示例：成交日期 | 行政区 | 板块 | 小区名称 | 房号 | 面积 | 挂牌价 | 成交价 | 一手买入价 | 楼盘ID | 备注</div>
         <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg py-8 cursor-pointer hover:border-[var(--color-primary)] transition-colors">
           <input type="file" accept=".xlsx,.xls" class="hidden" @change="onExcelFileChange" />
           <FileSpreadsheet class="w-10 h-10 text-gray-300 mb-2" />
@@ -227,6 +232,7 @@ function confirmAiFill() {
     communityName: f.communityName || '',
     roomNo: f.roomNo || '',
     houseArea: f.houseArea ?? null,
+    listingPrice: f.listingPrice ?? null,
     dealPrice: f.dealPrice ?? null,
     dealDate: f.dealDate || '',
     district: f.district || '',
@@ -287,7 +293,7 @@ async function startExcelImport() {
 
 const initForm = () => ({
   dealDate:'', district:'', plate:'', communityName:'', roomNo:'',
-  houseArea:null, dealPrice:null, remark:'', yfyj:null, loupanId:null
+  houseArea:null, listingPrice:null, dealPrice:null, remark:'', yfyj:null, loupanId:null
 })
 const form = reactive(initForm())
 
@@ -304,6 +310,7 @@ const cols = [
   {colKey:'communityName',title:'小区名称',width:140,ellipsis:true},
   {colKey:'roomNo',title:'房号',width:80,ellipsis:true},
   {colKey:'houseArea',title:'面积',width:90},
+  {colKey:'listingPrice',title:'挂牌价',width:100},
   {colKey:'dealUnitPrice',title:'成交单价',width:110},
   {colKey:'dealPrice',title:'成交价',width:100},
   {colKey:'yfyj',title:'一手价',width:100},

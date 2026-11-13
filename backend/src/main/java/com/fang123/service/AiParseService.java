@@ -1,7 +1,9 @@
 package com.fang123.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fang123.config.AiProperties;
 import com.fang123.config.TokenHubProperties;
 import com.fang123.dto.AiParseHuxingResult;
@@ -709,6 +711,7 @@ public class AiParseService {
                 "communityName": "小区名称（如：潮映华岸府），无法确定则null",
                 "roomNo": "房号（如：2-1-602），无法确定则null",
                 "houseArea": "房源面积，㎡，纯数字，无法确定则null",
+                "listingPrice": "挂牌价格（业主挂牌价），万元，纯数字，若文本包含否则null",
                 "dealPrice": "成交价格，万元，纯数字，无法确定则null",
                 "remark": "备注（如：带双车位、含车位等），无则null",
                 "dealDate": "成交日期，YYYY-MM-DD格式（如文本是8.6则补全年份，如2026-08-06），无法确定则null",
@@ -721,11 +724,12 @@ public class AiParseService {
 
             规则：
             1. 只返回这个JSON结构，必须包含"fields"字段，不要有任何其他文字
-            2. 只提取上述字段，不要返回挂牌价格、维护门店、完整地址等其他无关信息
+            2. 只提取上述字段，不要返回维护门店、完整地址等其他无关信息
             3. 无法确定的字段值设为null
             4. 数字型字段只返回数字，严格去掉任何单位（元、万、㎡等）
             5. 成交价格如果包含备注（如"1950万带双车位"），把数字放入dealPrice，备注文字放入remark
             6. communityName 从地址中提取小区名，roomNo 提取房号
+            7. listingPrice 为挂牌价（"挂牌价格/挂牌价/报价/委托价"），dealPrice 为最终成交价，两者不要混淆；文本无挂牌价时 listingPrice 为 null
 
             用户提供的成交播报文本：
             """;
@@ -740,11 +744,13 @@ public class AiParseService {
         String prompt = REAL_DEAL_PARSE_PROMPT + text;
         try {
             String content = callTokenHub(prompt, "房产成交信息提取助手");
-            AiParseRealDealResult result = objectMapper.readValue(content, AiParseRealDealResult.class);
+            JsonNode root = objectMapper.readTree(content);
+            normalizeRealDealNumbers(root);
+            AiParseRealDealResult result = objectMapper.treeToValue(root, AiParseRealDealResult.class);
             // 兼容：若AI未返回fields包装，直接把整个内容当字段对象
             if (result.getFields() == null) {
                 AiParseRealDealResult.RealDealFields fields =
-                        objectMapper.readValue(content, AiParseRealDealResult.RealDealFields.class);
+                        objectMapper.treeToValue(root, AiParseRealDealResult.RealDealFields.class);
                 if (fields != null && fields.getCommunityName() != null) {
                     result.setFields(fields);
                 }
@@ -753,6 +759,32 @@ public class AiParseService {
             return result;
         } catch (Exception e) {
             throw new RuntimeException("AI解析失败: " + e.getMessage());
+        }
+    }
+
+    /** 真实成交的数值字段：AI 可能返回「2180万」这类字符串，统一去单位转为数字 */
+    private static final List<String> REAL_DEAL_NUM_FIELDS =
+            List.of("houseArea", "listingPrice", "dealPrice", "yfyj", "loupanId");
+
+    private void normalizeRealDealNumbers(JsonNode root) {
+        if (root == null) return;
+        JsonNode fields = root.has("fields") && root.get("fields").isObject() ? root.get("fields") : root;
+        if (!(fields instanceof ObjectNode obj)) return;
+        for (String key : REAL_DEAL_NUM_FIELDS) {
+            JsonNode v = obj.get(key);
+            if (v == null || !v.isTextual()) continue;
+            String raw = v.asText();
+            if (raw.isBlank() || "null".equalsIgnoreCase(raw)) {
+                obj.putNull(key);
+                continue;
+            }
+            if ("loupanId".equals(key)) {
+                Long id = toLong(raw);
+                if (id == null) obj.putNull(key); else obj.put(key, id);
+            } else {
+                BigDecimal num = toDecimal(raw);
+                if (num == null) obj.putNull(key); else obj.put(key, num);
+            }
         }
     }
 
