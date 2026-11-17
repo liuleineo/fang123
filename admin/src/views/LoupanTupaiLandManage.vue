@@ -29,6 +29,8 @@
           <t-space size="small">
             <a v-if="row.resourceId" :href="landDetailUrl(row)" target="_blank" rel="noopener noreferrer"
                class="text-xs text-[var(--color-primary)] hover:underline whitespace-nowrap">查看地块</a>
+            <t-button v-if="row.resourceId" variant="text" theme="primary" size="small"
+                      :loading="refreshingId === row.id" @click="refreshLand(row)">更新</t-button>
             <t-button variant="text" theme="primary" size="small" @click="openEdit(row)">编辑</t-button>
             <t-popconfirm content="确定删除？" @confirm="del(row.id)"><t-button variant="text" theme="danger" size="small">删除</t-button></t-popconfirm>
           </t-space>
@@ -197,7 +199,7 @@ const cols = [
   {colKey:'premiumRate',title:'溢价率',width:80},
   {colKey:'dealDate',title:'成交日期',width:110},
   {colKey:'createTime',title:'创建时间',width:160},
-  {colKey:'operation',title:'操作',width:170,fixed:'right'},
+  {colKey:'operation',title:'操作',width:210,fixed:'right'},
 ]
 
 /** 浙江自然资源交易平台的地块详情页（按 resourceId 跳转） */
@@ -252,6 +254,20 @@ async function save(){
   try{if(isEdit.value){await request.put(`/admin/tupai-lands/${editId.value}`,form);MessagePlugin.success('已更新')}else{await request.post('/admin/tupai-lands',form);MessagePlugin.success('已创建')}drawer.value=false;fetchData()}catch(e){}finally{saving.value=false}
 }
 async function del(id){await request.delete(`/admin/tupai-lands/${id}`);MessagePlugin.success('已删除');fetchData()}
+
+// ===== 通过 resourceId 从交易平台更新地块 =====
+const refreshingId = ref(null)
+async function refreshLand(row){
+  if(!row.resourceId){ MessagePlugin.warning('该地块没有 resourceId，无法更新'); return }
+  refreshingId.value = row.id
+  try{
+    await request.post(`/admin/tupai-lands/${row.id}/refresh`, null, { timeout: 60000 })
+    MessagePlugin.success('已从交易平台更新地块数据')
+    fetchData()
+  }catch(e){
+    MessagePlugin.error('更新失败：' + (e.response?.data?.msg || e.message || '请稍后重试'))
+  }finally{ refreshingId.value = null }
+}
 
 // ===== AI 新建地块 =====
 const aiVisible = ref(false); const aiTab = ref('upload')

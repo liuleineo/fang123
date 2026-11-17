@@ -59,19 +59,49 @@ public class TupaiResourceService {
         return result;
     }
 
+    /**
+     * 通过 resourceId 刷新本地已存在的地块：平台数据覆盖业务字段，保留本地维护的关联楼盘、板块、排序
+     *
+     * @return 更新后的地块
+     */
+    public LoupanTupaiLand refreshByResourceId(String resourceId) {
+        LoupanTupaiLand existing = tupaiLandService.lambdaQuery()
+                .eq(LoupanTupaiLand::getResourceId, resourceId)
+                .one();
+        if (existing == null) throw new IllegalArgumentException("本地未找到该 resourceId 对应的地块");
+
+        LoupanTupaiLand fresh = parseResource(resourceId);
+        // 保留本地维护字段，避免被平台数据清空
+        fresh.setId(existing.getId());
+        fresh.setLoupanId(existing.getLoupanId());
+        fresh.setPlate(existing.getPlate());
+        fresh.setSort(existing.getSort());
+        fresh.setDeleted(existing.getDeleted());
+        tupaiLandService.updateById(fresh);
+        log.info("Tupai resource {} refreshed: {}", resourceId, fresh.getLandName());
+        return tupaiLandService.getById(existing.getId());
+    }
+
     private boolean fetchOne(String resourceId) {
+        // 先查重，避免已存在时仍去请求平台
+        if (tupaiLandService.lambdaQuery().eq(LoupanTupaiLand::getResourceId, resourceId).count() > 0) {
+            log.info("Tupai resource {} already exists, skip", resourceId);
+            return false;
+        }
+        LoupanTupaiLand entity = parseResource(resourceId);
+        tupaiLandService.save(entity);
+        log.info("Tupai resource {} created: {}", resourceId, entity.getLandName());
+        return true;
+    }
+
+    /** 拉取并解析平台数据，构建完整实体（不落库） */
+    private LoupanTupaiLand parseResource(String resourceId) {
         // 1. 获取详情
         String detailUrl = String.format(DETAIL_URL, resourceId);
         String detailJson = restTemplate.getForObject(detailUrl, String.class);
         JsonNode root = parseJson(detailJson);
         JsonNode data = root.get("data");
         if (data == null || data.isNull()) throw new RuntimeException("接口返回无数据");
-
-        // 检查 resourceId 是否已存在
-        if (tupaiLandService.lambdaQuery().eq(LoupanTupaiLand::getResourceId, resourceId).count() > 0) {
-            log.info("Tupai resource {} already exists, skip", resourceId);
-            return false;
-        }
 
         // 2. 获取位置示意图
         String imageUrl = null;
@@ -153,10 +183,7 @@ public class TupaiResourceService {
         entity.setLongitude(lng);
         entity.setLatitude(lat);
         entity.setSort(0);
-
-        tupaiLandService.save(entity);
-        log.info("Tupai resource {} created: {}", resourceId, entity.getLandName());
-        return true;
+        return entity;
     }
 
     private JsonNode parseJson(String json) {

@@ -73,6 +73,21 @@ public class LoupanTupaiLandController {
         catch (Exception e) { return Result.error(500, "AI解析失败：" + e.getMessage()); }
     }
 
+    /** 通过记录上的 resourceId 从平台刷新地块数据（覆盖平台字段，保留关联楼盘/板块/排序） */
+    @PostMapping("/api/admin/tupai-lands/{id}/refresh")
+    public Result<LoupanTupaiLand> refresh(@PathVariable Long id) {
+        LoupanTupaiLand entity = tupaiLandService.getById(id);
+        if (entity == null) return Result.notFound("地块不存在");
+        if (!StringUtils.hasText(entity.getResourceId())) {
+            return Result.badRequest("该地块没有 resourceId，无法更新");
+        }
+        try {
+            return Result.success("更新成功", tupaiResourceService.refreshByResourceId(entity.getResourceId()));
+        } catch (Exception e) {
+            return Result.error(500, "更新失败：" + e.getMessage());
+        }
+    }
+
     /** 通过 resourceId 从浙江自然资源交易平台拉取地块信息 */
     @PostMapping("/api/admin/tupai-lands/fetch-by-resource")
     public Result<Map<String, Object>> fetchByResourceId(@RequestBody Map<String, List<String>> body) {
