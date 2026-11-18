@@ -122,7 +122,7 @@
     <!-- AI 新建户型对话框 -->
     <t-dialog v-model:visible="aiVisible" header="AI 新建户型" width="680px" :footer="false" :close-on-overlay-click="false">
       <div class="space-y-4">
-        <t-alert theme="info" message="上传户型资料图片（如户型图、户型列表等），AI 将自动识别并提取多个户型信息。一次可录入多个户型。" />
+        <t-alert theme="info" message="上传户型资料图片（支持一张长图里含多个户型卡片），AI 会拆分识别出每一条户型，可逐条修改后批量录入。户型图（平面图）不会被识别录入，保存后可在列表中补充。" />
         
         <t-form label-align="top">
           <t-form-item label="关联楼盘ID">
@@ -132,7 +132,7 @@
 
         <t-tabs v-model="aiTab">
           <t-tab-panel value="upload" label="上传图片">
-            <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="5" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 5 张" />
+            <t-upload v-model="aiFiles" :request-method="aiUploadDummy" :max="10" multiple accept="image/*" theme="image" :auto-upload="false" tips="支持 JPG/PNG/WebP，最多 10 张；一张长图可包含多个户型" />
           </t-tab-panel>
           <t-tab-panel value="paste" label="粘贴图片">
             <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors" @paste.prevent="onPaste" tabindex="0">
@@ -154,36 +154,57 @@
           </t-button>
         </div>
 
-        <!-- 结果列表 -->
-        <div v-if="aiResult" class="border rounded-lg p-4 bg-gray-50 max-h-[400px] overflow-y-auto">
-          <h3 class="font-semibold mb-2">识别到 {{ aiResult.huxings?.length || 0 }} 个户型</h3>
+        <!-- 结果列表：逐条可编辑，勾选后批量录入 -->
+        <div v-if="aiResult" class="border rounded-lg p-4 bg-gray-50 max-h-[460px] overflow-y-auto">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold">识别到 {{ aiResult.huxings?.length || 0 }} 个户型，已选 {{ aiSelected.length }} 个</h3>
+            <t-button variant="text" size="small" theme="primary" @click="toggleAiAll">
+              {{ aiSelected.length === (aiResult.huxings?.length || 0) ? '取消全选' : '全选' }}
+            </t-button>
+          </div>
           <t-collapse class="mb-3">
             <t-collapse-panel header="OCR 原始识别文本">
               <pre class="text-xs text-gray-600 whitespace-pre-wrap max-h-[200px] overflow-y-auto">{{ aiResult.ocrText }}</pre>
             </t-collapse-panel>
           </t-collapse>
           <t-checkbox-group v-model="aiSelected">
-            <div v-for="(hx,i) in aiResult.huxings" :key="i" class="flex items-center gap-3 p-3 border rounded-lg mb-2 bg-white">
-              <t-checkbox :value="i" />
-              <div class="flex-1 text-sm space-y-1">
-                <div><span class="font-bold">{{ hx.huxingName||'未命名' }}</span>
-                  <span class="text-gray-400 ml-2">{{ hx.area }}㎡</span>
-                  <span v-if="hx.roomNum" class="text-gray-400 ml-1">{{ hx.roomNum }}室{{ hx.hallNum||0 }}厅{{ hx.toiletNum||0 }}卫</span>
+            <div v-for="(hx,i) in aiResult.huxings" :key="i" class="flex items-start gap-3 p-3 border rounded-lg mb-2 bg-white">
+              <t-checkbox :value="i" class="mt-5" />
+              <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div class="col-span-2">
+                  <label class="text-[11px] text-[var(--color-text-tertiary)]">户型名称</label>
+                  <t-input v-model="hx.huxingName" size="small" placeholder="如 B2-1" />
                 </div>
-                <div class="flex flex-wrap gap-1 text-xs text-gray-500">
-                  <span v-if="hx.orientation">{{ hx.orientation }}</span>
-                  <span v-if="hx.floorType">{{ ['高层','小高层','洋房','叠墅','排屋'][hx.floorType] }}</span>
-                  <span v-if="hx.unitPrice">{{ hx.unitPrice }}元/㎡</span>
-                  <span v-if="hx.totalPriceStart">{{ hx.totalPriceStart }}-{{ hx.totalPriceEnd }}万</span>
+                <div>
+                  <label class="text-[11px] text-[var(--color-text-tertiary)]">建筑面积(㎡)</label>
+                  <t-input-number v-model="hx.area" size="small" :min="0" :decimal-places="1" class="w-full" />
+                </div>
+                <div>
+                  <label class="text-[11px] text-[var(--color-text-tertiary)]">套内面积(㎡)</label>
+                  <t-input-number v-model="hx.insideArea" size="small" :min="0" :decimal-places="1" class="w-full" />
+                </div>
+                <div>
+                  <label class="text-[11px] text-[var(--color-text-tertiary)]">室 / 厅 / 卫</label>
+                  <div class="flex gap-1">
+                    <t-input-number v-model="hx.roomNum" size="small" :min="0" class="w-full" />
+                    <t-input-number v-model="hx.hallNum" size="small" :min="0" class="w-full" />
+                    <t-input-number v-model="hx.toiletNum" size="small" :min="0" class="w-full" />
+                  </div>
+                </div>
+                <div class="col-span-2">
+                  <label class="text-[11px] text-[var(--color-text-tertiary)]">标签</label>
+                  <t-input v-model="hx.tag" size="small" placeholder="如：三开间朝南,南北通透" />
                 </div>
               </div>
             </div>
           </t-checkbox-group>
 
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-2">户型图不会被 AI 识别录入，保存后可在列表中逐条补充。</p>
+
           <div class="flex justify-end gap-2 pt-2 border-t mt-3">
             <t-button variant="outline" @click="aiVisible=false">关闭</t-button>
             <t-button theme="primary" :disabled="aiSelected.length===0" :loading="aiSaving" @click="batchCreateHuxings">
-              <Check class="w-4 h-4 mr-1" />批量创建选中户型 ({{ aiSelected.length }})
+              <Check class="w-4 h-4 mr-1" />批量录入选中户型 ({{ aiSelected.length }})
             </t-button>
           </div>
         </div>
@@ -348,29 +369,34 @@ async function startAiHuxingParse() {
   } finally { aiParsing.value = false }
 }
 
+function toggleAiAll() {
+  const n = aiResult.value?.huxings?.length || 0
+  aiSelected.value = aiSelected.value.length === n ? [] : Array.from({ length: n }, (_, i) => i)
+}
+
 async function batchCreateHuxings() {
-  if (!aiLoupanId.value) { MessagePlugin.warning('请先输入关联楼盘ID'); return }
+  if (!aiLoupanId.value) { MessagePlugin.warning('请先选择关联楼盘'); return }
   const selected = aiSelected.value.map(i => aiResult.value.huxings[i])
   if (selected.length === 0) { MessagePlugin.warning('请至少选择一个户型'); return }
   aiSaving.value = true
-  let created = 0
-  for (const hx of selected) {
-    try {
-      await request.post('/admin/huxings', {
-        ...hx,
-        loupanId: aiLoupanId.value,
-        sort: 0,
-        area: hx.area ? Math.round(Number(hx.area)) : 0,
-        insideArea: hx.insideArea ? Math.round(Number(hx.insideArea)) : 0,
-        insideAreaWithGift: hx.insideAreaWithGift ? Math.round(Number(hx.insideAreaWithGift)) : null,
-        unitPrice: hx.unitPrice ? Math.round(Number(hx.unitPrice)) : null
-      })
-      created++
-    } catch {}
-  }
-  aiSaving.value = false
-  MessagePlugin.success(`成功创建 ${created}/${selected.length} 个户型`)
-  if (created > 0) { aiVisible.value = false; fetchData() }
+  try {
+    // 一次请求录入所有选中户型，后端逐条返回结果
+    const res = await request.post('/admin/huxings/batch', {
+      loupanId: aiLoupanId.value,
+      huxings: selected
+    })
+    const created = res?.created || 0
+    const failed = res?.failed || 0
+    if (failed > 0) {
+      const detail = (res?.errors || []).map(e => `第${e.index + 1}条：${e.msg}`).join('；')
+      MessagePlugin.warning(`成功 ${created} 个，失败 ${failed} 个${detail ? '（' + detail + '）' : ''}`)
+    } else {
+      MessagePlugin.success(`成功录入 ${created} 个户型`)
+    }
+    if (created > 0) { aiVisible.value = false; fetchData() }
+  } catch (e) {
+    MessagePlugin.error('批量录入失败：' + (e.response?.data?.msg || e.message))
+  } finally { aiSaving.value = false }
 }
 
 async function save(){

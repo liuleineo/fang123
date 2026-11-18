@@ -25,6 +25,8 @@ public class AiParseHuxingResult {
         /** 建筑面积㎡，可能是小数 */
         private BigDecimal area;
         private BigDecimal insideArea;
+        /** 套内面积（含赠送）㎡，如「套内122.2㎡ 97%（含赠送）」中的 122.2 */
+        private BigDecimal insideAreaWithGift;
         private Integer roomNum;
         private Integer hallNum;
         private Integer toiletNum;

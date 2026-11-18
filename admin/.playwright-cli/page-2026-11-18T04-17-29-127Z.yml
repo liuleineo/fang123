@@ -1,0 +1,195 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: "N"
+      - generic [ref=e7]: fang123 Admin
+    - navigation [ref=e8]:
+      - generic [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+        - generic [ref=e15]: 仪表盘
+      - generic [ref=e16] [cursor=pointer]:
+        - img [ref=e17]
+        - generic [ref=e20]: 访问统计
+      - generic [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e26]: 楼盘管理
+      - generic [ref=e27] [cursor=pointer]:
+        - img [ref=e28]
+        - generic [ref=e31]: 土拍地块
+      - generic [ref=e32] [cursor=pointer]:
+        - img [ref=e33]
+        - generic [ref=e37]: 楼盘户型
+      - generic [ref=e38] [cursor=pointer]:
+        - img [ref=e39]
+        - generic [ref=e43]: 媒体素材
+      - generic [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+        - generic [ref=e48]: 预售证
+      - generic [ref=e49] [cursor=pointer]:
+        - img [ref=e50]
+        - generic [ref=e53]: 楼盘动态
+      - generic [ref=e54] [cursor=pointer]:
+        - img [ref=e55]
+        - generic [ref=e57]: 一房一价
+      - generic [ref=e58] [cursor=pointer]:
+        - img [ref=e59]
+        - generic [ref=e62]: 学校
+      - generic [ref=e63] [cursor=pointer]:
+        - img [ref=e64]
+        - generic [ref=e69]: 真实成交
+      - generic [ref=e70] [cursor=pointer]:
+        - img [ref=e71]
+        - generic [ref=e74]: 客户管理
+      - generic [ref=e75] [cursor=pointer]:
+        - img [ref=e76]
+        - generic [ref=e78]: 管理员管理
+      - generic [ref=e79] [cursor=pointer]:
+        - img [ref=e80]
+        - generic [ref=e85]: 用户管理
+      - generic [ref=e86] [cursor=pointer]:
+        - img [ref=e87]
+        - generic [ref=e92]: 用户积分
+      - generic [ref=e93] [cursor=pointer]:
+        - img [ref=e94]
+        - generic [ref=e97]: 积分流水
+      - generic [ref=e98] [cursor=pointer]:
+        - img [ref=e99]
+        - generic [ref=e103]: 邀请管理
+      - generic [ref=e104] [cursor=pointer]:
+        - img [ref=e105]
+        - generic [ref=e108]: 任务管理
+      - generic [ref=e109] [cursor=pointer]:
+        - img [ref=e110]
+        - generic [ref=e114]: 审核订单
+      - generic [ref=e115] [cursor=pointer]:
+        - img [ref=e116]
+        - generic [ref=e118]: 打款日志
+      - generic [ref=e119] [cursor=pointer]:
+        - img [ref=e120]
+        - generic [ref=e122]: 套餐管理
+      - generic [ref=e123] [cursor=pointer]:
+        - img [ref=e124]
+        - generic [ref=e128]: 用户会员
+      - generic [ref=e129] [cursor=pointer]:
+        - img [ref=e130]
+        - generic [ref=e133]: 系统设置
+    - button [ref=e135]:
+      - img [ref=e136]
+  - generic [ref=e138]:
+    - banner [ref=e139]:
+      - navigation [ref=e141]:
+        - img [ref=e142]
+        - img [ref=e145]
+        - generic [ref=e147]: 楼盘户型
+      - generic [ref=e148]:
+        - button [ref=e149]:
+          - img [ref=e150]
+        - generic [ref=e154] [cursor=pointer]:
+          - generic [ref=e156]: A
+          - generic [ref=e157]: 未登录
+          - img [ref=e158]
+    - main [ref=e160]:
+      - generic [ref=e161]:
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - heading "楼盘户型" [level=1] [ref=e164]
+            - paragraph [ref=e165]: 管理楼盘下的户型信息
+          - generic [ref=e166]:
+            - button "新建户型" [ref=e167] [cursor=pointer]:
+              - generic [ref=e168]:
+                - img [ref=e169]
+                - text: 新建户型
+            - button "AI新建户型" [ref=e170] [cursor=pointer]:
+              - generic [ref=e171]:
+                - img [ref=e172]
+                - text: AI新建户型
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - generic [ref=e177]:
+              - img [ref=e179]
+              - textbox "搜索户型名称" [ref=e182]
+            - generic [ref=e183]:
+              - button [ref=e184] [cursor=pointer]:
+                - img [ref=e185]
+              - textbox "楼盘ID" [ref=e188]
+              - button [ref=e189] [cursor=pointer]:
+                - img [ref=e190]
+            - button "搜索" [ref=e193] [cursor=pointer]:
+              - generic [ref=e194]:
+                - img [ref=e195]
+                - text: 搜索
+            - button "重置" [ref=e198] [cursor=pointer]:
+              - generic [ref=e199]: 重置
+          - generic [ref=e200]:
+            - table [ref=e202]:
+              - rowgroup [ref=e218]:
+                - row "ID 楼盘ID 户型名称 户型图 标准户型图 面积(㎡) 居室 朝向 产品类型 单价 样板间 排序 创建时间 操作" [ref=e219]:
+                  - columnheader "ID" [ref=e220]:
+                    - generic [ref=e221]: ID
+                  - columnheader "楼盘ID" [ref=e222]:
+                    - generic [ref=e223]: 楼盘ID
+                  - columnheader "户型名称" [ref=e224]:
+                    - generic [ref=e225]: 户型名称
+                  - columnheader "户型图" [ref=e226]:
+                    - generic [ref=e227]: 户型图
+                  - columnheader "标准户型图" [ref=e228]:
+                    - generic [ref=e229]: 标准户型图
+                  - columnheader "面积(㎡)" [ref=e230]:
+                    - generic [ref=e231]: 面积(㎡)
+                  - columnheader "居室" [ref=e232]:
+                    - generic [ref=e233]: 居室
+                  - columnheader "朝向" [ref=e234]:
+                    - generic [ref=e235]: 朝向
+                  - columnheader "产品类型" [ref=e236]:
+                    - generic [ref=e237]: 产品类型
+                  - columnheader "单价" [ref=e238]:
+                    - generic [ref=e239]: 单价
+                  - columnheader "样板间" [ref=e240]:
+                    - generic [ref=e241]: 样板间
+                  - columnheader "排序" [ref=e242]:
+                    - generic [ref=e243]: 排序
+                  - columnheader "创建时间" [ref=e244]:
+                    - generic [ref=e245]: 创建时间
+                  - columnheader "操作" [ref=e246]:
+                    - generic [ref=e247]: 操作
+              - rowgroup [ref=e248]:
+                - row "暂无数据" [ref=e249]:
+                  - cell "暂无数据" [ref=e250]:
+                    - generic [ref=e251]: 暂无数据
+            - generic [ref=e254]:
+              - generic [ref=e255]: 共 0 条数据
+              - generic [ref=e259]:
+                - textbox "请选择" [ref=e260] [cursor=pointer]: 10 条/页
+                - img [ref=e262]
+              - img [ref=e265]
+              - list [ref=e268]:
+                - listitem [ref=e269] [cursor=pointer]: "1"
+              - img [ref=e271]
+        - generic [ref=e278]:
+          - generic [ref=e279]:
+            - generic [ref=e280]: AI 新建户型
+            - img [ref=e282]
+          - generic [ref=e286]:
+            - generic [ref=e287]:
+              - img [ref=e289]
+              - generic [ref=e293]: 上传户型资料图片（支持一张长图里含多个户型卡片），AI 会拆分识别出每一条户型，可逐条修改后批量录入。户型图（平面图）不会被识别录入，保存后可在列表中补充。
+            - generic [ref=e295]:
+              - generic [ref=e296]: 关联楼盘ID
+              - generic [ref=e302]:
+                - textbox "输入楼盘名称或ID搜索选择，所有识别到的户型将关联到此楼盘" [ref=e303]
+                - img [ref=e305]
+            - generic [ref=e307]:
+              - generic [ref=e312]:
+                - generic [ref=e316] [cursor=pointer]: 上传图片
+                - generic [ref=e319] [cursor=pointer]: 粘贴图片
+              - generic [ref=e322]:
+                - list [ref=e324]:
+                  - listitem [ref=e325] [cursor=pointer]:
+                    - generic [ref=e326]:
+                      - img [ref=e327]
+                      - paragraph [ref=e330]: 点击上传图片
+                - generic [ref=e331]: 支持 JPG/PNG/WebP，最多 10 张；一张长图可包含多个户型
+            - button "开始识别" [disabled] [ref=e333]:
+              - generic [ref=e334]:
+                - img [ref=e335]
+                - text: 开始识别

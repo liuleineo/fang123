@@ -1,0 +1,637 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: "N"
+        - generic [ref=e7]: fang123 Admin
+      - navigation [ref=e8]:
+        - generic [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+          - generic [ref=e15]: 仪表盘
+        - generic [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+          - generic [ref=e20]: 访问统计
+        - generic [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+          - generic [ref=e26]: 楼盘管理
+        - generic [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e31]: 土拍地块
+        - generic [ref=e32] [cursor=pointer]:
+          - img [ref=e33]
+          - generic [ref=e37]: 楼盘户型
+        - generic [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e43]: 媒体素材
+        - generic [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e48]: 预售证
+        - generic [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+          - generic [ref=e53]: 楼盘动态
+        - generic [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e57]: 一房一价
+        - generic [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+          - generic [ref=e62]: 学校
+        - generic [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+          - generic [ref=e69]: 真实成交
+        - generic [ref=e70] [cursor=pointer]:
+          - img [ref=e71]
+          - generic [ref=e74]: 客户管理
+        - generic [ref=e75] [cursor=pointer]:
+          - img [ref=e76]
+          - generic [ref=e78]: 管理员管理
+        - generic [ref=e79] [cursor=pointer]:
+          - img [ref=e80]
+          - generic [ref=e85]: 用户管理
+        - generic [ref=e86] [cursor=pointer]:
+          - img [ref=e87]
+          - generic [ref=e92]: 用户积分
+        - generic [ref=e93] [cursor=pointer]:
+          - img [ref=e94]
+          - generic [ref=e97]: 积分流水
+        - generic [ref=e98] [cursor=pointer]:
+          - img [ref=e99]
+          - generic [ref=e103]: 邀请管理
+        - generic [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+          - generic [ref=e108]: 任务管理
+        - generic [ref=e109] [cursor=pointer]:
+          - img [ref=e110]
+          - generic [ref=e114]: 审核订单
+        - generic [ref=e115] [cursor=pointer]:
+          - img [ref=e116]
+          - generic [ref=e118]: 打款日志
+        - generic [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+          - generic [ref=e122]: 套餐管理
+        - generic [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e128]: 用户会员
+        - generic [ref=e129] [cursor=pointer]:
+          - img [ref=e130]
+          - generic [ref=e133]: 系统设置
+      - button [ref=e135]:
+        - img [ref=e136]
+    - generic [ref=e138]:
+      - banner [ref=e139]:
+        - navigation [ref=e141]:
+          - img [ref=e142]
+          - img [ref=e145]
+          - generic [ref=e147]: 楼盘户型
+        - generic [ref=e148]:
+          - button [ref=e149]:
+            - img [ref=e150]
+          - generic [ref=e154] [cursor=pointer]:
+            - generic [ref=e156]: A
+            - generic [ref=e157]: 未登录
+            - img [ref=e158]
+      - main [ref=e160]:
+        - generic [ref=e161]:
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - heading "楼盘户型" [level=1] [ref=e164]
+              - paragraph [ref=e165]: 管理楼盘下的户型信息
+            - generic [ref=e166]:
+              - button "新建户型" [ref=e167] [cursor=pointer]:
+                - generic [ref=e168]:
+                  - img [ref=e169]
+                  - text: 新建户型
+              - button "AI新建户型" [ref=e170] [cursor=pointer]:
+                - generic [ref=e171]:
+                  - img [ref=e172]
+                  - text: AI新建户型
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - generic [ref=e177]:
+                - img [ref=e179]
+                - textbox "搜索户型名称" [ref=e182]
+              - generic [ref=e183]:
+                - button [ref=e184] [cursor=pointer]:
+                  - img [ref=e185]
+                - textbox "楼盘ID" [ref=e188]
+                - button [ref=e189] [cursor=pointer]:
+                  - img [ref=e190]
+              - button "搜索" [ref=e193] [cursor=pointer]:
+                - generic [ref=e194]:
+                  - img [ref=e195]
+                  - text: 搜索
+              - button "重置" [ref=e198] [cursor=pointer]:
+                - generic [ref=e199]: 重置
+            - generic [ref=e200]:
+              - table [ref=e202]:
+                - rowgroup [ref=e218]:
+                  - row "ID 楼盘ID 户型名称 户型图 标准户型图 面积(㎡) 居室 朝向 产品类型 单价 样板间 排序 创建时间 操作" [ref=e219]:
+                    - columnheader "ID" [ref=e220]:
+                      - generic [ref=e221]: ID
+                    - columnheader "楼盘ID" [ref=e222]:
+                      - generic [ref=e223]: 楼盘ID
+                    - columnheader "户型名称" [ref=e224]:
+                      - generic [ref=e225]: 户型名称
+                    - columnheader "户型图" [ref=e226]:
+                      - generic [ref=e227]: 户型图
+                    - columnheader "标准户型图" [ref=e228]:
+                      - generic [ref=e229]: 标准户型图
+                    - columnheader "面积(㎡)" [ref=e230]:
+                      - generic [ref=e231]: 面积(㎡)
+                    - columnheader "居室" [ref=e232]:
+                      - generic [ref=e233]: 居室
+                    - columnheader "朝向" [ref=e234]:
+                      - generic [ref=e235]: 朝向
+                    - columnheader "产品类型" [ref=e236]:
+                      - generic [ref=e237]: 产品类型
+                    - columnheader "单价" [ref=e238]:
+                      - generic [ref=e239]: 单价
+                    - columnheader "样板间" [ref=e240]:
+                      - generic [ref=e241]: 样板间
+                    - columnheader "排序" [ref=e242]:
+                      - generic [ref=e243]: 排序
+                    - columnheader "创建时间" [ref=e244]:
+                      - generic [ref=e245]: 创建时间
+                    - columnheader "操作" [ref=e246]:
+                      - generic [ref=e247]: 操作
+                - rowgroup [ref=e248]:
+                  - row "暂无数据" [ref=e249]:
+                    - cell "暂无数据" [ref=e250]:
+                      - generic [ref=e251]: 暂无数据
+              - generic [ref=e254]:
+                - generic [ref=e255]: 共 0 条数据
+                - generic [ref=e259]:
+                  - textbox "请选择" [ref=e260] [cursor=pointer]: 10 条/页
+                  - img [ref=e262]
+                - img [ref=e265]
+                - list [ref=e268]:
+                  - listitem [ref=e269] [cursor=pointer]: "1"
+                - img [ref=e271]
+          - generic [ref=e278]:
+            - generic [ref=e279]:
+              - generic [ref=e280]: AI 新建户型
+              - img [ref=e282]
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - img [ref=e289]
+                - generic [ref=e293]: 上传户型资料图片（支持一张长图里含多个户型卡片），AI 会拆分识别出每一条户型，可逐条修改后批量录入。户型图（平面图）不会被识别录入，保存后可在列表中补充。
+              - generic [ref=e295]:
+                - generic [ref=e296]: 关联楼盘ID
+                - generic [ref=e302]:
+                  - textbox "输入楼盘名称或ID搜索选择，所有识别到的户型将关联到此楼盘" [active] [ref=e303]
+                  - img [ref=e305]
+              - generic [ref=e307]:
+                - generic [ref=e312]:
+                  - generic [ref=e316] [cursor=pointer]: 上传图片
+                  - generic [ref=e319] [cursor=pointer]: 粘贴图片
+                - generic [ref=e322]:
+                  - list [ref=e324]:
+                    - listitem [ref=e337] [cursor=pointer]:
+                      - generic [ref=e340]:
+                        - img [ref=e342]
+                        - img [ref=e350]
+                      - text: huxing.png
+                    - listitem [ref=e325] [cursor=pointer]:
+                      - generic [ref=e326]:
+                        - img [ref=e327]
+                        - paragraph [ref=e330]: 点击上传图片
+                  - generic [ref=e331]: 支持 JPG/PNG/WebP，最多 10 张；一张长图可包含多个户型
+              - button "开始识别" [ref=e333] [cursor=pointer]:
+                - generic [ref=e354]:
+                  - img [ref=e355]
+                  - text: 开始识别
+              - generic [ref=e357]:
+                - generic [ref=e358]:
+                  - heading "识别到 9 个户型，已选 9 个" [level=3] [ref=e359]
+                  - button "取消全选" [ref=e360] [cursor=pointer]:
+                    - generic [ref=e361]: 取消全选
+                - generic [ref=e365] [cursor=pointer]:
+                  - img [ref=e367]
+                  - text: OCR 原始识别文本
+                - group "checkbox-group" [ref=e369]:
+                  - generic [ref=e370]:
+                    - checkbox [checked] [ref=e372]
+                    - generic [ref=e374]:
+                      - generic [ref=e375]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e378]: B2-1
+                      - generic [ref=e379]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e380]:
+                          - button [ref=e381] [cursor=pointer]:
+                            - img [ref=e382]
+                          - textbox "请输入" [ref=e385]: "139.0"
+                          - button [ref=e386] [cursor=pointer]:
+                            - img [ref=e387]
+                      - generic [ref=e390]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e391]:
+                          - button [ref=e392] [cursor=pointer]:
+                            - img [ref=e393]
+                          - textbox "请输入" [ref=e396]: "122.2"
+                          - button [ref=e397] [cursor=pointer]:
+                            - img [ref=e398]
+                      - generic [ref=e401]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e402]:
+                          - generic [ref=e403]:
+                            - button [ref=e404] [cursor=pointer]:
+                              - img [ref=e405]
+                            - textbox "请输入" [ref=e408]: "4"
+                            - button [ref=e409] [cursor=pointer]:
+                              - img [ref=e410]
+                          - generic [ref=e413]:
+                            - button [ref=e414] [cursor=pointer]:
+                              - img [ref=e415]
+                            - textbox "请输入" [ref=e418]: "2"
+                            - button [ref=e419] [cursor=pointer]:
+                              - img [ref=e420]
+                          - generic [ref=e423]:
+                            - button [ref=e424] [cursor=pointer]:
+                              - img [ref=e425]
+                            - textbox "请输入" [ref=e428]: "2"
+                            - button [ref=e429] [cursor=pointer]:
+                              - img [ref=e430]
+                      - generic [ref=e433]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e436]: 畅舒,较亮
+                  - generic [ref=e437]:
+                    - checkbox [checked] [ref=e439]
+                    - generic [ref=e441]:
+                      - generic [ref=e442]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e445]: B2-1
+                      - generic [ref=e446]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e447]:
+                          - button [ref=e448] [cursor=pointer]:
+                            - img [ref=e449]
+                          - textbox "请输入" [ref=e452]: "139.0"
+                          - button [ref=e453] [cursor=pointer]:
+                            - img [ref=e454]
+                      - generic [ref=e457]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e458]:
+                          - button [ref=e459] [cursor=pointer]:
+                            - img [ref=e460]
+                          - textbox "请输入" [ref=e463]: "123.2"
+                          - button [ref=e464] [cursor=pointer]:
+                            - img [ref=e465]
+                      - generic [ref=e468]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e469]:
+                          - generic [ref=e470]:
+                            - button [ref=e471] [cursor=pointer]:
+                              - img [ref=e472]
+                            - textbox "请输入" [ref=e475]: "4"
+                            - button [ref=e476] [cursor=pointer]:
+                              - img [ref=e477]
+                          - generic [ref=e480]:
+                            - button [ref=e481] [cursor=pointer]:
+                              - img [ref=e482]
+                            - textbox "请输入" [ref=e485]: "2"
+                            - button [ref=e486] [cursor=pointer]:
+                              - img [ref=e487]
+                          - generic [ref=e490]:
+                            - button [ref=e491] [cursor=pointer]:
+                              - img [ref=e492]
+                            - textbox "请输入" [ref=e495]: "2"
+                            - button [ref=e496] [cursor=pointer]:
+                              - img [ref=e497]
+                      - generic [ref=e500]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e503]: 宽敞,暂无
+                  - generic [ref=e504]:
+                    - checkbox [checked] [ref=e506]
+                    - generic [ref=e508]:
+                      - generic [ref=e509]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e512]: C1-1
+                      - generic [ref=e513]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e514]:
+                          - button [ref=e515] [cursor=pointer]:
+                            - img [ref=e516]
+                          - textbox "请输入" [ref=e519]: "169.0"
+                          - button [ref=e520] [cursor=pointer]:
+                            - img [ref=e521]
+                      - generic [ref=e524]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e525]:
+                          - button [ref=e526] [cursor=pointer]:
+                            - img [ref=e527]
+                          - textbox "请输入" [ref=e530]: "157.8"
+                          - button [ref=e531] [cursor=pointer]:
+                            - img [ref=e532]
+                      - generic [ref=e535]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e536]:
+                          - generic [ref=e537]:
+                            - button [ref=e538] [cursor=pointer]:
+                              - img [ref=e539]
+                            - textbox "请输入" [ref=e542]: "5"
+                            - button [ref=e543] [cursor=pointer]:
+                              - img [ref=e544]
+                          - generic [ref=e547]:
+                            - button [ref=e548] [cursor=pointer]:
+                              - img [ref=e549]
+                            - textbox "请输入" [ref=e552]: "2"
+                            - button [ref=e553] [cursor=pointer]:
+                              - img [ref=e554]
+                          - generic [ref=e557]:
+                            - button [ref=e558] [cursor=pointer]:
+                              - img [ref=e559]
+                            - textbox "请输入" [ref=e562]: "3"
+                            - button [ref=e563] [cursor=pointer]:
+                              - img [ref=e564]
+                      - generic [ref=e567]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e570]: 豪华,较亮
+                  - generic [ref=e571]:
+                    - checkbox [checked] [ref=e573]
+                    - generic [ref=e575]:
+                      - generic [ref=e576]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e579]: B1-1
+                      - generic [ref=e580]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e581]:
+                          - button [ref=e582] [cursor=pointer]:
+                            - img [ref=e583]
+                          - textbox "请输入" [ref=e586]: "139.0"
+                          - button [ref=e587] [cursor=pointer]:
+                            - img [ref=e588]
+                      - generic [ref=e591]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e592]:
+                          - button [ref=e593] [cursor=pointer]:
+                            - img [ref=e594]
+                          - textbox "请输入" [ref=e597]: "123.0"
+                          - button [ref=e598] [cursor=pointer]:
+                            - img [ref=e599]
+                      - generic [ref=e602]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e603]:
+                          - generic [ref=e604]:
+                            - button [ref=e605] [cursor=pointer]:
+                              - img [ref=e606]
+                            - textbox "请输入" [ref=e609]: "4"
+                            - button [ref=e610] [cursor=pointer]:
+                              - img [ref=e611]
+                          - generic [ref=e614]:
+                            - button [ref=e615] [cursor=pointer]:
+                              - img [ref=e616]
+                            - textbox "请输入" [ref=e619]: "2"
+                            - button [ref=e620] [cursor=pointer]:
+                              - img [ref=e621]
+                          - generic [ref=e624]:
+                            - button [ref=e625] [cursor=pointer]:
+                              - img [ref=e626]
+                            - textbox "请输入" [ref=e629]: "2"
+                            - button [ref=e630] [cursor=pointer]:
+                              - img [ref=e631]
+                      - generic [ref=e634]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e637]: 宽敞
+                  - generic [ref=e638]:
+                    - checkbox [checked] [ref=e640]
+                    - generic [ref=e642]:
+                      - generic [ref=e643]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e646]: A1-1
+                      - generic [ref=e647]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e648]:
+                          - button [ref=e649] [cursor=pointer]:
+                            - img [ref=e650]
+                          - textbox "请输入" [ref=e653]: "128.0"
+                          - button [ref=e654] [cursor=pointer]:
+                            - img [ref=e655]
+                      - generic [ref=e658]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e659]:
+                          - button [ref=e660] [cursor=pointer]:
+                            - img [ref=e661]
+                          - textbox "请输入" [ref=e664]: "111.3"
+                          - button [ref=e665] [cursor=pointer]:
+                            - img [ref=e666]
+                      - generic [ref=e669]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e670]:
+                          - generic [ref=e671]:
+                            - button [ref=e672] [cursor=pointer]:
+                              - img [ref=e673]
+                            - textbox "请输入" [ref=e676]: "4"
+                            - button [ref=e677] [cursor=pointer]:
+                              - img [ref=e678]
+                          - generic [ref=e681]:
+                            - button [ref=e682] [cursor=pointer]:
+                              - img [ref=e683]
+                            - textbox "请输入" [ref=e686]: "2"
+                            - button [ref=e687] [cursor=pointer]:
+                              - img [ref=e688]
+                          - generic [ref=e691]:
+                            - button [ref=e692] [cursor=pointer]:
+                              - img [ref=e693]
+                            - textbox "请输入" [ref=e696]: "2"
+                            - button [ref=e697] [cursor=pointer]:
+                              - img [ref=e698]
+                      - generic [ref=e701]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e704]: 舒适
+                  - generic [ref=e705]:
+                    - checkbox [checked] [ref=e707]
+                    - generic [ref=e709]:
+                      - generic [ref=e710]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e713]: B1
+                      - generic [ref=e714]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e715]:
+                          - button [ref=e716] [cursor=pointer]:
+                            - img [ref=e717]
+                          - textbox "请输入" [ref=e720]: "139.0"
+                          - button [ref=e721] [cursor=pointer]:
+                            - img [ref=e722]
+                      - generic [ref=e725]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e726]:
+                          - button [ref=e727] [cursor=pointer]:
+                            - img [ref=e728]
+                          - textbox "请输入" [ref=e731]: "128.1"
+                          - button [ref=e732] [cursor=pointer]:
+                            - img [ref=e733]
+                      - generic [ref=e736]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e737]:
+                          - generic [ref=e738]:
+                            - button [ref=e739] [cursor=pointer]:
+                              - img [ref=e740]
+                            - textbox "请输入" [ref=e743]: "4"
+                            - button [ref=e744] [cursor=pointer]:
+                              - img [ref=e745]
+                          - generic [ref=e748]:
+                            - button [ref=e749] [cursor=pointer]:
+                              - img [ref=e750]
+                            - textbox "请输入" [ref=e753]: "2"
+                            - button [ref=e754] [cursor=pointer]:
+                              - img [ref=e755]
+                          - generic [ref=e758]:
+                            - button [ref=e759] [cursor=pointer]:
+                              - img [ref=e760]
+                            - textbox "请输入" [ref=e763]: "2"
+                            - button [ref=e764] [cursor=pointer]:
+                              - img [ref=e765]
+                      - generic [ref=e768]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e771]: 宽敞
+                  - generic [ref=e772]:
+                    - checkbox [checked] [ref=e774]
+                    - generic [ref=e776]:
+                      - generic [ref=e777]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e780]: C1
+                      - generic [ref=e781]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e782]:
+                          - button [ref=e783] [cursor=pointer]:
+                            - img [ref=e784]
+                          - textbox "请输入" [ref=e787]: "169.0"
+                          - button [ref=e788] [cursor=pointer]:
+                            - img [ref=e789]
+                      - generic [ref=e792]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e793]:
+                          - button [ref=e794] [cursor=pointer]:
+                            - img [ref=e795]
+                          - textbox "请输入" [ref=e798]: "158.4"
+                          - button [ref=e799] [cursor=pointer]:
+                            - img [ref=e800]
+                      - generic [ref=e803]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e804]:
+                          - generic [ref=e805]:
+                            - button [ref=e806] [cursor=pointer]:
+                              - img [ref=e807]
+                            - textbox "请输入" [ref=e810]: "5"
+                            - button [ref=e811] [cursor=pointer]:
+                              - img [ref=e812]
+                          - generic [ref=e815]:
+                            - button [ref=e816] [cursor=pointer]:
+                              - img [ref=e817]
+                            - textbox "请输入" [ref=e820]: "2"
+                            - button [ref=e821] [cursor=pointer]:
+                              - img [ref=e822]
+                          - generic [ref=e825]:
+                            - button [ref=e826] [cursor=pointer]:
+                              - img [ref=e827]
+                            - textbox "请输入" [ref=e830]: "3"
+                            - button [ref=e831] [cursor=pointer]:
+                              - img [ref=e832]
+                      - generic [ref=e835]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e838]: 豪华
+                  - generic [ref=e839]:
+                    - checkbox [checked] [ref=e841]
+                    - generic [ref=e843]:
+                      - generic [ref=e844]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e847]: C2
+                      - generic [ref=e848]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e849]:
+                          - button [ref=e850] [cursor=pointer]:
+                            - img [ref=e851]
+                          - textbox "请输入" [ref=e854]: "169.0"
+                          - button [ref=e855] [cursor=pointer]:
+                            - img [ref=e856]
+                      - generic [ref=e859]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e860]:
+                          - button [ref=e861] [cursor=pointer]:
+                            - img [ref=e862]
+                          - textbox "请输入" [ref=e865]: "156.7"
+                          - button [ref=e866] [cursor=pointer]:
+                            - img [ref=e867]
+                      - generic [ref=e870]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e871]:
+                          - generic [ref=e872]:
+                            - button [ref=e873] [cursor=pointer]:
+                              - img [ref=e874]
+                            - textbox "请输入" [ref=e877]: "5"
+                            - button [ref=e878] [cursor=pointer]:
+                              - img [ref=e879]
+                          - generic [ref=e882]:
+                            - button [ref=e883] [cursor=pointer]:
+                              - img [ref=e884]
+                            - textbox "请输入" [ref=e887]: "2"
+                            - button [ref=e888] [cursor=pointer]:
+                              - img [ref=e889]
+                          - generic [ref=e892]:
+                            - button [ref=e893] [cursor=pointer]:
+                              - img [ref=e894]
+                            - textbox "请输入" [ref=e897]: "3"
+                            - button [ref=e898] [cursor=pointer]:
+                              - img [ref=e899]
+                      - generic [ref=e902]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e905]: 宽敞
+                  - generic [ref=e906]:
+                    - checkbox [checked] [ref=e908]
+                    - generic [ref=e910]:
+                      - generic [ref=e911]:
+                        - text: 户型名称
+                        - textbox "如 B2-1" [ref=e914]: B2
+                      - generic [ref=e915]:
+                        - text: 建筑面积(㎡)
+                        - generic [ref=e916]:
+                          - button [ref=e917] [cursor=pointer]:
+                            - img [ref=e918]
+                          - textbox "请输入" [ref=e921]: "139.0"
+                          - button [ref=e922] [cursor=pointer]:
+                            - img [ref=e923]
+                      - generic [ref=e926]:
+                        - text: 套内面积(㎡)
+                        - generic [ref=e927]:
+                          - button [ref=e928] [cursor=pointer]:
+                            - img [ref=e929]
+                          - textbox "请输入" [ref=e932]: "124.0"
+                          - button [ref=e933] [cursor=pointer]:
+                            - img [ref=e934]
+                      - generic [ref=e937]:
+                        - text: 室 / 厅 / 卫
+                        - generic [ref=e938]:
+                          - generic [ref=e939]:
+                            - button [ref=e940] [cursor=pointer]:
+                              - img [ref=e941]
+                            - textbox "请输入" [ref=e944]: "4"
+                            - button [ref=e945] [cursor=pointer]:
+                              - img [ref=e946]
+                          - generic [ref=e949]:
+                            - button [ref=e950] [cursor=pointer]:
+                              - img [ref=e951]
+                            - textbox "请输入" [ref=e954]: "2"
+                            - button [ref=e955] [cursor=pointer]:
+                              - img [ref=e956]
+                          - generic [ref=e959]:
+                            - button [ref=e960] [cursor=pointer]:
+                              - img [ref=e961]
+                            - textbox "请输入" [ref=e964]: "2"
+                            - button [ref=e965] [cursor=pointer]:
+                              - img [ref=e966]
+                      - generic [ref=e969]:
+                        - text: 标签
+                        - textbox "如：三开间朝南,南北通透" [ref=e972]: 舒适
+                - paragraph [ref=e973]: 户型图不会被 AI 识别录入，保存后可在列表中逐条补充。
+                - generic [ref=e974]:
+                  - button "关闭" [ref=e975] [cursor=pointer]:
+                    - generic [ref=e976]: 关闭
+                  - button "批量录入选中户型 (9)" [ref=e977] [cursor=pointer]:
+                    - generic [ref=e978]:
+                      - img [ref=e979]
+                      - text: 批量录入选中户型 (9)
+  - list [ref=e987]:
+    - listitem "1 · 潮映杭园（钱塘区）" [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 1 · 潮映杭园（钱塘区）
+    - listitem "2 · 滨江兴耀.沐青云（滨江区）" [ref=e990] [cursor=pointer]:
+      - generic [ref=e991]: 2 · 滨江兴耀.沐青云（滨江区）
