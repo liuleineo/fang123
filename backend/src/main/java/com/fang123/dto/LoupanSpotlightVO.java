@@ -37,4 +37,6 @@ public class LoupanSpotlightVO {
     private LocalDate issueDate;
     /** 预售证编号（STR 格式，如"杭房预许字(2026)第00564号"） */
     private String permitNoStr;
+    /** 首页分组：presale=预售公示 / opening=最新开盘 / sort=排序权重 */
+    private String group;
 }

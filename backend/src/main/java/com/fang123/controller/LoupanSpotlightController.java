@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,10 @@ public class LoupanSpotlightController {
 
     public static final String TYPE_PRESALE = "presale";
     public static final String TYPE_OPENING = "opening";
+    /** 首页综合列表分组标识 */
+    private static final String GROUP_PRESALE = "presale";
+    private static final String GROUP_OPENING = "opening";
+    private static final String GROUP_SORT = "sort";
     /** 最新开盘：核发日期回溯统计的天数窗口（最近 7 天内取得预售证） */
     private static final int OPENING_WINDOW_DAYS = 7;
     /** 单页最大条数，避免一次返回过多数据 */
@@ -96,6 +102,75 @@ public class LoupanSpotlightController {
         data.put("records", all.subList(from, to));
         log.debug("[spotlight] list type={} total={} page={} size={}", type, all.size(), pageNum, pageSize);
         return Result.success(data);
+    }
+
+    /**
+     * 公开-首页楼盘列表：按「预售公示 → 最新开盘 → 排序权重(>0)从高到低」依次拼接。
+     *
+     * <p>同一楼盘只出现一次，优先级取靠前的分组；第三组仅包含在售且 sort &gt; 0 的楼盘。</p>
+     */
+    @GetMapping("/api/public/loupan-home")
+    public Result<Map<String, Object>> homeList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "12") Integer size) {
+        LocalDate today = LocalDate.now();
+
+        Map<Long, LoupanPresalePermit> presaleMap = permitMap(presalePermits(today));
+        Map<Long, LoupanPresalePermit> openingMap = permitMap(openingPermits(today));
+
+        List<LoupanSpotlightVO> all = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+
+        // 1. 预售公示（同一楼盘多张证时保留公示日期最靠前的一张）
+        for (Loupan lp : matchedLoupans(new ArrayList<>(presaleMap.values()))) {
+            if (seen.add(lp.getId())) {
+                LoupanSpotlightVO vo = toVO(lp, presaleMap.get(lp.getId()));
+                vo.setGroup(GROUP_PRESALE);
+                all.add(vo);
+            }
+        }
+        // 2. 最新开盘（排除已在预售公示中的楼盘）
+        for (Loupan lp : matchedLoupans(new ArrayList<>(openingMap.values()))) {
+            if (seen.add(lp.getId())) {
+                LoupanSpotlightVO vo = toVO(lp, openingMap.get(lp.getId()));
+                vo.setGroup(GROUP_OPENING);
+                all.add(vo);
+            }
+        }
+        // 3. 排序权重 > 0 的在售楼盘，按 sort 从高到低
+        List<Loupan> sorted = loupanService.list(new LambdaQueryWrapper<Loupan>()
+                .eq(Loupan::getSalesStatus, 1)
+                .gt(Loupan::getSort, 0)
+                .orderByDesc(Loupan::getSort)
+                .orderByDesc(Loupan::getCreateTime));
+        for (Loupan lp : sorted) {
+            if (seen.add(lp.getId())) {
+                LoupanSpotlightVO vo = toVO(lp, null);
+                vo.setGroup(GROUP_SORT);
+                all.add(vo);
+            }
+        }
+
+        int pageNum = (page == null || page < 1) ? 1 : page;
+        int pageSize = (size == null || size < 1) ? 12 : Math.min(size, MAX_PAGE_SIZE);
+        int from = Math.min((pageNum - 1) * pageSize, all.size());
+        int to = Math.min(from + pageSize, all.size());
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("total", all.size());
+        data.put("page", pageNum);
+        data.put("size", pageSize);
+        data.put("records", all.subList(from, to));
+        log.debug("[spotlight] home list total={} page={} size={}", all.size(), pageNum, pageSize);
+        return Result.success(data);
+    }
+
+    private Map<Long, LoupanPresalePermit> permitMap(List<LoupanPresalePermit> permits) {
+        Map<Long, LoupanPresalePermit> map = new LinkedHashMap<>();
+        permits.stream()
+                .filter(p -> p.getLoupanId() != null)
+                .forEach(p -> map.putIfAbsent(p.getLoupanId(), p));
+        return map;
     }
 
     /** 预售公示：正在公示期内（公示日期已开始 且 核发日期尚未到） */

@@ -72,7 +72,7 @@
     </section>
 
     <!-- 楼盘筛选 + 列表：已抽成公共组件，与独立页 /xinpan 共用 -->
-    <LoupanListSection ref="listRef" v-model:spotlight="spotlightType" :show-keyword="true" />
+    <LoupanListSection ref="listRef" v-model:spotlight="spotlightType" :show-keyword="true" :home-order="true" />
 
     <!-- CTA -->
     <section class="py-16 bg-gradient-to-r from-[#0052D9] to-[#366EF4]">

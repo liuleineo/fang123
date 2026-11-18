@@ -115,9 +115,12 @@
                   {{ lp.buildingTotal }}栋
                 </span>
               </div>
-              <!-- 板块模式：展示预售证关键日期 -->
-              <div v-if="spotlightType && (lp.publicityDate || lp.issueDate)" class="flex flex-wrap gap-1.5">
-                <span v-if="spotlightType === 'presale' && lp.publicityDate" class="px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-600">
+              <!-- 板块模式 / 首页分组：展示来源标签与预售证关键日期 -->
+              <div v-if="(spotlightType || lp.group) && (lp.group || lp.publicityDate || lp.issueDate)" class="flex flex-wrap gap-1.5">
+                <span v-if="lp.group === 'presale'" class="px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-600">预售公示</span>
+                <span v-if="lp.group === 'opening'" class="px-2 py-0.5 text-xs rounded bg-blue-50 text-[var(--color-primary)]">最新开盘</span>
+                <span v-if="lp.group === 'sort'" class="px-2 py-0.5 text-xs rounded bg-orange-50 text-orange-600">热门推荐</span>
+                <span v-if="(spotlightType === 'presale' || lp.group === 'presale') && lp.publicityDate" class="px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-600">
                   公示 {{ lp.publicityDate }}
                 </span>
                 <span v-if="lp.issueDate" class="px-2 py-0.5 text-xs rounded bg-blue-50 text-[var(--color-primary)]">
@@ -152,7 +155,9 @@ const props = defineProps({
   /** 当前板块模式：'' | 'presale' | 'opening'，与父组件双向绑定 */
   spotlight: { type: String, default: '' },
   /** 是否在筛选栏显示关键词搜索框（独立页面用） */
-  showKeyword: { type: Boolean, default: false }
+  showKeyword: { type: Boolean, default: false },
+  /** 首页模式：默认列表按「预售公示 → 最新开盘 → 排序权重(>0)」排列 */
+  homeOrder: { type: Boolean, default: false }
 })
 const emit = defineEmits(['update:spotlight'])
 
@@ -177,6 +182,9 @@ const houseTypeOpts = [
   { label: '住宅', value: 1 }, { label: '公寓', value: 2 }, { label: '商铺', value: 3 }, { label: '别墅', value: 4 }
 ]
 
+/** 是否处于筛选状态（有筛选时不走首页分组排序） */
+const hasFilter = computed(() => !!(keyword.value || filterDistrict.value || filterPlate.value || filterHouseType.value))
+
 const emptyText = computed(() => {
   if (spotlightType.value === 'presale') return '暂无公示中的楼盘'
   if (spotlightType.value === 'opening') return '近 7 天暂无新取证楼盘'
@@ -187,7 +195,15 @@ async function fetchData() {
   if (spotlightType.value) return fetchSpotlight()
   loading.value = true
   try {
-    const p = { page: pg.current, size: pg.pageSize, salesStatus: '1' }
+    const p = { page: pg.current, size: pg.pageSize }
+    // 首页默认视图：预售公示 → 最新开盘 → 排序权重(>0) 从高到低
+    if (props.homeOrder && !hasFilter.value) {
+      const r = await request.get('/public/loupan-home', { params: p })
+      loupanList.value = r?.records || []
+      total.value = r?.total || 0
+      return
+    }
+    p.salesStatus = '1'
     if (keyword.value) p.keyword = keyword.value
     if (filterDistrict.value) p.district = filterDistrict.value
     if (filterPlate.value) p.plate = filterPlate.value
