@@ -38,6 +38,7 @@ public class AiParseHuxingResult {
         private Integer totalPriceStart;
         private Integer totalPriceEnd;
         private Integer isShowHouse;
+        /** 户型标签：AI 不再识别，保留字段仅兼容历史结果，录入时忽略 */
         private String tag;
     }
 }

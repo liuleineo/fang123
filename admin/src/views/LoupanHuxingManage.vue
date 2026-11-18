@@ -191,15 +191,11 @@
                     <t-input-number v-model="hx.toiletNum" size="small" :min="0" class="w-full" />
                   </div>
                 </div>
-                <div class="col-span-2">
-                  <label class="text-[11px] text-[var(--color-text-tertiary)]">标签</label>
-                  <t-input v-model="hx.tag" size="small" placeholder="如：三开间朝南,南北通透" />
-                </div>
               </div>
             </div>
           </t-checkbox-group>
 
-          <p class="text-xs text-[var(--color-text-tertiary)] mb-2">户型图不会被 AI 识别录入，保存后可在列表中逐条补充。</p>
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-2">户型图、户型标签不会由 AI 识别录入，保存后可在列表中逐条补充。</p>
 
           <div class="flex justify-end gap-2 pt-2 border-t mt-3">
             <t-button variant="outline" @click="aiVisible=false">关闭</t-button>
@@ -376,7 +372,11 @@ function toggleAiAll() {
 
 async function batchCreateHuxings() {
   if (!aiLoupanId.value) { MessagePlugin.warning('请先选择关联楼盘'); return }
-  const selected = aiSelected.value.map(i => aiResult.value.huxings[i])
+  // 户型标签不由 AI 识别，提交时剔除 tag
+  const selected = aiSelected.value.map(i => {
+    const { tag, ...rest } = aiResult.value.huxings[i]
+    return rest
+  })
   if (selected.length === 0) { MessagePlugin.warning('请至少选择一个户型'); return }
   aiSaving.value = true
   try {

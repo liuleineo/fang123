@@ -1,0 +1,31 @@
+- generic [ref=e3]:
+  - generic [ref=e8]:
+    - generic [ref=e10]: 杭房
+    - heading "fang123 管理后台" [level=1] [ref=e11]
+    - paragraph [ref=e12]:
+      - text: 高效管理，简洁操作。
+      - text: 一站式数据管理平台，助力业务增长。
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - heading "账号登录" [level=2] [ref=e16]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: "* 用户名"
+          - generic [ref=e23]:
+            - img [ref=e25]
+            - textbox "请输入用户名" [ref=e28]
+        - generic [ref=e29]:
+          - generic [ref=e30]: "* 密码"
+          - generic [ref=e34]:
+            - img [ref=e36]
+            - textbox "请输入密码" [ref=e39]
+            - img [ref=e41] [cursor=pointer]
+        - generic [ref=e45]:
+          - generic [ref=e46] [cursor=pointer]:
+            - checkbox "记住密码" [ref=e47]
+            - generic [ref=e49]: 记住密码
+          - link "忘记密码？" [ref=e50] [cursor=pointer]:
+            - /url: "#"
+        - button "登 录" [ref=e51] [cursor=pointer]:
+          - generic [ref=e52]: 登 录
+    - paragraph [ref=e53]: © 2026 fang123. All rights reserved.

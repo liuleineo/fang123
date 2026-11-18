@@ -136,7 +136,8 @@ public class LoupanHuxingController {
         e.setTotalPriceStart(f.getTotalPriceStart());
         e.setTotalPriceEnd(f.getTotalPriceEnd());
         e.setIsShowHouse(f.getIsShowHouse() == null ? 0 : f.getIsShowHouse());
-        e.setTag(StringUtils.hasText(f.getTag()) ? f.getTag().trim() : "");
+        // 户型标签不由 AI 识别，留空待人工补充
+        e.setTag("");
         e.setSort(0);
         // 户型图不由 AI 识别，保存后由人工在列表中补充
         e.setHuxingImage("");
