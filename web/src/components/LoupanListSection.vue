@@ -193,6 +193,11 @@ const emptyText = computed(() => {
 
 async function fetchData() {
   if (spotlightType.value) return fetchSpotlight()
+  return fetchLoupanList()
+}
+
+/** 普通列表（含首页分组模式）；筛选条件变化时都走这里 */
+async function fetchLoupanList() {
   loading.value = true
   try {
     const p = { page: pg.current, size: pg.pageSize }
@@ -222,23 +227,29 @@ async function fetchFilters() {
   } catch {}
 }
 
-/** 预售公示 / 最新开盘 楼盘列表 */
-async function fetchSpotlight() {
+/**
+ * 预售公示 / 最新开盘 楼盘列表
+ *
+ * @param type 板块类型；必须显式传入。spotlightType 是依赖父组件 props 的 computed，
+ *             刚 emit 更新时同一 tick 内仍读到旧值（''），会导致请求 type 为空、后端报
+ *             「type 仅支持 presale / opening」。
+ */
+async function fetchSpotlight(type = spotlightType.value) {
   loading.value = true
   try {
     const r = await request.get('/public/loupan-spotlight', {
-      params: { type: spotlightType.value, page: pg.current, size: pg.pageSize }
+      params: { type, page: pg.current, size: pg.pageSize }
     })
     loupanList.value = r?.records || []
     total.value = r?.total || 0
   } catch {} finally { loading.value = false }
 }
 
-/** 手动搜索/筛选：退出板块模式，回到第一页 */
+/** 手动搜索/筛选：退出板块模式，回到第一页（直接请求普通列表，不读刚被重置的 computed） */
 function doSearch() {
   spotlightType.value = ''
   pg.current = 1
-  fetchData()
+  fetchLoupanList()
 }
 
 /** 供父组件调用：带关键词搜索 */
@@ -251,14 +262,14 @@ function toggleSpotlight(type) {
   if (spotlightType.value === type) return clearSpotlight()
   spotlightType.value = type
   pg.current = 1
-  fetchSpotlight()
+  fetchSpotlight(type)
   document.getElementById('list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function clearSpotlight() {
   spotlightType.value = ''
   pg.current = 1
-  fetchData()
+  fetchLoupanList()
 }
 
 function onPageChange() {
