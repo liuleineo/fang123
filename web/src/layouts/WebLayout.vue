@@ -29,24 +29,53 @@
         <!-- 右侧操作 -->
         <div class="flex items-center gap-3">
         
-          <!-- 已登录 -->
+          <!-- 已登录：我的（下拉收纳 客户管理/任务中心/我的任务/会员中心/个人中心） -->
           <template v-if="isLoggedIn">
-            <router-link to="/customers" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">客户管理</router-link>
-            <router-link to="/tasks" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">任务中心</router-link>
-            <router-link to="/my-tasks" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">我的任务</router-link>
-            <router-link to="/member" class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all">会员中心</router-link>
-            <router-link
-              to="/profile"
-              class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all"
-            >
-              <User class="w-4 h-4" />个人中心
-            </router-link>
-            <button
-              class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-sm text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] rounded-[var(--radius-btn)] hover:bg-gray-50 transition-all"
-              @click="handleLogout"
-            >
-              <LogOut class="w-4 h-4" />
-            </button>
+            <div ref="userMenuRef" class="relative hidden sm:block">
+              <button
+                class="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-[var(--radius-btn)] transition-all"
+                :class="userMenuOpen
+                  ? 'text-[var(--color-primary)] bg-blue-50/60'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-gray-50'"
+                @click="userMenuOpen = !userMenuOpen"
+              >
+                <User class="w-4 h-4" />
+                我的
+                <ChevronDown
+                  class="w-3.5 h-3.5 transition-transform duration-200"
+                  :class="userMenuOpen ? 'rotate-180' : ''"
+                />
+              </button>
+
+              <transition name="user-dropdown">
+                <div
+                  v-if="userMenuOpen"
+                  class="absolute right-0 top-[calc(100%+8px)] w-44 py-1.5 bg-white rounded-xl border border-gray-100 shadow-[0_8px_24px_rgba(0,0,0,0.08)] z-50"
+                >
+                  <router-link
+                    v-for="item in userMenuItems"
+                    :key="item.to"
+                    :to="item.to"
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
+                    :class="isMenuActive(item.to)
+                      ? 'text-[var(--color-primary)] bg-blue-50/60'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-blue-50/40'"
+                    @click="userMenuOpen = false"
+                  >
+                    <component :is="item.icon" class="w-4 h-4 shrink-0" />
+                    {{ item.label }}
+                  </router-link>
+                  <div class="my-1.5 border-t border-gray-100"></div>
+                  <button
+                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--color-danger)] hover:bg-red-50/60 transition-colors"
+                    @click="userMenuOpen = false; handleLogout()"
+                  >
+                    <LogOut class="w-4 h-4 shrink-0" />
+                    退出登录
+                  </button>
+                </div>
+              </transition>
+            </div>
           </template>
           <!-- 未登录 -->
           <template v-else>
@@ -89,16 +118,34 @@
             </a>
             <div class="border-t border-gray-50 pt-2 mt-1">
               <template v-if="isLoggedIn">
-                <router-link to="/customers" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">客户管理</router-link>
-                <router-link to="/tasks" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">任务中心</router-link>
-                <router-link to="/my-tasks" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">我的任务</router-link>
-                <router-link to="/member" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">会员中心</router-link>
-                <router-link to="/profile" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">
-                  个人中心
-                </router-link>
-                <button class="w-full text-left px-4 py-3 text-sm text-[var(--color-danger)] hover:bg-red-50/50 rounded-lg transition-colors" @click="handleLogout(); mobileMenuOpen = false">
-                  退出登录
+                <!-- 移动端「我的」折叠分组 -->
+                <button
+                  class="w-full flex items-center justify-between px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors"
+                  @click="mobileUserOpen = !mobileUserOpen"
+                >
+                  <span class="flex items-center gap-2">
+                    <User class="w-4 h-4" />我的
+                  </span>
+                  <ChevronDown
+                    class="w-4 h-4 transition-transform duration-200"
+                    :class="mobileUserOpen ? 'rotate-180' : ''"
+                  />
                 </button>
+                <div v-if="mobileUserOpen" class="pl-3 ml-4 border-l border-gray-100">
+                  <router-link
+                    v-for="item in userMenuItems"
+                    :key="item.to"
+                    :to="item.to"
+                    class="flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors"
+                    @click="mobileMenuOpen = false"
+                  >
+                    <component :is="item.icon" class="w-4 h-4 shrink-0" />
+                    {{ item.label }}
+                  </router-link>
+                  <button class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--color-danger)] hover:bg-red-50/50 rounded-lg transition-colors" @click="handleLogout(); mobileMenuOpen = false">
+                    <LogOut class="w-4 h-4 shrink-0" />退出登录
+                  </button>
+                </div>
               </template>
               <template v-else>
                 <router-link to="/login" class="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-blue-50/50 rounded-lg transition-colors" @click="mobileMenuOpen = false">
@@ -165,21 +212,62 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Menu, X, User, LogOut } from 'lucide-vue-next'
+import { Menu, X, User, LogOut, ChevronDown, Users, ListChecks, BadgeCheck, Crown } from 'lucide-vue-next'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const mobileMenuOpen = ref(false)
+const userMenuOpen = ref(false)
+const mobileUserOpen = ref(false)
+const userMenuRef = ref(null)
 const loggedIn = ref(!!localStorage.getItem('token'))
 
 const isLoggedIn = computed(() => loggedIn.value)
 
-// 监听路由变化，更新登录状态
+// 「我的」下拉菜单项：原平铺导航统一收纳至此
+const userMenuItems = [
+  { label: '客户管理', to: '/customers', icon: Users },
+  { label: '任务中心', to: '/tasks', icon: ListChecks },
+  { label: '我的任务', to: '/my-tasks', icon: BadgeCheck },
+  { label: '会员中心', to: '/member', icon: Crown },
+  { label: '个人中心', to: '/profile', icon: User }
+]
+
+function isMenuActive(to) {
+  return route.path === to || route.path.startsWith(to + '/')
+}
+
+// 监听路由变化，更新登录状态并关闭菜单
 watch(() => router.currentRoute.value.path, () => {
   loggedIn.value = !!localStorage.getItem('token')
+  userMenuOpen.value = false
+  mobileMenuOpen.value = false
+})
+
+// 点击外部 / 按 Esc 关闭下拉菜单
+function handleDocumentClick(e) {
+  if (userMenuOpen.value && userMenuRef.value && !userMenuRef.value.contains(e.target)) {
+    userMenuOpen.value = false
+  }
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Escape') {
+    userMenuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocumentClick)
+  document.removeEventListener('keydown', handleKeydown)
 })
 
 function handleLogout() {
@@ -199,3 +287,16 @@ const navItems = [
   { label: '学校地图', href: '/school-map' },
 ]
 </script>
+
+<style scoped>
+.user-dropdown-enter-active,
+.user-dropdown-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.user-dropdown-enter-from,
+.user-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+</style>
